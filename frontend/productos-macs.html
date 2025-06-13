@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gorras Macs - Macs Legacy</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/productos.css" />
+</head>
+<body>
+
+  <header>
+    <h1 class="logo">Macs</h1>
+    <nav>
+      <ul class="menu">
+        <li><a href="index.html#inicio">Inicio</a></li>
+        <li class="submenu-parent">
+          <a href="index.html#productos">Productos &#x25BE;</a>
+          <ul class="submenu">
+            <li class="submenu-category">Gorras
+              <ul>
+                <li><a href="productos-macs.html" class="menu-item">Macs</a></li>
+                <li><a href="#">Importadas</a></li>
+              </ul>
+            </li>
+            <li class="submenu-category">Sombreros
+              <ul>
+                <li><a href="#">QS</a></li>
+                <li><a href="#">Alone</a></li>
+                <li><a href="#">Safari</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li><a href="index.html#nosotros">Nosotros</a></li>
+        <li><a href="index.html#contacto">Contacto</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="productos-pagina">
+    <section id="productos-macs">
+      <h2>Gorras Macs</h2>
+      <div id="productos-container" class="productos-grid">
+        <!-- Los productos se cargarán aquí dinámicamente -->
+      </div>
+      <div class="ver-mas-container">
+        <button id="ver-mas-btn">Ver más</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Macs. Todos los derechos reservados.</p>
+  </footer>
+
+  <script src="js/productos.js"></script>
+</body>
+</html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productos - Macs</title>
+  <link rel="stylesheet" href="css/productos.css">
+</head>
+<body>
+
+  <!-- Menú principal -->
+  <header class="menu">
+    <nav>
+      <ul class="nav-list">
+        <li><a href="index.html">Inicio</a></li>
+        <li class="dropdown">
+          <a href="#">Productos</a>
+          <ul class="dropdown-menu">
+            <li><a href="#">Gorras - Macs</a></li>
+            <li><a href="#">Gorras - Importadas</a></li>
+            <li><a href="#">Sombreros - QS</a></li>
+            <li><a href="#">Sombreros - Alone</a></li>
+            <li><a href="#">Sombreros - Safari</a></li>
+          </ul>
+        </li>
+        <li><a href="#">Nosotros</a></li>
+        <li><a href="#">Contacto</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="main-container">
+      <h1 class="page-title">Gorras Macs</h1>
+      <div class="productos-grid" id="productos-container">
+          <!-- Los productos se cargarán aquí -->
+      </div>
+      <div class="ver-mas-container">
+          <button id="ver-mas-btn" class="btn-ver-mas">Ver más</button>
+      </div>
+  </main>
+
+  <script src="js/productos.js"></script>
+</body>
+</html>

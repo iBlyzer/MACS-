@@ -1,0 +1,362 @@
+/* Estilos generales del Menú (para mantener consistencia) */
+
+/* --- Estilos para la Página de Detalles del Producto --- */
+
+.detalle-producto-main {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 50px;
+    padding: 40px 20px;
+    max-width: 1300px;
+    margin: 40px auto;
+}
+
+/* Galería de Imágenes */
+.detalle-images-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 1px solid #e5e5e5;
+}
+
+/* Información del Producto */
+.detalle-info {
+    font-family: Arial, sans-serif;
+}
+
+.detalle-info .product-brand {
+    font-size: 0.9em;
+    color: #666;
+    margin: 0;
+}
+
+.detalle-info h1 {
+    font-size: 2.2em;
+    margin: 5px 0;
+    font-weight: bold;
+}
+
+.detalle-info .ref {
+    color: #888;
+    font-size: 0.9em;
+    margin-bottom: 20px;
+}
+
+.detalle-info .price {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #000;
+    margin: 20px 0;
+}
+
+/* Sección de Tallas */
+.sizes-section .section-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+}
+
+.size-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.size-box {
+    border: 1px solid #ccc;
+    padding: 12px 0;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.size-box:hover, .size-box.selected {
+    border-color: #000;
+    background-color: #fff;
+}
+
+/* Enlaces y Opciones Adicionales */
+.product-links {
+    display: flex;
+    gap: 20px;
+    margin: 20px 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+}
+
+.product-links a {
+    color: #000;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+
+.extra-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    background-color: #f7f7f7;
+    margin: 20px 0;
+    font-size: 0.9em;
+}
+
+.extra-option input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+
+.payment-info {
+    font-size: 0.9em;
+    margin: 20px 0;
+}
+
+.payment-info a {
+    color: #000;
+    font-weight: bold;
+}
+
+/* Botón de Agregar al Carrito */
+.add-to-cart-btn {
+    background-color: #000;
+    color: white;
+    border: none;
+    padding: 18px 25px;
+    cursor: pointer;
+    font-size: 1em;
+    width: 100%;
+    transition: background-color 0.3s;
+    text-transform: uppercase;
+}
+
+.add-to-cart-btn:hover {
+    background-color: #333;
+}
+
+/* --- Productos Relacionados --- */
+.related-products-section {
+    padding: 40px 20px;
+    max-width: 1300px;
+    margin: 40px auto;
+}
+
+.related-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.related-header h3 {
+    font-size: 1.5em;
+    margin: 0;
+}
+
+.related-nav .nav-arrow {
+    background: none;
+    border: 1px solid #ccc;
+    padding: 10px 15px;
+    cursor: pointer;
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+.nav-list li {
+  margin: 0 15px;
+  position: relative;
+}
+.nav-list a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 5px 0;
+}
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  background-color: #222;
+  list-style: none;
+  padding: 10px;
+  border-radius: 5px;
+}
+.dropdown:hover .dropdown-menu {
+  display: block;
+}
+.dropdown-menu li {
+  margin-bottom: 5px;
+}
+
+/* Layout Principal */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f2f2f2;
+  margin: 0;
+}
+
+.main-container {
+  max-width: 1200px;
+  margin: 2em auto;
+  padding: 0 2em;
+  background-color: white;
+  border-radius: 10px;
+  padding: 2em;
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 1.5em;
+  font-size: 2.2em;
+  color: #333;
+}
+
+/* Grid de Productos (3 columnas) */
+.productos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2em;
+}
+
+/* Tarjeta de Producto - Estilo clonado de index.html */
+.producto {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 1em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.producto:hover {
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  transform: translateY(-5px); /* Corregido para que suba */
+}
+
+/* Contenido de la Tarjeta */
+.producto img {
+  width: 100%;
+  height: 140px;
+  object-fit: contain;
+  user-select: none;
+  transition: opacity 0.3s ease; /* Transición para el fade-out */
+}
+
+.producto .marca,
+.producto h3,
+.producto .precio,
+.producto button {
+  transition: opacity 0.3s ease; /* Transición para el fade-out */
+}
+
+.producto:hover .marca,
+.producto:hover h3,
+.producto:hover .precio,
+.producto:hover button {
+  opacity: 0.1;
+}
+
+.producto .marca {
+  font-weight: 700;
+  color: #555;
+  font-size: 0.8em;
+  margin: 0.5em 0 0.2em 0;
+}
+
+.producto h3 {
+  font-size: 1em;
+  margin: 0.3em 0;
+  color: #222;
+}
+
+.producto .precio {
+  color: #b12704;
+  font-weight: 600;
+  margin-bottom: 0.8em;
+}
+
+.producto button {
+  background-color: #111;
+  color: white;
+  border: none;
+  padding: 0.6em 1.2em;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.producto button:hover {
+  background-color: #444;
+}
+
+/* Efecto Hover en Tarjeta - Clonado de index.html */
+.producto .overlay-text {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  background-color: rgba(17, 17, 17, 0.8);
+  color: white;
+  padding: 0.5em 1.2em;
+  border-radius: 5px;
+  font-weight: bold;
+  opacity: 0;
+  transition: 
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    top 0.3s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.producto:hover .overlay-text {
+  opacity: 1;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(1.1);
+  pointer-events: auto;
+}
+
+.producto .overlay-text:hover {
+  animation: bounce 0.6s;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  50% {
+    transform: translate(-50%, -60%) scale(1.2);
+  }
+}
+
+/* Botón Ver Más */
+.ver-mas-container {
+  text-align: center;
+  margin: 40px 0 20px 0;
+}
+
+.btn-ver-mas {
+  background-color: #111;
+  color: white;
+  border: 2px solid #111;
+  padding: 0.8em 2.5em;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+  font-size: 1em;
+}
+
+.btn-ver-mas:hover {
+  background-color: white;
+  color: #111;
+}

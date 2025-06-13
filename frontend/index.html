@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Macs - Gorras Urbanas</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <header>
+    <h1 class="logo">Macs</h1>
+    <nav>
+      <ul class="menu">
+        <li><a href="#inicio">Inicio</a></li>
+
+        <li class="submenu-parent">
+          <a href="#productos">Productos &#x25BE;</a>
+          <ul class="submenu">
+            <li class="submenu-category">Gorras
+              <ul>
+                <li><a href="productos-macs.html" class="menu-item">Macs</a></li>
+                <li><a href="#">Importadas</a></li>
+              </ul>
+            </li>
+            <li class="submenu-category">Sombreros
+              <ul>
+                <li><a href="#">QS</a></li>
+                <li><a href="#">Alone</a></li>
+                <li><a href="#">Safari</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+
+        <li><a href="#nosotros">Nosotros</a></li>
+        <li><a href="#contacto">Contacto</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section id="inicio">
+    <div class="slider-container">
+  <div class="slider-track" id="sliderTrack">
+    <div class="slide active">
+      <img src="https://static.vecteezy.com/system/resources/thumbnails/049/025/218/small_2x/a-baseball-cap-on-a-black-background-png.png" alt="Gorra 1" />
+    </div>
+    <div class="slide">
+      <img src="https://w7.pngwing.com/pngs/266/597/png-transparent-cap-beanie-cap.png" alt="Gorra 2" />
+    </div>
+    <div class="slide">
+      <img src="https://pngimg.com/uploads/hat/hat_PNG5714.png" alt="Gorra 3" />
+    </div>
+  </div>
+
+  <!-- Botones de navegación -->
+  <button class="slider-btn prev" id="prevBtn">&#10094;</button>
+  <button class="slider-btn next" id="nextBtn">&#10095;</button>
+
+  <!-- Dots -->
+  <div class="slider-dots">
+    <span class="dot active" data-slide="0"></span>
+    <span class="dot" data-slide="1"></span>
+    <span class="dot" data-slide="2"></span>
+  </div>
+</div>
+    <div class="slider-text">Macs Legacy</div>
+  </section>
+
+  <section id="productos">
+    <h2>Nuestras Gorras</h2>
+    <div class="productos-grid">
+      <div class="producto">
+        <img src="https://static.vecteezy.com/system/resources/thumbnails/049/025/218/small_2x/a-baseball-cap-on-a-black-background-png.png" alt="Gorra Negra" />
+        <p class="marca">OAKLAND ATHLETICS</p>
+        <h3>Gorra MLB Acperf 59Fifty Cerrada</h3>
+        <p class="precio">$259.990</p>
+        <button onclick="agregarAlCarrito('Gorra Negra')">Agregar al carrito</button>
+        <div class="overlay-text">Ver Producto</div>
+      </div>
+
+      <div class="producto">
+        <img src="https://w7.pngwing.com/pngs/266/597/png-transparent-cap-beanie-cap.png" alt="Gorra Beanie" />
+        <p class="marca">DETROIT TIGERS</p>
+        <h3>Gorra 9FORTY Ajustable New Era</h3>
+        <p class="precio">$179.990</p>
+        <button onclick="agregarAlCarrito('Gorra Beanie')">Agregar al carrito</button>
+        <div class="overlay-text">Ver Producto</div>
+      </div>
+
+      <div class="producto">
+        <img src="https://pngimg.com/uploads/hat/hat_PNG5714.png" alt="Gorra 3" />
+        <p class="marca">MACS ORIGINAL</p>
+        <h3>Gorra Urbana Ajustable</h3>
+        <p class="precio">$210.000</p>
+        <button onclick="agregarAlCarrito('Gorra Urbana Ajustable')">Agregar al carrito</button>
+        <div class="overlay-text">Ver Producto</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="nosotros">
+    <h2>Sobre Macs</h2>
+    <p>Macs es una marca 100% colombiana dedicada a ofrecer estilo y calidad en cada gorra.</p>
+  </section>
+
+  <section id="contacto">
+    <h2>Contáctanos</h2>
+    <form id="formulario">
+      <input type="text" placeholder="Tu nombre" required />
+      <input type="email" placeholder="Tu correo" required />
+      <textarea placeholder="Mensaje" required></textarea>
+      <button type="submit">Enviar</button>
+    </form>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 Macs. Todos los derechos reservados.</p>
+  </footer>
+
+  <script src="js/scripts.js"></script>
+  <script src="js/productos.js"></script>
+</body>
+</html>
