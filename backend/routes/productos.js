@@ -1,10 +1,34 @@
+console.log('--- [DEBUG] productos.js router loaded at', new Date().toLocaleTimeString());
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db'); // Importar la piscina de conexiones compartida
+const logger = require('../config/logger');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs'); // Import fs para operaciones de archivo
+
+// --- Ruta de depuración para obtener todas las categorías ---
+router.get('/get-all-categories-for-debugging', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT DISTINCT nombre FROM categorias ORDER BY nombre');
+    const categorias = rows.map(row => row.nombre);
+    logger.info('Enviando lista de categorías para depuración:', categorias);
+    res.json(categorias);
+  } catch (error) {
+    logger.error('Error al obtener categorías de depuración:', error);
+    res.status(500).send('Error en el servidor');
+  }
+});
+
 const auth = require('../middleware/authMiddleware');
+
+// Helper function to format image paths consistently for URLs
+const formatImagePath = (filename) => {
+  if (!filename) return null;
+  // Use path.basename to be safe, then create a URL-friendly path with forward slashes
+  const imagePath = path.join('uploads', path.basename(filename)).replace(/\\/g, '/');
+  return `/${imagePath}`;
+};
 
 // Configuración de Multer para la subida de archivos
 const storage = multer.diskStorage({
@@ -35,7 +59,24 @@ const upload = multer({ storage: storage }).fields([
 // GET /api/productos - Obtener todos los productos
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM productos WHERE activo = TRUE ORDER BY fecha_creacion DESC');
+    const { categoria, categoriaId } = req.query;
+    // Modificamos la consulta para que siempre traiga todos los campos de producto
+    let query = 'SELECT p.id, p.nombre, p.marca, p.precio, p.descripcion, p.numero_referencia, p.categoria_id, p.subcategoria_id, p.stock, p.activo, p.destacado, p.fecha_creacion, p.imagen_frontal, p.imagen_icono, p.imagen_trasera, p.imagen_lateral_derecha, p.imagen_lateral_izquierda, c.nombre as categoria_nombre FROM productos p JOIN categorias c ON p.categoria_id = c.id WHERE p.activo = TRUE';
+    const params = [];
+
+    if (categoria) {
+      logger.info(`Buscando productos por categoría: ${categoria}`);
+      query += ' AND LOWER(c.nombre) LIKE ?';
+      params.push(`%${categoria.toLowerCase().replace(/s$/, '')}%`);
+    } else if (categoriaId) {
+      logger.info(`Buscando productos por ID de categoría: ${categoriaId}`);
+      query += ' AND p.categoria_id = ?';
+      params.push(categoriaId);
+    }
+
+    query += ' ORDER BY p.fecha_creacion DESC';
+
+    const [rows] = await db.query(query, params);
     res.json(rows);
   } catch (error) {
     console.error('Error al obtener productos:', error);
@@ -43,22 +84,94 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/productos/:id - Obtener un producto específico
-router.get('/:id', async (req, res) => {
-  const { id } = req.params;
+// GET /api/productos/get-all - Obtener todos los productos para el panel de administración (Ruta protegida)
+router.get('/get-all', auth, async (req, res) => {
+  console.log('Request received for /api/productos/get-all with query:', req.query);
   try {
-    const [productoRows] = await db.query('SELECT * FROM productos WHERE id = ?', [id]);
+    const { search, categoria, subcategoriaId } = req.query;
+    let query = 'SELECT p.*, c.nombre as categoria_nombre, s.nombre as subcategoria_nombre FROM productos p LEFT JOIN categorias c ON p.categoria_id = c.id LEFT JOIN subcategorias s ON p.subcategoria_id = s.id';
+    const params = [];
+    let conditions = [];
 
-    if (productoRows.length === 0) {
-      return res.status(404).json({ message: 'Producto no encontrado' });
+    if (search) {
+      conditions.push('p.nombre LIKE ?');
+      params.push(`%${search}%`);
     }
-    
-    res.json(productoRows[0]);
+    if (categoria) {
+      conditions.push('p.categoria_id = ?');
+      params.push(categoria);
+    }
+    if (subcategoriaId) {
+      conditions.push('p.subcategoria_id = ?');
+      params.push(subcategoriaId);
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY p.fecha_creacion DESC';
+
+    const [rows] = await db.query(query, params);
+    res.json(rows);
   } catch (error) {
-    console.error(`Error al obtener el producto ${id}:`, error);
+    console.error('Error al obtener todos los productos para admin:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
+
+// GET /api/productos/top-stock - Obtener productos con más stock por categoría
+router.get('/top-stock', async (req, res) => {
+  console.log('--- [DEBUG] Request received for /api/productos/top-stock');
+  const { categoria, limit = 3 } = req.query;
+
+  if (!categoria) {
+    return res.status(400).json({ message: 'El parámetro categoría es obligatorio.' });
+  }
+
+  try {
+    const query = `
+      SELECT p.*
+      FROM productos p
+      JOIN categorias c ON p.categoria_id = c.id
+      WHERE c.nombre = ? AND p.activo = TRUE
+      ORDER BY p.stock DESC
+      LIMIT ?
+    `;
+    const [rows] = await db.query(query, [categoria, parseInt(limit, 10)]);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error al obtener productos con más stock:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// GET /api/productos/recomendados - Obtener productos recomendados
+router.get('/recomendados', async (req, res) => {
+  console.log('--- [DEBUG] Request received for /api/productos/recomendados');
+  const { categoriaId, excludeId, limit = 4 } = req.query;
+
+  if (!categoriaId || !excludeId) {
+    return res.status(400).json({ message: 'Los parámetros categoriaId y excludeId son obligatorios.' });
+  }
+
+  try {
+    const query = `
+      SELECT *
+      FROM productos
+      WHERE categoria_id = ? AND id != ? AND activo = TRUE
+      ORDER BY RAND()
+      LIMIT ?
+    `;
+    const [rows] = await db.query(query, [parseInt(categoriaId, 10), parseInt(excludeId, 10), parseInt(limit, 10)]);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error al obtener productos recomendados:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+
 
 // POST /api/productos - Crear un nuevo producto (Ruta protegida)
 router.post('/', [auth, upload], async (req, res) => {
@@ -79,7 +192,7 @@ router.post('/', [auth, upload], async (req, res) => {
     return res.status(400).json({ message: 'Los campos nombre, marca, precio y categoría son obligatorios, y el precio debe ser un número válido.' });
   }
 
-  const getPath = (fieldName) => (req.files && req.files[fieldName]) ? `/uploads/${req.files[fieldName][0].filename}` : null;
+  const getPath = (fieldName) => (req.files && req.files[fieldName]) ? formatImagePath(req.files[fieldName][0].filename) : null;
 
   const imagen_frontal = getPath('imagen_frontal');
   const imagen_icono = getPath('imagen_icono');
@@ -163,7 +276,7 @@ router.put('/:id', [auth, upload], async (req, res) => {
 
     const getPath = (fieldName) => {
         if (req.files && req.files[fieldName]) {
-            const newPath = `/uploads/${req.files[fieldName][0].filename}`;
+            const newPath = formatImagePath(req.files[fieldName][0].filename);
             if (currentImages[fieldName]) {
                 const oldPath = path.join(__dirname, '..', currentImages[fieldName]);
                 if (fs.existsSync(oldPath)) {
@@ -231,11 +344,34 @@ router.put('/:id', [auth, upload], async (req, res) => {
   }
 });
 
+// PATCH /api/productos/:id/toggle-active - Cambiar el estado activo de un producto (Ruta protegida)
+router.patch('/:id/toggle-active', auth, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Invertir el estado 'activo' directamente en la base de datos
+    await db.query('UPDATE productos SET activo = NOT activo WHERE id = ?', [id]);
+    
+    // Obtener el producto actualizado para devolverlo
+    const [rows] = await db.query('SELECT * FROM productos WHERE id = ?', [id]);
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Producto no encontrado después de la actualización.' });
+    }
+
+    res.status(200).json(rows[0]);
+  } catch (error) {
+    console.error(`Error al cambiar el estado del producto ${id}:`, error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
 // DELETE /api/productos/:id - Eliminar un producto (Ruta protegida)
 router.delete('/:id', auth, async (req, res) => {
   const { id } = req.params;
 
   try {
+    // Primero, obtener las rutas de las imágenes para poder eliminarlas
     const [rows] = await db.query('SELECT imagen_frontal, imagen_icono, imagen_trasera, imagen_lateral_derecha, imagen_lateral_izquierda FROM productos WHERE id = ?', [id]);
     if (rows.length === 0) {
       return res.status(404).json({ message: 'Producto no encontrado' });
@@ -245,6 +381,7 @@ router.delete('/:id', auth, async (req, res) => {
     // Eliminar imágenes del sistema de archivos
     Object.values(product).forEach(imgPath => {
       if (imgPath) {
+        // La ruta guardada es relativa al servidor (ej: /uploads/...), necesitamos la ruta del sistema de archivos
         const fullPath = path.join(__dirname, '..', imgPath);
         if (fs.existsSync(fullPath)) {
           fs.unlinkSync(fullPath);
@@ -252,15 +389,41 @@ router.delete('/:id', auth, async (req, res) => {
       }
     });
 
+    // Ahora, eliminar el producto de la base de datos
     const [result] = await db.query('DELETE FROM productos WHERE id = ?', [id]);
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Producto no encontrado' });
+      // Esto no debería ocurrir si la consulta anterior encontró el producto, pero es una buena práctica
+      return res.status(404).json({ message: 'Producto no encontrado para eliminar' });
     }
 
     res.status(200).json({ message: 'Producto eliminado correctamente' });
   } catch (error) {
     console.error(`Error al eliminar el producto ${id}:`, error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+
+// GET /api/productos/:id - Obtener un producto específico
+router.get('/:id', async (req, res, next) => {
+  // Si el ID no es un número, podría ser otra sub-ruta como 'debug-categorias'.
+  if (isNaN(parseInt(req.params.id, 10))) {
+    return next(); // Pasa a la siguiente ruta que coincida.
+  }
+
+  console.log(`Request received for /api/productos/:id with ID: ${req.params.id}`);
+  const { id } = req.params;
+  try {
+    const [productoRows] = await db.query('SELECT * FROM productos WHERE id = ?', [id]);
+
+    if (productoRows.length === 0) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+    
+    res.json(productoRows[0]);
+  } catch (error) {
+    console.error(`Error al obtener el producto ${id}:`, error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });

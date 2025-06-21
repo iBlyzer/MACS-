@@ -12,6 +12,7 @@
             <nav>
                 <ul>
                     <li><a href="#productos">Gestionar Productos</a></li>
+                    <li><a href="gestor-slider.html">Gestor de Imágenes del Slider</a></li>
                     <li><a href="#categorias">Categorías</a></li>
                     <li><a href="#inventario">Inventario</a></li>
                     <li><a href="#reportes">Reportes</a></li>
@@ -33,7 +34,11 @@
                     <input type="text" id="buscar" placeholder="Buscar productos...">
                     <select id="filtro-categoria">
                         <option value="">Todas las categorías</option>
-                        <option value="gorras">Gorras</option>
+                        <!-- Opciones de categoría se cargarán aquí -->
+                    </select>
+                    <select id="filtro-subcategoria">
+                        <option value="">Todas las subcategorías</option>
+                        <!-- Opciones de subcategoría se cargarán aquí -->
                     </select>
                 </div>
                 <div id="tabla-productos-container">
@@ -138,5 +143,6 @@
     </div>
 
     <script src="../js/admin.js"></script>
+    <script src="../js/auth.js"></script>
 </body>
 </html>

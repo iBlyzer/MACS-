@@ -35,12 +35,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     async function cargarProductos() {
+        const searchTerm = document.getElementById('buscar').value;
+        const categoriaId = document.getElementById('filtro-categoria').value;
+        const subcategoriaId = document.getElementById('filtro-subcategoria').value;
+
+        let fetchUrl = `${API_URL}/productos/get-all?`;
+        const params = new URLSearchParams();
+
+        if (searchTerm) {
+            params.append('search', searchTerm);
+        }
+        if (categoriaId) {
+            params.append('categoria', categoriaId);
+        }
+        if (subcategoriaId) {
+            params.append('subcategoriaId', subcategoriaId);
+        }
+
+        fetchUrl += params.toString();
+
         try {
-            const response = await fetch(`${API_URL}/productos`, { headers: { 'x-auth-token': token } });
-            if (!response.ok) throw new Error('No se pudieron cargar los productos.');
+            console.log('Fetching products from URL:', fetchUrl);
+            const response = await fetch(fetchUrl, { headers: { 'x-auth-token': token } });
+            if (!response.ok) {
+                console.error('Fetch failed with status:', response.status);
+                throw new Error('No se pudieron cargar los productos.');
+            }
             const productos = await response.json();
             renderizarTabla(productos);
-        } catch (error) {
+        } catch (error) { 
             console.error('Error:', error);
             tablaProductosContainer.innerHTML = '<p>Error al cargar los productos.</p>';
         }
@@ -72,6 +95,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function cargarSubcategoriasFiltro(categoriaId) {
+        const filtroSubcategoria = document.getElementById('filtro-subcategoria');
+        let fetchUrl = `${API_URL}/subs`;
+
+        if (categoriaId) {
+            fetchUrl += `?categoriaId=${categoriaId}`;
+        }
+
+        try {
+            const response = await fetch(fetchUrl, { headers: { 'x-auth-token': token } });
+            if (!response.ok) throw new Error('No se pudieron cargar las subcategorías para el filtro.');
+            const subcategorias = await response.json();
+            
+            let optionsHTML = '<option value="">Todas las subcategorías</option>';
+            optionsHTML += subcategorias.map(sub => `<option value="${sub.id}">${sub.nombre}</option>`).join('');
+            
+            if (filtroSubcategoria) {
+                filtroSubcategoria.innerHTML = optionsHTML;
+            }
+        } catch (error) {
+            console.error('Error al cargar subcategorías para el filtro:', error);
+            if (filtroSubcategoria) {
+                filtroSubcategoria.innerHTML = '<option value="">Error</option>';
+            }
+        }
+    }
+
     async function cargarSubcategorias(categoriaId, subcategoriaSeleccionadaId = null) {
         const productoSubcategoria = document.getElementById('producto-subcategoria');
         if (!categoriaId) {
@@ -79,14 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         try {
-            const response = await fetch(`${API_URL}/subs/${categoriaId}`, { headers: { 'x-auth-token': token } });
+            const response = await fetch(`${API_URL}/subs?categoriaId=${categoriaId}`, { headers: { 'x-auth-token': token } });
             if (!response.ok) throw new Error('No se pudieron cargar las subcategorías.');
             const subcategorias = await response.json();
             
             if (subcategorias.length === 0) {
                 productoSubcategoria.innerHTML = '<option value="">No hay subcategorías</option>';
             } else {
-                                const optionsHTML = subcategorias.map(sub => `<option value="${sub.id}">${sub.nombre}</option>`).join('');
+                const optionsHTML = subcategorias.map(sub => `<option value="${sub.id}">${sub.nombre}</option>`).join('');
                 productoSubcategoria.innerHTML = `<option value="">Seleccione una subcategoría</option>${optionsHTML}`;
             }
     
@@ -100,13 +150,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderizarTabla(productos) {
+        if (productos.length === 0) {
+            tablaProductosContainer.innerHTML = '<p>No hay productos para mostrar.</p>';
+            return;
+        }
+
         const tablaHTML = `
             <table class="tabla-admin">
                 <thead>
                     <tr>
-                        <th>Imagen</th>
+                        <th>ID</th>
+                        <th>Icono</th>
                         <th>Nombre</th>
-                        <th>Referencia</th>
+                        <th>Marca</th>
                         <th>Precio</th>
                         <th>Stock</th>
                         <th>Estado</th>
@@ -114,17 +170,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     </tr>
                 </thead>
                 <tbody>
-                    ${productos.map(p => `
-                        <tr>
-                            <td><img src="${p.imagen_principal ? BASE_URL + p.imagen_principal : 'https://via.placeholder.com/60x60.png?text=No+Img'}" alt="${p.nombre}" class="product-icon"></td>
-                            <td>${p.nombre}</td>
-                            <td>${p.numero_referencia || 'N/A'}</td>
-                            <td>${new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(p.precio)}</td>
-                            <td>${p.stock}</td>
-                            <td>${p.activo ? 'Activo' : 'Inactivo'}</td>
-                            <td class="acciones">
-                                <button class="btn-editar" data-id="${p.id}">Editar</button>
-                                <button class="btn-eliminar" data-id="${p.id}">Eliminar</button>
+                    ${productos.map(producto => `
+                        <tr class="${!producto.activo ? 'producto-inactivo' : ''}">
+                            <td>${producto.id}</td>
+                            <td><img src="${BASE_URL}${producto.imagen_icono || '/default-icon.png'}" alt="Icono" class="producto-icono"></td>
+                            <td>${producto.nombre || 'N/A'}</td>
+                            <td>${producto.marca || 'N/A'}</td>
+                            <td>$${(parseFloat(producto.precio) || 0).toFixed(2)}</td>
+                            <td>${producto.stock || 0}</td>
+                            <td>
+                                <span class="status ${producto.activo ? 'status-activo' : 'status-inactivo'}">
+                                    ${producto.activo ? 'Activo' : 'Inactivo'}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn-editar" data-id="${producto.id}">Editar</button>
+                                <button class="btn-eliminar" data-id="${producto.id}">Eliminar</button>
+                                <button class="btn-toggle-status" data-id="${producto.id}">Cambiar Estado</button>
                             </td>
                         </tr>
                     `).join('')}
@@ -204,6 +266,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (confirm(`¿Estás seguro de que quieres eliminar el producto con ID ${id}?`)) await eliminarProducto(id);
         } else if (e.target.classList.contains('btn-editar')) {
             await abrirModalParaEditar(id);
+        } else if (e.target.classList.contains('btn-toggle-status')) {
+            await toggleEstadoProducto(id);
         }
     });
 
@@ -264,6 +328,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    async function toggleEstadoProducto(id) {
+        try {
+            const response = await fetch(`${API_URL}/productos/${id}/toggle-active`, {
+                method: 'PATCH',
+                headers: { 'x-auth-token': token }
+            });
+            if (!response.ok) throw new Error('No se pudo cambiar el estado del producto.');
+            cargarProductos(); // Recargar la tabla para mostrar el cambio
+        } catch (error) {
+            console.error('Error al cambiar estado:', error);
+            alert('Hubo un error al cambiar el estado del producto.');
+        }
+    }
+
     async function eliminarProducto(id) {
         try {
             const response = await fetch(`${API_URL}/productos/${id}`, {
@@ -291,6 +369,19 @@ document.addEventListener('DOMContentLoaded', () => {
         cargarSubcategorias(e.target.value);
     });
 
+    // Event listeners for filters
+    document.getElementById('buscar').addEventListener('input', cargarProductos);
+    
+    document.getElementById('filtro-categoria').addEventListener('change', async () => {
+        const categoriaId = document.getElementById('filtro-categoria').value;
+        await cargarSubcategoriasFiltro(categoriaId);
+        cargarProductos();
+    });
+
+    document.getElementById('filtro-subcategoria').addEventListener('change', cargarProductos);
+
+    // Initial data load
     cargarProductos();
     cargarCategorias();
+    cargarSubcategoriasFiltro(); // Cargar todas las subcategorías al inicio
 });

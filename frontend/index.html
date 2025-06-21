@@ -3,122 +3,165 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Macs - Gorras Urbanas</title>
+  <title>Macs Legacy - Gorras y Sombreros</title>
+  <link rel="icon" href="http://localhost:3001/assets/macs-agencia.png?v=2" type="image/png">
   <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-
   <header>
-    <h1 class="logo">Macs</h1>
-    <nav>
-      <ul class="menu">
-        <li><a href="#inicio">Inicio</a></li>
-
-        <li class="submenu-parent">
-          <a href="#productos">Productos &#x25BE;</a>
-          <ul class="submenu">
-            <li class="submenu-category">Gorras
-              <ul>
-                <li><a href="productos-macs.html" class="menu-item">Macs</a></li>
-                <li><a href="#">Importadas</a></li>
-              </ul>
-            </li>
-            <li class="submenu-category">Sombreros
-              <ul>
-                <li><a href="#">QS</a></li>
-                <li><a href="#">Alone</a></li>
-                <li><a href="#">Safari</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-
-        <li><a href="#nosotros">Nosotros</a></li>
-        <li><a href="#contacto">Contacto</a></li>
-      </ul>
-    </nav>
+    <div class="main-header">
+      <div class="logo">
+        <a href="index.html">Macs</a>
+      </div>
+      <nav class="main-nav">
+        <ul class="menu">
+          <li><a href="index.html">Inicio</a></li>
+          <li class="submenu-parent">
+            <a href="#productos">Catálogo</a>
+            <ul class="submenu">
+              <li class="submenu-parent">
+                <a href="#"><span>Gorras &raquo;</span></a>
+                <ul class="submenu">
+                  <li><a href="productos-macs.html"><span>Macs</span></a></li>
+                  <li><a href="productos-importadas.html"><span>Importadas</span></a></li>
+                </ul>
+              </li>
+              <li class="submenu-parent">
+                <a href="#"><span>Sombreros &raquo;</span></a>
+                <ul class="submenu">
+                  <li><a href="#"><span>QS</span></a></li>
+                  <li><a href="#"><span>Alone</span></a></li>
+                  <li><a href="#"><span>Safari</span></a></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li><a href="#">Personalizados</a></li>
+          <li><a href="index.html#contacto">Contacto</a></li>
+          <li><a href="macs.html">Quienes Somos</a></li>
+        </ul>
+      </nav>
+      <div class="cart">
+        <a href="cesta.html">
+          🛒
+          <span id="cart-count">0</span>
+        </a>
+      </div>
+    </div>
   </header>
 
+
+
+  <!-- Botón flotante de WhatsApp y Widget -->
+  <div class="whatsapp-container" id="whatsappContainer">
+    <div class="whatsapp-widget" id="whatsappWidget">
+        <div class="widget-header">
+            <img src="http://localhost:3001/assets/macs-agencia.png?v=2" alt="Macs Legacy Logo" class="widget-logo">
+            <div class="widget-info">
+                <div class="widget-title">Macs Legacy</div>
+            </div>
+        </div>
+        <div class="widget-body">
+            <div class="message-bubble received">
+                <p>¡Hola! 👋</p>
+            </div>
+            <div class="message-bubble received">
+                <p>¿Necesitas ayuda? Chatea con nosotros.</p>
+            </div>
+        </div>
+        <div class="widget-footer">
+            <a href="https://wa.me/573204829726?text=Hola,%20necesito%20ayuda%20con%20un%20producto." target="_blank" class="start-chat-btn">Iniciar Chat</a>
+        </div>
+    </div>
+    <button class="floating-whatsapp-btn" id="floatingWhatsAppButton">
+        <i class="fa-brands fa-whatsapp whatsapp-icon"></i>
+        <i class="fa-solid fa-xmark close-icon"></i>
+    </button>
+  </div>
+
+  <!-- Floating Nav Button & Modal -->
+  <button class="floating-btn" id="floatingNavButton">
+    <span class="icon-bars"></span>
+  </button>
+  <div class="modal-menu" id="navModal">
+    <ul class="modal-links">
+      <li><a href="index.html">INICIO</a></li>
+      <li><a href="#productos">CATÁLOGO</a></li>
+      <li><a href="#nosotros">NOSOTROS</a></li>
+      <li><a href="#contacto">CONTACTO</a></li>
+    </ul>
+  </div>
+
   <section id="inicio">
-    <div class="slider-container">
-  <div class="slider-track" id="sliderTrack">
-    <div class="slide active">
-      <img src="https://static.vecteezy.com/system/resources/thumbnails/049/025/218/small_2x/a-baseball-cap-on-a-black-background-png.png" alt="Gorra 1" />
-    </div>
-    <div class="slide">
-      <img src="https://w7.pngwing.com/pngs/266/597/png-transparent-cap-beanie-cap.png" alt="Gorra 2" />
-    </div>
-    <div class="slide">
-      <img src="https://pngimg.com/uploads/hat/hat_PNG5714.png" alt="Gorra 3" />
-    </div>
-  </div>
+    <div class="slider-container reveal-on-scroll">
+      <div class="slider-track" id="sliderTrack">
+        <!-- Las imágenes del slider se cargarán aquí dinámicamente -->
+      </div>
 
-  <!-- Botones de navegación -->
-  <button class="slider-btn prev" id="prevBtn">&#10094;</button>
-  <button class="slider-btn next" id="nextBtn">&#10095;</button>
+      <!-- Botones de navegación -->
+      <button class="slider-btn prev" id="prevBtn">&#10094;</button>
+      <button class="slider-btn next" id="nextBtn">&#10095;</button>
 
-  <!-- Dots -->
-  <div class="slider-dots">
-    <span class="dot active" data-slide="0"></span>
-    <span class="dot" data-slide="1"></span>
-    <span class="dot" data-slide="2"></span>
-  </div>
-</div>
+      <!-- Dots -->
+      <div class="slider-dots" id="sliderDots">
+        <!-- Los puntos de navegación se cargarán aquí dinámicamente -->
+      </div>
+    </div>
     <div class="slider-text">Macs Legacy</div>
   </section>
 
   <section id="productos">
-    <h2>Nuestras Gorras</h2>
-    <div class="productos-grid">
-      <div class="producto">
-        <img src="https://static.vecteezy.com/system/resources/thumbnails/049/025/218/small_2x/a-baseball-cap-on-a-black-background-png.png" alt="Gorra Negra" />
-        <p class="marca">OAKLAND ATHLETICS</p>
-        <h3>Gorra MLB Acperf 59Fifty Cerrada</h3>
-        <p class="precio">$259.990</p>
-        <button onclick="agregarAlCarrito('Gorra Negra')">Agregar al carrito</button>
-        <div class="overlay-text">Ver Producto</div>
-      </div>
-
-      <div class="producto">
-        <img src="https://w7.pngwing.com/pngs/266/597/png-transparent-cap-beanie-cap.png" alt="Gorra Beanie" />
-        <p class="marca">DETROIT TIGERS</p>
-        <h3>Gorra 9FORTY Ajustable New Era</h3>
-        <p class="precio">$179.990</p>
-        <button onclick="agregarAlCarrito('Gorra Beanie')">Agregar al carrito</button>
-        <div class="overlay-text">Ver Producto</div>
-      </div>
-
-      <div class="producto">
-        <img src="https://pngimg.com/uploads/hat/hat_PNG5714.png" alt="Gorra 3" />
-        <p class="marca">MACS ORIGINAL</p>
-        <h3>Gorra Urbana Ajustable</h3>
-        <p class="precio">$210.000</p>
-        <button onclick="agregarAlCarrito('Gorra Urbana Ajustable')">Agregar al carrito</button>
-        <div class="overlay-text">Ver Producto</div>
-      </div>
+    <h2 class="reveal-on-scroll">LO MÁS DESTACADO</h2>
+    <div class="productos-grid reveal-on-scroll" id="top-stock-container">
+        <!-- Los productos con más stock se cargarán aquí dinámicamente -->
     </div>
   </section>
 
-  <section id="nosotros">
-    <h2>Sobre Macs</h2>
-    <p>Macs es una marca 100% colombiana dedicada a ofrecer estilo y calidad en cada gorra.</p>
-  </section>
+
 
   <section id="contacto">
-    <h2>Contáctanos</h2>
-    <form id="formulario">
-      <input type="text" placeholder="Tu nombre" required />
-      <input type="email" placeholder="Tu correo" required />
-      <textarea placeholder="Mensaje" required></textarea>
-      <button type="submit">Enviar</button>
-    </form>
+    <h2>Ubicación</h2>
+    <div class="location-content">
+        <p>Somos MACS, una marca 100% llanera. Visítanos en nuestro punto de producción y conoce de cerca la calidad y el estilo que nos definen.</p>
+        <div class="map-container">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3979.3019570990787!2d-73.64079892838302!3d4.160919352887883!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e3e2f7d462d767d%3A0xf5a676a8779c514b!2sMacs%20agencia!5e0!3m2!1ses-419!2sco!4v1750516656758!5m2!1ses-419!2sco" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+    </div>
   </section>
 
-  <footer>
-    <p>&copy; 2025 Macs. Todos los derechos reservados.</p>
+  <footer class="footer-container">
+    <div class="footer-main">
+        <div class="footer-content-wrapper">
+            <div class="footer-logo">
+                <a href="index.html"><img src="http://localhost:3001/assets/macs-agencia.png" alt="Macs Agencia Logo"></a>
+            </div>
+            <div class="contact-info">
+                <h3>Datos de contacto</h3>
+                <p><strong>Edificio Principal:</strong> Cra. 33 #47a-04, Villavicencio, Meta</p>
+                <p><strong>Horario de atención:</strong> 8:00 Am - 12:00 Pm / 2:00 Pm - 6:00 Pm</p>
+                <p><strong>Conmutador:</strong> 320 4829726</p>
+                <p><strong>Notificaciones judiciales:</strong> notificacionesjudiciales@example.com</p>
+            </div>
+            <div class="social-media">
+                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/tiktok.png" alt="TikTok"></a>
+                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/youtube-play.png" alt="YouTube"></a>
+                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/instagram-new.png" alt="Instagram"></a>
+                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/twitterx.png" alt="X"></a>
+            </div>
+        </div>
+    </div>
+    <div class="copyright">
+        <div class="copyright-wrapper">
+            <p>&copy; 2025 Macs. Todos los derechos reservados.</p>
+        </div>
+    </div>
   </footer>
 
+  <script src="js/nav.js"></script>
+  <script src="js/cart.js"></script>
   <script src="js/scripts.js"></script>
   <script src="js/productos.js"></script>
+  <script src="js/animations.js"></script>
 </body>
 </html>

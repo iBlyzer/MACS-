@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MACS - Conoce más de nosotros</title>
+  <link rel="icon" href="http://localhost:3001/assets/macs-agencia.png?v=2" type="image/png">
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/macs.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+
+  <!-- Botón flotante de WhatsApp y Widget -->
+  <div class="whatsapp-container" id="whatsappContainer">
+    <div class="whatsapp-widget" id="whatsappWidget">
+        <div class="widget-header">
+            <img src="http://localhost:3001/assets/macs-agencia.png?v=2" alt="Macs Legacy Logo" class="widget-logo">
+            <div class="widget-info">
+                <div class="widget-title">Macs Legacy</div>
+            </div>
+        </div>
+        <div class="widget-body">
+            <div class="message-bubble received">
+                <p>¡Hola! 👋</p>
+            </div>
+            <div class="message-bubble received">
+                <p>¿Necesitas ayuda? Chatea con nosotros.</p>
+            </div>
+        </div>
+        <div class="widget-footer">
+            <a href="https://wa.me/573204829726?text=Hola,%20necesito%20ayuda%20con%20un%20producto." target="_blank" class="start-chat-btn">Iniciar Chat</a>
+        </div>
+    </div>
+    <button class="floating-whatsapp-btn" id="floatingWhatsAppButton">
+        <i class="fa-brands fa-whatsapp whatsapp-icon"></i>
+        <i class="fa-solid fa-xmark close-icon"></i>
+    </button>
+  </div>
+
+  <!-- Floating Nav Button & Modal -->
+  <button class="floating-btn" id="floatingNavButton">
+    <span class="icon-bars"></span>
+  </button>
+  <div class="modal-menu" id="navModal">
+    <ul class="modal-links">
+      <li><a href="index.html">INICIO</a></li>
+      <li><a href="index.html#productos">CATÁLOGO</a></li>
+      <li><a href="macs.html">MACS</a></li>
+      <li><a href="index.html#contacto">CONTACTO</a></li>
+    </ul>
+  </div>
+
+  <header>
+    <div class="main-header">
+      <div class="logo">
+        <a href="index.html">Macs</a>
+      </div>
+      <nav class="main-nav">
+        <ul class="menu">
+          <li><a href="index.html">Inicio</a></li>
+          <li class="submenu-parent">
+            <a href="#productos">Catálogo</a>
+            <ul class="submenu">
+              <li class="submenu-parent">
+                <a href="#"><span>Gorras &raquo;</span></a>
+                <ul class="submenu">
+                  <li><a href="productos-macs.html"><span>Macs</span></a></li>
+                  <li><a href="productos-importadas.html"><span>Importadas</span></a></li>
+                </ul>
+              </li>
+              <li class="submenu-parent">
+                <a href="#"><span>Sombreros &raquo;</span></a>
+                <ul class="submenu">
+                  <li><a href="#"><span>QS</span></a></li>
+                  <li><a href="#"><span>Alone</span></a></li>
+                  <li><a href="#"><span>Safari</span></a></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li><a href="#">Personalizados</a></li>
+          <li><a href="index.html#contacto">Contacto</a></li>
+          <li><a href="macs.html">Quienes Somos</a></li>
+        </ul>
+      </nav>
+      <div class="cart">
+        <a href="cesta.html">
+          🛒
+          <span id="cart-count">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="macs-page">
+    <section class="about-us-hero">
+      <div class="container">
+        <h1>Conoce más de nosotros</h1>
+        <p class="subtitle">
+          Somos una empresa 100% llanera, con un enfoque técnico y especializado en la industria textil. Nuestra infraestructura y procesos están optimizados para la producción en serie, el bordado de alta precisión, la creación de parches personalizados y la fabricación de gorras que definen identidades.
+        </p>
+      </div>
+    </section>
+
+    <section class="features-band">
+      <div class="container">
+        <div class="feature-item">
+          <img src="https://api.iconify.design/heroicons:building-office-2.svg?color=%23ffffff" alt="Icono de Producción Textil" class="feature-icon">
+          <h3>Producción Textil</h3>
+          <p>Operamos con maquinaria de última generación para garantizar eficiencia y calidad en cada pieza, desde el corte hasta el ensamblaje final.</p>
+        </div>
+        <div class="feature-item">
+          <img src="https://api.iconify.design/heroicons:sparkles.svg?color=%23ffffff" alt="Icono de Bordado y Personalización" class="feature-icon">
+          <h3>Bordado y Personalización</h3>
+          <p>Nuestros sistemas de bordado digital permiten una personalización masiva con un nivel de detalle y durabilidad superior.</p>
+        </div>
+        <div class="feature-item">
+          <img src="https://api.iconify.design/heroicons:identification.svg?color=%23ffffff" alt="Icono de Identidad de Marca" class="feature-icon">
+          <h3>Identidad de Marca</h3>
+          <p>Transformamos conceptos en productos tangibles. Creamos gorras y parches que funcionan como un estandarte para tu marca.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer-container">
+    <div class="footer-main">
+        <div class="footer-content-wrapper">
+            <div class="footer-logo">
+                <a href="index.html"><img src="http://localhost:3001/assets/macs-agencia.png" alt="Macs Agencia Logo"></a>
+            </div>
+            <div class="contact-info">
+                <h3>Datos de contacto</h3>
+                <p><strong>Edificio Principal:</strong> Cra. 33 #47a-04, Villavicencio, Meta</p>
+                <p><strong>Horario de atención:</strong> 8:00 Am - 12:00 Pm / 2:00 Pm - 6:00 Pm</p>
+                <p><strong>Conmutador:</strong> 320 4829726</p>
+                <p><strong>Notificaciones judiciales:</strong> notificacionesjudiciales@example.com</p>
+            </div>
+            <div class="social-media">
+                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/tiktok.png" alt="TikTok"></a>
+                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/youtube-play.png" alt="YouTube"></a>
+                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/instagram-new.png" alt="Instagram"></a>
+                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/twitterx.png" alt="X"></a>
+            </div>
+        </div>
+    </div>
+    <div class="copyright">
+        <div class="copyright-wrapper">
+            <p>&copy; 2025 Macs. Todos los derechos reservados.</p>
+        </div>
+    </div>
+  </footer>
+
+  <script src="js/nav.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/animations.js"></script>
+</body>
+</html>

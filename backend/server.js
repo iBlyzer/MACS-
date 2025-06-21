@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
+const fs = require('fs');
 
 // --- Configuración Inicial ---
 const app = express();
@@ -12,21 +13,46 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// --- Redirección a la página de login ---
-app.get('/', (req, res) => {
-  res.redirect('/admin/login.html');
+// Middleware de depuración para registrar todas las solicitudes entrantes
+app.use((req, res, next) => {
+  console.log(`[Request Logger] Method: ${req.method}, URL: ${req.originalUrl}`);
+  next();
 });
-
-// Servir toda la carpeta frontend
-app.use(express.static(path.join(__dirname, '../frontend')));
 
 // --- Rutas de la API ---
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/productos', require('./routes/productos'));
 app.use('/api/categorias', require('./routes/categorias'));
 app.use('/api/subs', require('./routes/subcategorias'));
+app.use('/api/slider', require('./routes/slider'));
+app.use('/api/slider-manager', require('./routes/slider-manager'));
+
+app.get('/api/slider/images', (req, res) => {
+    const sliderDir = path.join(__dirname, '..', 'frontend', 'assets', 'slider-imgs');
+    fs.readdir(sliderDir, (err, files) => {
+        if (err) {
+            console.error('Error al leer el directorio de imágenes del slider:', err);
+            return res.status(500).json({ message: 'Error al obtener las imágenes.' });
+        }
+        const imageUrls = files.map(file => `/assets/slider-imgs/${file}`);
+        res.json(imageUrls);
+    });
+});
+
+// --- Servir archivos estáticos --- 
+// Servir la carpeta frontend primero para asegurar que CSS, JS e imágenes se carguen siempre.
+app.use(express.static(path.join(__dirname, '../frontend')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
+
+
+
+// --- Manejador para rutas API no encontradas ---
+// Captura todas las solicitudes a /api/* que no coincidieron con una ruta.
+app.use('/api', (req, res, next) => {
+  res.status(404).json({ message: `La ruta API '${req.method} ${req.originalUrl}' no fue encontrada en el servidor.` });
+});
 
 // --- Manejador de Errores Global ---
 app.use((err, req, res, next) => {

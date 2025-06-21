@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestor de Imágenes del Slider - Macs</title>
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <h2>Admin Panel</h2>
+            <nav>
+                <ul>
+                    <li><a href="panel-admin.html#productos">Gestionar Productos</a></li>
+                    <li><a href="gestor-slider.html">Gestor de Imágenes del Slider</a></li>
+                    <li><a href="panel-admin.html#categorias">Categorías</a></li>
+                    <li><a href="panel-admin.html#inventario">Inventario</a></li>
+                    <li><a href="panel-admin.html#reportes">Reportes</a></li>
+                    <li><a href="#" id="logout-btn">Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <main class="content">
+            <section id="slider-manager">
+                <div class="header-section">
+                    <h1>Gestor de Imágenes del Slider</h1>
+                </div>
+
+                <div class="card">
+                    <h3>Subir Nuevas Imágenes</h3>
+                    <form id="upload-form">
+                        <div class="form-group">
+                            <label for="image-files">Selecciona una o más imágenes:</label>
+                            <input type="file" id="image-files" name="sliderImages" accept="image/*" multiple>
+                        </div>
+                        <button type="submit" class="btn-primary">Subir Imágenes</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Imágenes Actuales</h3>
+                    <div id="gallery-container" class="gallery-container">
+                        <!-- Las imágenes se cargarán aquí dinámicamente -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/gestor-slider.js"></script>
+    <script src="../js/auth.js"></script>
+</body>
+</html>

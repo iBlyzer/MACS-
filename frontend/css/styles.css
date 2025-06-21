@@ -3,50 +3,84 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f2f2f2;
-  color: #333;
+  background-color: #f4f4f4;
+  padding-top: 65px; /* Espacio para el header fijo */
 }
 
 header {
-  background-color: #111;
+  background-color: #000;
   color: white;
-  padding: 1em 2em;
-  text-align: center;
-  position: sticky;
+  padding: 0.5em 1em;
+  position: fixed;
   top: 0;
-  z-index: 999;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: all 0.3s ease;
+  width: 100%;
+  z-index: 900;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: transform 0.4s ease;
 }
 
-header.shrink .logo {
-  font-size: 1.2em;
-  position: fixed;
-  left: 10px;
-  top: 10px;
-  color: yellow;
+header.header-hidden {
+  transform: translateY(-100%);
+}
+
+.main-header {
+  display: flex;
+  align-items: center;
+  padding: 0.5em 2em;
 }
 
 .logo {
-  font-size: 2em;
-  font-weight: bold;
-  margin: 0;
-  cursor: default;
-  transition: all 0.3s ease;
+  margin-right: auto; /* This pushes the nav and cart to the right */
 }
 
-nav {
-  flex-grow: 1;
+.logo a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.3em;
+  font-weight: bold;
 }
+
+
+
+.cart {
+  position: relative;
+  right: auto;
+  top: auto;
+  transform: none;
+  z-index: 101;
+}
+
+
+
+.cart a {
+  font-size: 1.2rem;
+  position: relative;
+  display: block;
+}
+
+#cart-count {
+  position: absolute;
+  top: -2px;
+  right: -8px;
+  background-color: #ff4d4d;
+  color: white;
+  border-radius: 50%;
+  padding: 1px 4px;
+  font-size: 0.7em;
+  font-weight: bold;
+}
+
+
+
+
 
 nav ul.menu {
   list-style: none;
   display: flex;
-  justify-content: center;
+  justify-content: flex-end; /* Alineado a la derecha */
   padding: 0;
   margin: 0;
+  gap: 1em;
 }
 
 nav ul.menu > li {
@@ -55,6 +89,8 @@ nav ul.menu > li {
 }
 
 nav ul.menu > li > a {
+  font-size: 0.85em;
+  position: relative; /* Necesario para la línea animada */
   color: white;
   text-decoration: none;
   font-weight: 600;
@@ -63,62 +99,121 @@ nav ul.menu > li > a {
   transition: color 0.3s;
 }
 
+nav ul.menu > li > a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: white;
+  transition: width 0.4s ease;
+}
+
 nav ul.menu > li:hover > a {
   color: yellow;
   cursor: pointer;
 }
 
-/* Submenu */
-.submenu-parent:hover > .submenu {
-  display: block;
+nav ul.menu > li:hover > a::after {
+  width: 100%;
 }
 
-.submenu {
+/* --- Submenu Styles --- */
+
+/* Common submenu container styles */
+nav ul.menu ul.submenu {
   display: none;
   position: absolute;
-  top: 2.4em;
+  top: 100%;
   left: 0;
-  background-color: #222;
-  padding: 0.8em 1em;
-  border-radius: 5px;
-  min-width: 180px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  z-index: 1000;
-}
-
-.submenu-category {
-  font-weight: bold;
-  color: white;
-  margin-bottom: 0.5em;
-}
-
-.submenu-category ul {
+  background-color: #1c1c1c;
   list-style: none;
-  padding-left: 0.5em;
-  margin: 0 0 1em 0;
+  padding: 0.5em 0;
+  margin: 0;
+  min-width: 180px;
+  border-radius: 5px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  z-index: 100;
 }
 
-.submenu-category ul li a {
-  color: white;
-  text-decoration: none;
-  font-weight: normal;
-  font-size: 0.9em;
+nav ul.menu ul.submenu ul.submenu {
+  left: 100%;
+  top: 0;
+}
+
+/* First-level submenu positioning */
+nav ul.menu > li > .submenu {
+  top: 100%;
+  right: 0; /* Align to the right */
+}
+
+/* Set position context for submenu items that are parents */
+nav ul.menu .submenu > li {
+  position: relative;
+}
+
+/* Second-level (and deeper) submenu positioning */
+nav ul.menu .submenu > li > .submenu {
+  top: -0.5em; /* Adjust for parent padding */
+  left: 100%;
+}
+
+/* Show submenu on hover */
+nav ul.menu > li:hover > ul.submenu, 
+nav ul.menu ul.submenu > li:hover > ul.submenu {
   display: block;
-  padding: 0.15em 0;
-  transition: color 0.3s;
 }
 
-.submenu-category ul li a:hover {
-  color: yellow;
-  cursor: pointer;
+/* Submenu link styles */
+nav .submenu li a {
+  color: #f0f0f0;
+  text-decoration: none;
+  font-weight: 500;
+  display: block;
+  padding: 1em 1.5em; /* Increased padding */
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+  position: relative; /* Needed for the line */
 }
 
+nav .submenu li a span {
+  position: relative;
+  display: inline-block;
+}
+
+/* Animated line for submenu items */
+nav .submenu li a span::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: white;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+nav .submenu li:hover > a > span::after {
+  transform: scaleX(1);
+}
+
+nav .submenu li:hover > a {
+  background-color: #333;
+}
 /* Secciones */
 section {
   padding: 2em 1em;
   background-color: white;
   margin: 1em 2em;
   border-radius: 10px;
+}
+
+section#productos h2 {
+  text-align: center;
+  margin-bottom: 2em;
 }
 
 /* Slider Nuevo - Completamente Funcional */
@@ -133,21 +228,16 @@ section {
 
 .slider-track {
   display: flex;
-  width: 300%;
+
   height: 100%;
   transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .slide {
-  width: 33.333%;
+  width: 100%;
   height: 100%;
   flex-shrink: 0;
-  opacity: 0.7;
   transition: opacity 0.8s ease;
-}
-
-.slide.active {
-  opacity: 1;
 }
 
 .slide img {
@@ -208,6 +298,7 @@ section {
   overflow: hidden;
   cursor: pointer;
   transition: box-shadow 0.3s ease, transform 0.3s ease;
+  margin-left: 0; /* Evita el espacio que cierra el menú */
   margin-top: 20px; /* para que empiece un poco más abajo */
 }
 
@@ -333,6 +424,43 @@ form#formulario button {
   width: 100%;
 }
 
+#contacto h2 {
+  text-align: center;
+  font-size: 2.5rem; /* Aumenta el tamaño del título */
+  margin-bottom: 1.5rem; /* Añade espacio debajo del título */
+}
+
+/* Estilos para la sección de Ubicación */
+#contacto .location-content {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+#contacto .location-content p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+#contacto .map-container {
+  position: relative;
+  padding-bottom: 56.25%; /* Proporción 16:9 */
+  height: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+#contacto .map-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 /* Footer */
 footer {
   text-align: center;
@@ -390,4 +518,522 @@ footer {
 
 .slider-btn.next {
   right: 10px;
+}
+
+/* --- Estilos para la animación de aparición */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.reveal-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Floating Navigation Button & Modal --- */
+
+/* === Floating Buttons Base Style === */
+.floating-btn {
+  position: fixed;
+  bottom: 25px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
+  /* Default state: hidden */
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+}
+
+.floating-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+/* Visibility state for ANY floating button */
+.floating-btn.btn-visible-por-scroll,
+.floating-btn.menu-abierto /* menu-abierto specifically for nav */
+{
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+/* === Specific Button Styles === */
+
+/* Navigation Button */
+#floatingNavButton {
+  left: 25px;
+  background-color: var(--color-primario);
+  z-index: 1050;
+}
+
+
+
+/* Hide original widget close button */
+#widgetCloseBtn {
+  display: none;
+}
+
+/* --- CSS Icon --- */
+.icon-bars {
+  position: relative;
+  width: 24px;
+  height: 2px;
+  background-color: #333;
+  transition: all 0.2s ease-in-out;
+}
+
+.icon-bars::before,
+.icon-bars::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #333;
+  transition: all 0.2s ease-in-out;
+}
+
+.icon-bars::before {
+  top: -8px;
+}
+
+.icon-bars::after {
+  top: 8px;
+}
+
+/* Active state (X) */
+#floatingNavButton.menu-abierto .icon-bars {
+  background-color: transparent; /* Middle bar disappears */
+}
+
+#floatingNavButton.menu-abierto .icon-bars::before {
+  top: 0;
+  transform: rotate(45deg);
+  background-color: red;
+}
+
+#floatingNavButton.menu-abierto .icon-bars::after {
+  top: 0;
+  transform: rotate(-45deg);
+  background-color: red;
+}
+
+#navModal {
+  position: fixed;
+  bottom: 90px; /* Position above the FAB */
+  left: 25px;
+  width: 220px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  z-index: 1049;
+  padding: 15px;
+  
+  /* Initial state for animation */
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  transform-origin: bottom left;
+  visibility: hidden;
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s 0.25s;
+}
+
+#navModal.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  visibility: visible;
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
+}
+
+#navModal .modal-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: center;
+}
+
+#navModal .modal-links li:not(:last-child) {
+  margin-bottom: 1em;
+}
+
+#navModal .modal-links a {
+  color: #2c2c2c;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  display: block;
+  padding: 0.5em 0;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+#navModal .modal-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  width: 0%;
+  height: 1px;
+  background-color: red;
+  transition: width 0.3s ease-in-out;
+}
+
+#navModal .modal-links a:hover {
+  color: red;
+}
+
+#navModal .modal-links a:hover::after {
+  width: 80%;
+}
+
+@keyframes whatsapp-glow {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(37, 211, 102, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(37, 211, 102, 0.9);
+  }
+}
+
+.modal-close-btn {
+  align-self: flex-end;
+  font-size: 2.5em;
+  color: #aaa;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  margin: -0.2em 0 0 0;
+}
+
+.modal-close-btn:hover {
+  color: white;
+}
+
+.modal-links {
+  list-style: none;
+  padding: 2em 0 0 0;
+  margin: 0;
+}
+
+.modal-links li {
+  margin-bottom: 1.5em;
+}
+
+.modal-links a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.2em;
+  transition: color 0.2s;
+}
+
+.modal-links a:hover {
+color: #f0c040;
+}
+
+/* --- Floating Nav Button --- */
+#floatingNavButton {
+    position: fixed;
+    bottom: 25px; /* Alineado con el botón de WhatsApp */
+    left: 20px;
+    width: 60px;
+    height: 60px;
+    background-color: #fff;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001; /* Encima del widget de WhatsApp */
+    opacity: 0;
+    transform: scale(0.8);
+    pointer-events: none;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+#floatingNavButton.btn-visible-por-scroll {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+}
+
+#floatingNavButton.btn-visible-por-scroll:hover {
+    transform: scale(1.1);
+}
+
+/* --- WhatsApp Widget --- */
+.whatsapp-container {
+position: fixed;
+bottom: 25px;
+right: 25px;
+z-index: 1000;
+}
+
+.floating-whatsapp-btn {
+width: 60px;
+height: 60px;
+border-radius: 50%;
+border: none;
+box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+cursor: pointer;
+display: flex;
+justify-content: center;
+align-items: center;
+background-color: #25D366; /* Verde original */
+color: white; /* Icono blanco */
+font-size: 32px;
+transition: background-color 0.3s ease, transform 0.3s ease;
+position: relative;
+overflow: hidden; /* To contain the icons */
+}
+
+.floating-whatsapp-btn:hover {
+    transform: scale(1.1);
+    background-color: #128C7E; /* Verde oscuro para hover */
+    color: white; /* Asegurar que el icono siga blanco */
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+}
+
+.whatsapp-container.open .floating-whatsapp-btn {
+    background-color: #e63946; /* Rojo original */
+}
+
+.whatsapp-container.open .floating-whatsapp-btn:hover {
+    background-color: #c82333; /* Rojo oscuro para hover */
+}
+
+.floating-whatsapp-btn .whatsapp-icon,
+.floating-whatsapp-btn .close-icon {
+    position: absolute;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.floating-whatsapp-btn .whatsapp-icon {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.floating-whatsapp-btn .close-icon {
+    transform: scale(0);
+    opacity: 0;
+    font-size: 28px;
+}
+
+.whatsapp-container.open .floating-whatsapp-btn .whatsapp-icon {
+    transform: scale(0);
+    opacity: 0;
+}
+
+.whatsapp-container.open .floating-whatsapp-btn .close-icon {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.whatsapp-widget {
+    position: absolute;
+    bottom: 75px; /* Above the button */
+    right: 0;
+    width: 340px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    
+    /* Animation */
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transform-origin: bottom right;
+    visibility: hidden;
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s 0.25s;
+}
+
+.whatsapp-container.open .whatsapp-widget {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    visibility: visible;
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
+}
+
+.widget-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background-color: #075E54; /* Dark green header */
+    color: white;
+}
+
+.widget-header .widget-logo {
+    width: 45px;
+    height: 45px;
+    border-radius: 0; /* Sin borde redondeado */
+    object-fit: contain; /* Mostrar imagen completa sin recortar */
+    margin-right: 12px;
+    border: none; /* Sin borde blanco */
+}
+
+.widget-header .widget-info .widget-title {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.widget-body {
+    background-image: url("https://i.pinimg.com/736x/8c/98/99/8c98994518b575bfd8c949e91d20548b.jpg"); /* WhatsApp background pattern */
+    background-color: #E5DDD5;
+    padding: 20px 16px;
+    flex-grow: 1;
+    min-height: 200px;
+}
+
+.message-bubble {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 8px 12px;
+    max-width: 80%;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+    align-self: flex-start;
+}
+
+.message-bubble p {
+    margin: 0;
+    color: #333;
+    line-height: 1.4;
+}
+
+.widget-footer {
+    padding: 16px;
+    background-color: #f0f0f0;
+    text-align: center;
+}
+
+.start-chat-btn {
+    background-color: #25D366;
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-weight: bold;
+    display: inline-block;
+    transition: background-color 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.start-chat-btn:hover {
+    background-color: #128C7E;
+}
+
+/* Responsive adjustments */
+@media (max-width: 400px) {
+    .whatsapp-widget {
+        width: calc(100vw - 40px);
+        right: -10px; /* Adjust position */
+    }
+    .whatsapp-container {
+        right: 15px;
+        bottom: 15px;
+    }
+}
+
+/* --- Footer --- */
+.footer-container {
+    color: #333; /* Dark text for white background */
+    background-color: #f8f9fa; /* Set grey background for the whole footer */
+}
+
+.footer-main {
+    background-color: #ffffff; /* White background for the top section */
+}
+
+.footer-content-wrapper {
+    display: flex;
+  
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px; /* Padding for the content */
+    flex-wrap: wrap;
+}
+
+.footer-logo {
+    flex: 1;
+    min-width: 150px;
+}
+
+.footer-logo img {
+    max-width: 120px; /* Adjust logo size */
+}
+
+.contact-info {
+    flex: 2;
+    text-align: center;
+    min-width: 300px;
+    padding: 0 20px;
+}
+
+.contact-info h3 {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #e0a800;
+    padding-bottom: 5px;
+    display: inline-block;
+}
+
+.contact-info p {
+    margin: 5px 0;
+    font-size: 0.9em;
+}
+
+.social-media {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    min-width: 150px;
+}
+
+.social-media a {
+    margin-left: 15px;
+}
+
+.social-media img {
+    width: 30px;
+    height: 30px;
+    transition: transform 0.3s ease;
+}
+
+.social-media img:hover {
+    transform: scale(1.1);
+}
+
+.copyright {
+    padding: 20px 0;
+    /* Background is now inherited from .footer-container */
+}
+
+.copyright-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.copyright p {
+    margin: 0;
+    font-size: 0.9em;
+    color: #6c757d; /* Dark grey text */
 }

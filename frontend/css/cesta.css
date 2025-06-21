@@ -1,0 +1,170 @@
+/* Estilos para la página de la cesta */
+
+.cesta-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.cesta-item img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    margin-right: 1.5rem;
+    border-radius: 5px;
+}
+
+.item-info {
+    flex-grow: 1;
+}
+
+.item-info p {
+    margin: 0.3rem 0;
+}
+
+.item-marca {
+    font-size: 0.8rem;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.item-nombre {
+    font-weight: bold;
+}
+
+.item-cantidad {
+    display: flex;
+    align-items: center;
+    margin: 0 1rem;
+}
+
+.cesta-item .item-cantidad .item-quantity-input {
+    width: 50px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1.1em;
+    margin: 0 5px;
+    -moz-appearance: textfield; /* Firefox */
+    appearance: textfield;
+}
+
+.cesta-item .item-cantidad .item-quantity-input::-webkit-outer-spin-button,
+.cesta-item .item-cantidad .item-quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.item-cantidad span {
+    padding: 0 1rem;
+    font-size: 1.1rem;
+}
+
+.cesta-item-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    flex-grow: 1;
+}
+
+.btn-cantidad, .btn-eliminar {
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    padding: 0.3rem 0.7rem;
+    border-radius: 5px;
+}
+
+.btn-eliminar {
+    background: #fdecec;
+    color: #c53030;
+    border-color: #fbcaca;
+}
+
+.cesta-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 2rem auto;
+    gap: 2rem;
+}
+
+#cesta-vacia, #cesta-con-items {
+    flex-grow: 1;
+}
+
+.cesta-vacia-contenido {
+    text-align: center;
+    padding: 4rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.icono-cesta-vacia {
+    font-size: 5rem;
+    color: #ccc;
+}
+
+.cesta-vacia-contenido p {
+    font-size: 1.2rem;
+    margin: 1rem 0;
+}
+
+.boton-comprar {
+    background-color: #000;
+    color: #fff;
+    padding: 0.8rem 1.5rem;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.resumen-pedido {
+    width: 300px;
+    border: 1px solid #ddd;
+    padding: 1.5rem;
+    border-radius: 5px;
+    height: fit-content;
+}
+
+.total-pedido {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.boton-pagar {
+    width: 100%;
+    padding: 1rem;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.boton-pagar:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+#cart-icon {
+    position: relative;
+}
+
+#cart-count {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: red;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 12px;
+}

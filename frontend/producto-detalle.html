@@ -4,61 +4,148 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Detalle del Producto - Macs Legacy</title>
+  <link rel="icon" href="http://localhost:3001/assets/macs-agencia.png?v=2" type="image/png">
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/productos.css" />
+  <link rel="stylesheet" href="css/producto-detalle.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-
   <header>
-    <h1 class="logo">Macs</h1>
-    <nav>
-      <ul class="menu">
-        <li><a href="index.html#inicio">Inicio</a></li>
-        <li class="submenu-parent">
-          <a href="index.html#productos">Productos &#x25BE;</a>
-          <ul class="submenu">
-            <li class="submenu-category">Gorras
-              <ul>
-                <li><a href="productos-macs.html" class="menu-item">Macs</a></li>
-                <li><a href="#">Importadas</a></li>
-              </ul>
-            </li>
-            <li class="submenu-category">Sombreros
-              <ul>
-                <li><a href="#">QS</a></li>
-                <li><a href="#">Alone</a></li>
-                <li><a href="#">Safari</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-        <li><a href="index.html#nosotros">Nosotros</a></li>
-        <li><a href="index.html#contacto">Contacto</a></li>
-      </ul>
-    </nav>
+    <div class="main-header">
+      <div class="logo">
+        <a href="index.html">Macs</a>
+      </div>
+      <nav class="main-nav">
+        <ul class="menu">
+          <li><a href="index.html">Inicio</a></li>
+          <li class="submenu-parent">
+            <a href="index.html#productos">Catálogo</a>
+            <ul class="submenu">
+              <li class="submenu-parent">
+                <a href="#"><span>Gorras &raquo;</span></a>
+                <ul class="submenu">
+                  <li><a href="productos-macs.html"><span>Macs</span></a></li>
+                  <li><a href="productos-importadas.html"><span>Importadas</span></a></li>
+                </ul>
+              </li>
+              <li class="submenu-parent">
+                <a href="#"><span>Sombreros &raquo;</span></a>
+                <ul class="submenu">
+                  <li><a href="#"><span>QS</span></a></li>
+                  <li><a href="#"><span>Alone</span></a></li>
+                  <li><a href="#"><span>Safari</span></a></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+          <li><a href="#">Personalizados</a></li>
+          <li><a href="index.html#contacto">Contacto</a></li>
+          <li><a href="macs.html">Quienes Somos</a></li>
+        </ul>
+      </nav>
+      <div class="cart">
+        <a href="cesta.html">
+          🛒
+          <span id="cart-count">0</span>
+        </a>
+      </div>
+    </div>
   </header>
+
+  <!-- Botón de Navegación Flotante -->
+  <div class="floating-btn floating-nav-btn" id="floatingNavButton">
+    &#9776;
+  </div>
+
+  <!-- Botón flotante de WhatsApp y Widget -->
+  <div class="whatsapp-container" id="whatsappContainer">
+    <div class="whatsapp-widget" id="whatsappWidget">
+        <div class="widget-header">
+            <img src="http://localhost:3001/assets/macs-agencia.png?v=2" alt="Macs Legacy Logo" class="widget-logo">
+            <div class="widget-info">
+                <div class="widget-title">Macs Legacy</div>
+            </div>
+        </div>
+        <div class="widget-body">
+            <div class="message-bubble received">
+                <p>¡Hola! 👋</p>
+            </div>
+            <div class="message-bubble received">
+                <p>¿Necesitas ayuda? Chatea con nosotros.</p>
+            </div>
+        </div>
+        <div class="widget-footer">
+            <a href="https://wa.me/573204829726?text=Hola,%20necesito%20ayuda%20con%20un%20producto." target="_blank" class="start-chat-btn">Iniciar Chat</a>
+        </div>
+    </div>
+    <button class="floating-whatsapp-btn" id="floatingWhatsAppButton">
+        <i class="fa-brands fa-whatsapp whatsapp-icon"></i>
+        <i class="fa-solid fa-xmark close-icon"></i>
+    </button>
+  </div>
+
+  <!-- Menú Modal -->
+  <div class="modal-menu" id="navModal">
+    <div class="modal-content">
+      <span class="modal-close-btn">&times;</span>
+      <ul class="modal-links">
+        <li><a href="index.html">INICIO</a></li>
+        <li><a href="index.html#productos">Catálogo</a></li>
+        <li><a href="index.html#contacto">Contacto</a></li>
+        <li><a href="macs.html">Quienes Somos</a></li>
+      </ul>
+    </div>
+  </div>
 
   <main id="detalle-producto-container" class="detalle-producto-main">
     <!-- Contenido dinámico -->
   </main>
 
-  <section class="related-products-section">
-    <div class="related-header">
-        <h3>TAMBIÉN TE PUEDE INTERESAR</h3>
-        <div class="related-nav">
-            <button class="nav-arrow prev-arrow">&lt;</button>
-            <button class="nav-arrow next-arrow">&gt;</button>
+  <section id="recomendados" class="recomendados-section">
+    <h2>TAMBIÉN TE PUEDE INTERESAR</h2>
+    <div class="carousel-container">
+      <button class="carousel-btn prev" id="recomendados-prev">&#10094;</button>
+      <div class="carousel-track-container">
+        <div class="carousel-track" id="recomendados-track">
+          <!-- Los productos recomendados se cargarán aquí -->
         </div>
-    </div>
-    <div id="related-products-container" class="productos-grid">
-      <!-- Productos relacionados -->
+      </div>
+      <button class="carousel-btn next" id="recomendados-next">&#10095;</button>
     </div>
   </section>
 
-  <footer>
-    <p>&copy; 2025 Macs. Todos los derechos reservados.</p>
-  </footer>
+  <footer class="footer-container">
+    <div class="footer-main">
+        <div class="footer-content-wrapper">
+            <div class="footer-logo">
+                <a href="index.html"><img src="http://localhost:3001/assets/macs-agencia.png" alt="Macs Agencia Logo"></a>
+            </div>
+            <div class="contact-info">
+                <h3>Datos de contacto</h3>
+                <p><strong>Edificio Principal:</strong> Cra. 33 #47a-04, Villavicencio, Meta</p>
+                <p><strong>Horario de atención:</strong> 8:00 Am - 12:00 Pm / 2:00 Pm - 6:00 Pm</p>
+                <p><strong>Conmutador:</strong> 320 4829726</p>
+                <p><strong>Notificaciones judiciales:</strong> notificacionesjudiciales@example.com</p>
+            </div>
+            <div class="social-media">
+                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/tiktok.png" alt="TikTok"></a>
+                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/youtube-play.png" alt="YouTube"></a>
+                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/instagram-new.png" alt="Instagram"></a>
+                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/twitterx.png" alt="X"></a>
+            </div>
+        </div>
+    </div>
+    <div class="copyright">
+        <div class="copyright-wrapper">
+            <p>© 2025 Macs. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>
 
-  <script src="js/detalle.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/producto-detalle.js"></script>
+  <script src="js/animations.js"></script>
 </body>
 </html>
