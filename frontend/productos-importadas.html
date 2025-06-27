@@ -11,46 +11,61 @@
 </head>
 <body>
   <header>
-    <div class="main-header">
-      <div class="logo">
-        <a href="index.html">Macs</a>
-      </div>
-      <nav class="main-nav">
-        <ul class="menu">
-          <li><a href="index.html">Inicio</a></li>
-          <li class="submenu-parent">
-            <a href="index.html#productos">Catálogo</a>
-            <ul class="submenu">
-              <li class="submenu-parent">
-                <a href="#"><span>Gorras &raquo;</span></a>
-                <ul class="submenu">
-                  <li><a href="productos-macs.html"><span>Macs</span></a></li>
-                  <li><a href="productos-importadas.html"><span>Importadas</span></a></li>
+        <div class="logo">
+          <a href="index.html"><img src="http://localhost:3001/assets/macs-agencia.png" alt="Macs Legacy Logo" style="height: 40px;"></a>
+        </div>
+
+        <div class="header-right">
+            <nav class="main-nav">
+                <ul class="menu">
+                    <li><a href="index.html">Inicio</a></li>
+                    <li class="submenu-parent">
+                        <a href="#productos-destacados-section">Catálogo</a>
+                        <ul class="submenu">
+                            <li class="submenu-parent">
+                                <a href="#"><span>Gorras &raquo;</span></a>
+                                <ul class="submenu">
+                                    <li><a href="productos-macs.html"><span>Macs</span></a></li>
+                                    <li><a href="productos-importadas.html"><span>Importadas</span></a></li>
+                                </ul>
+                            </li>
+                            <li class="submenu-parent">
+                                <a href="#"><span>Sombreros &raquo;</span></a>
+                                <ul class="submenu">
+                                    <li><a href="#"><span>QS</span></a></li>
+                                    <li><a href="#"><span>Alone</span></a></li>
+                                    <li><a href="#"><span>Safari</span></a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="submenu-parent">
+                        <a href="#">Personalizados</a>
+                        <ul class="submenu">
+                            <li><a href="bordados.html"><span>Bordados</span></a></li>
+                            <li><a href="parches.html"><span>Parches</span></a></li>
+                        </ul>
+                    </li>
+                    <li><a href="index.html#contacto">Contacto</a></li>
+                    <li><a href="macs.html">Quienes Somos</a></li>
                 </ul>
-              </li>
-              <li class="submenu-parent">
-                <a href="#"><span>Sombreros &raquo;</span></a>
-                <ul class="submenu">
-                  <li><a href="#"><span>QS</span></a></li>
-                  <li><a href="#"><span>Alone</span></a></li>
-                  <li><a href="#"><span>Safari</span></a></li>
-                </ul>
-              </li>
-            </ul>
-          </li>
-          <li><a href="#">Personalizados</a></li>
-          <li><a href="index.html#contacto">Contacto</a></li>
-          <li><a href="macs.html">Quienes Somos</a></li>
-        </ul>
-      </nav>
-      <div class="cart">
-        <a href="cesta.html">
-          🛒
-          <span id="cart-count">0</span>
-        </a>
-      </div>
-    </div>
-  </header>
+            </nav>
+            <div class="cart">
+                <div class="cesta-icon-container">
+                    <a href="cesta.html">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span id="cart-count" class="cart-counter hidden">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <button class="menu-toggle" id="menu-toggle">
+            <div class="hamburger"></div>
+            <div class="hamburger"></div>
+            <div class="hamburger"></div>
+        </button>
+    </header>
 
 
 
@@ -111,31 +126,30 @@
 
   <footer class="footer-container">
     <div class="footer-main">
-        <div class="footer-content-wrapper">
-            <div class="footer-logo">
-                <a href="index.html"><img src="http://localhost:3001/assets/macs-agencia.png" alt="Macs Agencia Logo"></a>
-            </div>
-            <div class="contact-info">
-                <h3>Datos de contacto</h3>
-                <p><strong>Edificio Principal:</strong> Cra. 33 #47a-04, Villavicencio, Meta</p>
-                <p><strong>Horario de atención:</strong> 8:00 Am - 12:00 Pm / 2:00 Pm - 6:00 Pm</p>
-                <p><strong>Conmutador:</strong> 320 4829726</p>
-                <p><strong>Notificaciones judiciales:</strong> notificacionesjudiciales@example.com</p>
-            </div>
-            <div class="social-media">
-                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/tiktok.png" alt="TikTok"></a>
-                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/youtube-play.png" alt="YouTube"></a>
-                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/instagram-new.png" alt="Instagram"></a>
-                <a href="#"><img src="https://img.icons8.com/ios-filled/50/000000/twitterx.png" alt="X"></a>
-            </div>
+      <div class="footer-content-wrapper">
+        <div class="footer-logo">
+          <a href="index.html"><img src="http://localhost:3001/assets/macs-agencia.png" alt="Macs Agencia Logo"></a>
         </div>
+        <div class="contact-info">
+          <h3>Datos de contacto</h3>
+          <p><strong>Edificio Principal:</strong> Cra. 33 #40-68, Villavicencio, Meta</p>
+          <p><strong>Horario de atención:</strong> 8:00 Am - 12:00 Pm / 2:00 Pm - 6:00 Pm</p>
+          <p><strong>Conmutador:</strong> +57 301 999 8933</p>
+        </div>
+        <div class="social-media">
+          <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+          <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+          <a href="https://www.instagram.com/macs.caps/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+        </div>
+      </div>
     </div>
     <div class="copyright">
-        <div class="copyright-wrapper">
-            <p>&copy; 2025 Macs. Todos los derechos reservados.</p>
-        </div>
+      <div class="copyright-wrapper">
+        <p>&copy; 2025 Macs. Todos los derechos reservados.</p>
+      </div>
     </div>
-</footer>
+  </footer>
 
   <script src="js/nav.js"></script>
   <script src="js/cart.js"></script>

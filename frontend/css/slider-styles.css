@@ -1,0 +1,250 @@
+/* === Main Slider Swiper Styles === */
+
+.main-slider {
+    height: 65vh; /* Altura del slider ajustada */
+    width: 100%;
+    position: relative;
+    border-radius: 15px; /* Bordes redondeados */
+    overflow: hidden; /* Asegura que el contenido respete los bordes */
+}
+
+#main-swiper {
+    height: 100%;
+    width: 100%;
+}
+
+#main-swiper .swiper-slide {
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: flex-end; /* Alinea el contenido en la parte inferior */
+    justify-content: flex-start; /* Alinea el contenido a la izquierda */
+    padding: 50px;
+    box-sizing: border-box;
+}
+
+#main-swiper .slide-content {
+    color: #fff;
+    text-align: left;
+    max-width: 600px; /* Ancho máximo del contenido */
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+#main-swiper .slide-content h1 {
+    font-size: 3.5em;
+    font-weight: 900;
+    margin: 0 0 15px 0;
+    line-height: 1.1;
+    text-transform: uppercase;
+}
+
+#main-swiper .slide-content .btn-comprar {
+    background-color: #fff;
+    color: #1a1a1a;
+    padding: 12px 25px;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+    border: 2px solid #fff;
+    text-transform: uppercase;
+}
+
+#main-swiper .slide-content .btn-comprar:hover {
+    background-color: transparent;
+    color: #fff;
+}
+
+/* --- Main Slider Navigation & Pagination --- */
+
+#main-swiper .swiper-button-prev,
+#main-swiper .swiper-button-next {
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    transition: background-color 0.3s;
+}
+
+#main-swiper .swiper-button-prev:hover,
+#main-swiper .swiper-button-next:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+#main-swiper .swiper-button-prev::after,
+#main-swiper .swiper-button-next::after {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+#main-swiper .swiper-pagination-bullet {
+    background: rgba(255, 255, 255, 0.7);
+    width: 12px;
+    height: 12px;
+    opacity: 1;
+}
+
+#main-swiper .swiper-pagination-bullet-active {
+    background: #fff;
+}
+
+/* --- Main Slider Responsive Adjustments --- */
+
+@media (max-width: 768px) {
+    .main-slider {
+        height: 60vh;
+    }
+
+    #main-swiper .slide-content {
+        padding: 30px;
+        max-width: 90%;
+    }
+
+    #main-swiper .slide-content h1 {
+        font-size: 2.5em;
+    }
+
+    #main-swiper .slide-content .btn-comprar {
+        padding: 10px 20px;
+        font-size: 0.9em;
+    }
+
+    #main-swiper .swiper-button-prev,
+    #main-swiper .swiper-button-next {
+        width: 40px;
+        height: 40px;
+    }
+
+    #main-swiper .swiper-button-prev::after,
+    #main-swiper .swiper-button-next::after {
+        font-size: 16px;
+    }
+}
+
+/* === Product Sliders Swiper Styles === */
+
+.productos-section .swiper-container {
+  width: 100%;
+  padding: 10px 0;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.productos-section .swiper-slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 10px;
+}
+
+.productos-section .swiper-pagination-progressbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.productos-section .swiper-pagination-progressbar .swiper-pagination-progressbar-fill {
+  background: #007aff;
+  height: 100%;
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.productos-section .swiper-pagination-bullets {
+  display: none;
+}
+
+.productos-section .custom-pagination-container {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.productos-section .custom-pagination-indicator {
+  background-color: #007aff;
+  color: white;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+  position: relative;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.productos-section .custom-pagination-indicator::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid #007aff;
+}
+
+.productos-section .swiper-button-next,
+.productos-section .swiper-button-prev {
+    font-size: 20px;
+    padding: 10px;
+    position: absolute;
+    top: 50%;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.2s;
+    opacity: 0; /* Oculto por defecto */
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+}
+
+.productos-section:hover .swiper-button-next,
+.productos-section:hover .swiper-button-prev {
+    opacity: 1; /* Visible en hover */
+}
+
+.productos-section .swiper-button-prev {
+    left: 10px;
+    transform: translateY(-50%) translateX(-150%); /* Empieza fuera de la pantalla */
+}
+
+.productos-section:hover .swiper-button-prev {
+    transform: translateY(-50%) translateX(0); /* Se desliza hacia adentro */
+}
+
+.productos-section .swiper-button-next {
+    right: 10px;
+    transform: translateY(-50%) translateX(150%); /* Empieza fuera de la pantalla */
+}
+
+.productos-section:hover .swiper-button-next {
+    transform: translateY(-50%) translateX(0); /* Se desliza hacia adentro */
+}
+
+.productos-section .swiper-button-next:hover,
+.productos-section .swiper-button-prev:hover {
+    background-color: #333;
+}
+
+.productos-section .swiper-button-disabled {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+.productos-section .swiper-button-next::after,
+.productos-section .swiper-button-prev::after {
+    font-size: 18px;
+}

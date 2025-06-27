@@ -1,13 +1,16 @@
 const jwt = require('jsonwebtoken');
 
 module.exports = function(req, res, next) {
-    // Obtener el token del header
-    const token = req.header('x-auth-token');
+    // Obtener el token del header de autorización
+    const authHeader = req.header('Authorization');
 
-    // Verificar si no hay token
-    if (!token) {
-        return res.status(401).json({ message: 'No hay token, autorización denegada.' });
+    // Verificar si no hay header o no tiene el formato correcto 'Bearer token'
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'No hay token o el formato es inválido, autorización denegada.' });
     }
+
+    // Extraer el token (quitando 'Bearer ')
+    const token = authHeader.split(' ')[1];
 
     // Verificar el token
     try {

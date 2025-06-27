@@ -1,156 +1,143 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // 0. Check for token
     const token = localStorage.getItem('token');
     if (!token) {
         window.location.href = 'login.html';
         return;
     }
 
+    // 1. Constants and Global Variables
     const API_URL = 'http://localhost:3001/api';
     const BASE_URL = 'http://localhost:3001';
 
+    // 2. Element Selectors
     const tablaProductosContainer = document.getElementById('tabla-productos-container');
     const modal = document.getElementById('producto-modal');
     const modalTitulo = document.getElementById('modal-titulo');
     const closeButton = document.querySelector('.close-button');
-    const btnNuevoProducto = document.getElementById('btn-nuevo-producto');
     const productoForm = document.getElementById('producto-form');
+    const btnAgregarProducto = document.getElementById('btn-agregar-producto');
+    const btnFiltrar = document.getElementById('btn-filtrar');
+    const filtroCategoria = document.getElementById('filtro-categoria');
+    const filtroSubcategoria = document.getElementById('filtro-subcategoria');
+    const filtroNombre = document.getElementById('filtro-nombre');
+    const imagePreviewsContainer = document.getElementById('image-previews-container');
+    const imageCountSpan = document.getElementById('image-count');
+    const productoCategoriaSelect = document.getElementById('producto-categoria');
 
-    const productoId = document.getElementById('producto-id');
-    const nombre = document.getElementById('nombre');
-    const marca = document.getElementById('marca');
-    const precio = document.getElementById('precio');
-    const stock = document.getElementById('stock');
-    const descripcion = document.getElementById('producto-descripcion');
-    const numero_referencia = document.getElementById('producto-referencia');
-    const categoria = document.getElementById('producto-categoria');
-    const subcategoria = document.getElementById('producto-subcategoria');
-    const activo = document.getElementById('activo');
-    const destacado = document.getElementById('destacado');
+    const imageTypes = [
+        { id: 'imagen_3_4', name: 'Principal (3:4)' },
+        { id: 'imagen_frontal', name: 'Frontal' },
+        { id: 'imagen_lateral', name: 'Lateral' },
+        { id: 'imagen_trasera', name: 'Trasera' },
+        { id: 'imagen_superior', name: 'Superior' },
+        { id: 'imagen_inferior', name: 'Inferior' },
+    ];
 
-    const imagen_frontal = document.getElementById('imagen_frontal');
-    const imagen_icono = document.getElementById('imagen_icono');
-    const imagen_trasera = document.getElementById('imagen_trasera');
-    const imagen_lateral_derecha = document.getElementById('imagen_lateral_derecha');
-    const imagen_lateral_izquierda = document.getElementById('imagen_lateral_izquierda');
+    // 3. API Fetch Helper
+    async function fetchWithAuth(url, options = {}) {
+        const token = localStorage.getItem('token');
+        const fetchOptions = { ...options };
+        fetchOptions.headers = { ...fetchOptions.headers, 'Authorization': `Bearer ${token}` };
 
+        const response = await fetch(url, fetchOptions);
+        if (response.status === 401) {
+            console.error('Authentication error (401). Redirecting to login.');
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+            throw new Error('Token invalid or expired.');
+        }
+        return response;
+    }
 
+    // 4. Core Functions (Data Loading)
     async function cargarProductos() {
-        const searchTerm = document.getElementById('buscar').value;
-        const categoriaId = document.getElementById('filtro-categoria').value;
-        const subcategoriaId = document.getElementById('filtro-subcategoria').value;
+        const searchTerm = filtroNombre ? filtroNombre.value : '';
+        const categoriaId = filtroCategoria ? filtroCategoria.value : '';
+        const subcategoriaId = filtroSubcategoria ? filtroSubcategoria.value : '';
 
-        let fetchUrl = `${API_URL}/productos/get-all?`;
         const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        if (categoriaId) params.append('categoria', categoriaId);
+        if (subcategoriaId) params.append('subcategoriaId', subcategoriaId);
 
-        if (searchTerm) {
-            params.append('search', searchTerm);
-        }
-        if (categoriaId) {
-            params.append('categoria', categoriaId);
-        }
-        if (subcategoriaId) {
-            params.append('subcategoriaId', subcategoriaId);
-        }
-
-        fetchUrl += params.toString();
+        const fetchUrl = `${API_URL}/productos/get-all?${params.toString()}`;
 
         try {
-            console.log('Fetching products from URL:', fetchUrl);
-            const response = await fetch(fetchUrl, { headers: { 'x-auth-token': token } });
-            if (!response.ok) {
-                console.error('Fetch failed with status:', response.status);
-                throw new Error('No se pudieron cargar los productos.');
-            }
+            const response = await fetchWithAuth(fetchUrl);
+            if (!response.ok) throw new Error('Could not load products.');
             const productos = await response.json();
             renderizarTabla(productos);
-        } catch (error) { 
-            console.error('Error:', error);
-            tablaProductosContainer.innerHTML = '<p>Error al cargar los productos.</p>';
+        } catch (error) {
+            console.error('Error loading products:', error);
+            if (tablaProductosContainer) tablaProductosContainer.innerHTML = '<p>Error al cargar productos.</p>';
         }
     }
 
     async function cargarCategorias() {
-        const filtroCategoria = document.getElementById('filtro-categoria');
-        const productoCategoria = document.getElementById('producto-categoria');
         try {
-            const response = await fetch(`${API_URL}/categorias`, { headers: { 'x-auth-token': token } });
-            if (!response.ok) throw new Error('No se pudieron cargar las categorías.');
+            const response = await fetchWithAuth(`${API_URL}/categorias`);
+            if (!response.ok) throw new Error('Could not load categories.');
             const categorias = await response.json();
-            
             const optionsHTML = categorias.map(cat => `<option value="${cat.id}">${cat.nombre}</option>`).join('');
             
-            // Populate modal dropdown
-            if(productoCategoria) productoCategoria.innerHTML = `<option value="">Seleccione una categoría</option>${optionsHTML}`;
-            
-            // Populate filter dropdown
-            if (filtroCategoria) {
-                filtroCategoria.innerHTML = `<option value="">Todas las categorías</option>${optionsHTML}`;
-            }
+            if (productoCategoriaSelect) productoCategoriaSelect.innerHTML = `<option value="">Seleccione una categoría</option>${optionsHTML}`;
+            if (filtroCategoria) filtroCategoria.innerHTML = `<option value="">Todas las categorías</option>${optionsHTML}`;
         } catch (error) {
-            console.error('Error al cargar categorías:', error);
-            if(productoCategoria) productoCategoria.innerHTML = '<option value="">Error al cargar</option>';
-            if (filtroCategoria) {
-                filtroCategoria.innerHTML = '<option value="">Error</option>';
-            }
-        }
-    }
-
-    async function cargarSubcategoriasFiltro(categoriaId) {
-        const filtroSubcategoria = document.getElementById('filtro-subcategoria');
-        let fetchUrl = `${API_URL}/subs`;
-
-        if (categoriaId) {
-            fetchUrl += `?categoriaId=${categoriaId}`;
-        }
-
-        try {
-            const response = await fetch(fetchUrl, { headers: { 'x-auth-token': token } });
-            if (!response.ok) throw new Error('No se pudieron cargar las subcategorías para el filtro.');
-            const subcategorias = await response.json();
-            
-            let optionsHTML = '<option value="">Todas las subcategorías</option>';
-            optionsHTML += subcategorias.map(sub => `<option value="${sub.id}">${sub.nombre}</option>`).join('');
-            
-            if (filtroSubcategoria) {
-                filtroSubcategoria.innerHTML = optionsHTML;
-            }
-        } catch (error) {
-            console.error('Error al cargar subcategorías para el filtro:', error);
-            if (filtroSubcategoria) {
-                filtroSubcategoria.innerHTML = '<option value="">Error</option>';
-            }
+            console.error('Error loading categories:', error);
         }
     }
 
     async function cargarSubcategorias(categoriaId, subcategoriaSeleccionadaId = null) {
         const productoSubcategoria = document.getElementById('producto-subcategoria');
+        if (!productoSubcategoria) return;
         if (!categoriaId) {
             productoSubcategoria.innerHTML = '<option value="">Seleccione una categoría primero</option>';
             return;
         }
         try {
-            const response = await fetch(`${API_URL}/subs?categoriaId=${categoriaId}`, { headers: { 'x-auth-token': token } });
-            if (!response.ok) throw new Error('No se pudieron cargar las subcategorías.');
+            const response = await fetchWithAuth(`${API_URL}/subs?categoriaId=${categoriaId}`);
+            if (!response.ok) throw new Error('Could not load subcategories.');
             const subcategorias = await response.json();
             
-            if (subcategorias.length === 0) {
-                productoSubcategoria.innerHTML = '<option value="">No hay subcategorías</option>';
+            let optionsHTML = '<option value="">Seleccione una subcategoría</option>';
+            if (subcategorias.length > 0) {
+                optionsHTML += subcategorias.map(sub => `<option value="${sub.id}">${sub.nombre}</option>`).join('');
             } else {
-                const optionsHTML = subcategorias.map(sub => `<option value="${sub.id}">${sub.nombre}</option>`).join('');
-                productoSubcategoria.innerHTML = `<option value="">Seleccione una subcategoría</option>${optionsHTML}`;
+                optionsHTML = '<option value="">No hay subcategorías</option>';
             }
+            productoSubcategoria.innerHTML = optionsHTML;
     
             if (subcategoriaSeleccionadaId) {
                 productoSubcategoria.value = subcategoriaSeleccionadaId;
             }
         } catch (error) {
-            console.error('Error al cargar subcategorías:', error);
-            productoSubcategoria.innerHTML = '<option value="">Error al cargar</option>';
+            console.error('Error loading subcategories:', error);
+        }
+    }
+    
+    async function cargarSubcategoriasFiltro(categoriaId) {
+        if (!filtroSubcategoria) return;
+        let fetchUrl = `${API_URL}/subs`;
+        if (categoriaId) fetchUrl += `?categoriaId=${categoriaId}`;
+        
+        try {
+            const response = await fetchWithAuth(fetchUrl);
+            if (!response.ok) throw new Error('Could not load filter subcategories.');
+            const subcategorias = await response.json();
+            
+            let optionsHTML = '<option value="">Todas las subcategorías</option>';
+            optionsHTML += subcategorias.map(sub => `<option value="${sub.id}">${sub.nombre}</option>`).join('');
+            filtroSubcategoria.innerHTML = optionsHTML;
+        } catch (error) {
+            console.error('Error loading filter subcategories:', error);
         }
     }
 
+    // 5. Rendering Functions
     function renderizarTabla(productos) {
-        if (productos.length === 0) {
+        if (!tablaProductosContainer) return;
+        if (!productos || productos.length === 0) {
             tablaProductosContainer.innerHTML = '<p>No hay productos para mostrar.</p>';
             return;
         }
@@ -159,34 +146,26 @@ document.addEventListener('DOMContentLoaded', () => {
             <table class="tabla-admin">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Icono</th>
-                        <th>Nombre</th>
-                        <th>Marca</th>
-                        <th>Precio</th>
-                        <th>Stock</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
+                        <th>ID</th><th>Icono</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${productos.map(producto => `
-                        <tr class="${!producto.activo ? 'producto-inactivo' : ''}">
-                            <td>${producto.id}</td>
-                            <td><img src="${BASE_URL}${producto.imagen_icono || '/default-icon.png'}" alt="Icono" class="producto-icono"></td>
-                            <td>${producto.nombre || 'N/A'}</td>
-                            <td>${producto.marca || 'N/A'}</td>
-                            <td>$${(parseFloat(producto.precio) || 0).toFixed(2)}</td>
-                            <td>${producto.stock || 0}</td>
-                            <td>
-                                <span class="status ${producto.activo ? 'status-activo' : 'status-inactivo'}">
-                                    ${producto.activo ? 'Activo' : 'Inactivo'}
-                                </span>
-                            </td>
-                            <td>
-                                <button class="btn-editar" data-id="${producto.id}">Editar</button>
-                                <button class="btn-eliminar" data-id="${producto.id}">Eliminar</button>
-                                <button class="btn-toggle-status" data-id="${producto.id}">Cambiar Estado</button>
+                    ${productos.map(p => `
+                        <tr class="${!p.activo ? 'producto-inactivo' : ''}">
+                            <td>${p.id}</td>
+                            <td><img src="${p.imagen_3_4 ? BASE_URL + p.imagen_3_4 : 'https://via.placeholder.com/50'}" alt="Icono" class="producto-icono"></td>
+                            <td>${p.nombre || 'N/A'}</td>
+                            <td>${p.categoria_nombre || 'N/A'}</td>
+                            <td>$${(parseFloat(p.precio) || 0).toFixed(2)}</td>
+                            <td>${p.stock || 0}</td>
+                            <td><span class="status ${p.activo ? 'status-activo' : 'status-inactivo'}">${p.activo ? 'Activo' : 'Inactivo'}</span></td>
+                            <td class="acciones">
+                                <button class="btn-editar" data-id="${p.id}">EDITAR</button>
+                                <button class="btn-eliminar" data-id="${p.id}">ELIMINAR</button>
+                                ${p.activo 
+                                    ? `<button class="btn-desactivar" data-id="${p.id}">DESACTIVAR</button>` 
+                                    : `<button class="btn-activar" data-id="${p.id}">ACTIVAR</button>`
+                                }
                             </td>
                         </tr>
                     `).join('')}
@@ -196,192 +175,224 @@ document.addEventListener('DOMContentLoaded', () => {
         tablaProductosContainer.innerHTML = tablaHTML;
     }
 
-    function abrirModal() { modal.style.display = 'block'; }
-    function cerrarModal() { modal.style.display = 'none'; }
-
-    function resetImagePreviews() {
-        document.getElementById('frontal-preview').textContent = '';
-        document.getElementById('icono-preview').textContent = '';
-        document.getElementById('trasera-preview').textContent = '';
-        document.getElementById('derecha-preview').textContent = '';
-        document.getElementById('izquierda-preview').textContent = '';
+    function inicializarImagePreviews(existingImages = {}) {
+        if (!imagePreviewsContainer) return;
+        imagePreviewsContainer.innerHTML = '';
+        imageTypes.forEach(type => {
+            const card = document.createElement('div');
+            card.className = 'image-preview-card';
+            card.dataset.typeId = type.id;
+            const existingImageUrl = existingImages[type.id] ? `${BASE_URL}${existingImages[type.id]}` : '';
+            card.innerHTML = `
+                <p>${type.name}</p>
+                <div class="image-placeholder">
+                    ${existingImageUrl ? `<img src="${existingImageUrl}" alt="${type.name}">` : `<span class="placeholder-text">Sin imagen</span>`}
+                </div>
+                <div class="file-input-wrapper">
+                    <label for="${type.id}-file" class="file-input-label">Elegir archivo</label>
+                    <input type="file" id="${type.id}-file" name="${type.id}" accept="image/*" style="display: none;">
+                    <span class="file-name">No se ha seleccionado...</span>
+                </div>
+                <button type="button" class="remove-image-btn" style="display: ${existingImageUrl ? 'block' : 'none'};">&times;</button>
+            `;
+            imagePreviewsContainer.appendChild(card);
+        });
+        updateImageCounter();
+        attachImagePreviewListeners();
     }
 
+    function attachImagePreviewListeners() {
+        document.querySelectorAll('.image-preview-card').forEach(card => {
+            const fileInput = card.querySelector('input[type="file"]');
+            const fileNameSpan = card.querySelector('.file-name');
+            const placeholder = card.querySelector('.image-placeholder');
+            const removeBtn = card.querySelector('.remove-image-btn');
+
+            if (fileInput) fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        if(placeholder) placeholder.innerHTML = `<img src="${event.target.result}" alt="Vista previa">`;
+                        if(fileNameSpan) fileNameSpan.textContent = file.name;
+                        if(removeBtn) removeBtn.style.display = 'block';
+                        updateImageCounter();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            if (removeBtn) removeBtn.addEventListener('click', () => {
+                if(fileInput) fileInput.value = '';
+                if(placeholder) placeholder.innerHTML = `<span class="placeholder-text">Sin imagen</span>`;
+                if(fileNameSpan) fileNameSpan.textContent = 'No se ha seleccionado...';
+                removeBtn.style.display = 'none';
+                updateImageCounter();
+            });
+        });
+    }
+
+    function updateImageCounter() {
+        if (!imageCountSpan) return;
+        const selectedImages = document.querySelectorAll('.image-placeholder img').length;
+        imageCountSpan.textContent = `${selectedImages}`;
+    }
+
+    // 6. Modal and CRUD Actions
+    function abrirModal() { if(modal) modal.style.display = 'block'; }
+    function cerrarModal() { if(modal) modal.style.display = 'none'; }
+
     function abrirModalParaCrear() {
-        modalTitulo.textContent = 'Nuevo Producto';
-        productoForm.reset();
-        productoId.value = '';
-        resetImagePreviews();
-        document.getElementById('producto-subcategoria').innerHTML = '<option value="">Seleccione una categoría primero</option>';
+        if(modalTitulo) modalTitulo.textContent = 'Nuevo Producto';
+        if(productoForm) productoForm.reset();
+        const productoIdInput = document.getElementById('producto-id');
+        if(productoIdInput) productoIdInput.value = '';
+        const productoSubcategoria = document.getElementById('producto-subcategoria');
+        if(productoSubcategoria) productoSubcategoria.innerHTML = '<option value="">Seleccione una categoría primero</option>';
+        inicializarImagePreviews();
         abrirModal();
     }
 
     async function abrirModalParaEditar(id) {
-        modalTitulo.textContent = 'Editar Producto';
-        productoForm.reset();
-        resetImagePreviews();
+        if (!id) return;
+        if(modalTitulo) modalTitulo.textContent = 'Editar Producto';
+        if(productoForm) productoForm.reset();
         try {
-            const response = await fetch(`${API_URL}/productos/${id}`, { headers: { 'x-auth-token': token } });
-            if (!response.ok) throw new Error('No se pudo obtener el producto.');
+            const response = await fetchWithAuth(`${API_URL}/productos/admin/${id}`);
+            if (!response.ok) throw new Error('Could not get product.');
             const p = await response.json();
 
-            productoId.value = p.id;
-            nombre.value = p.nombre;
-            marca.value = p.marca;
-            precio.value = p.precio;
-            stock.value = p.stock;
-            descripcion.value = p.descripcion;
-            numero_referencia.value = p.numero_referencia || '';
-            
-            // Set category and then load/set subcategory
+            // Populate form fields
+            document.getElementById('producto-id').value = p.id;
+            document.getElementById('nombre').value = p.nombre;
+            document.getElementById('marca').value = p.marca;
+            document.getElementById('precio').value = p.precio;
+            document.getElementById('stock').value = p.stock;
+            document.getElementById('producto-descripcion').value = p.descripcion;
+            document.getElementById('producto-referencia').value = p.numero_referencia || '';
+            document.getElementById('activo').checked = p.activo;
+            document.getElementById('destacado').checked = p.destacado;
             document.getElementById('producto-categoria').value = p.categoria_id;
-            await cargarSubcategorias(p.categoria_id, p.subcategoria_id);
             
-            activo.checked = p.activo;
-            destacado.checked = p.destacado;
+            await cargarSubcategorias(p.categoria_id, p.subcategoria_id);
 
-            document.getElementById('frontal-preview').textContent = p.imagen_frontal ? p.imagen_frontal.split('/').pop() : 'No hay imagen';
-            document.getElementById('icono-preview').textContent = p.imagen_icono ? p.imagen_icono.split('/').pop() : 'No hay imagen';
-            document.getElementById('trasera-preview').textContent = p.imagen_trasera ? p.imagen_trasera.split('/').pop() : 'No hay imagen';
-            document.getElementById('derecha-preview').textContent = p.imagen_lateral_derecha ? p.imagen_lateral_derecha.split('/').pop() : 'No hay imagen';
-            document.getElementById('izquierda-preview').textContent = p.imagen_lateral_izquierda ? p.imagen_lateral_izquierda.split('/').pop() : 'No hay imagen';
-
-
+            const existingImages = {
+                imagen_3_4: p.imagen_3_4,
+                imagen_frontal: p.imagen_frontal,
+                imagen_lateral: p.imagen_lateral,
+                imagen_trasera: p.imagen_trasera,
+                imagen_superior: p.imagen_superior,
+                imagen_inferior: p.imagen_inferior,
+            };
+            inicializarImagePreviews(existingImages);
             abrirModal();
         } catch (error) {
-            console.error('Error al cargar producto para editar:', error);
-            alert('No se pudo cargar la información del producto.');
+            console.error('Error loading product for editing:', error);
+            alert('Could not load product information.');
         }
     }
 
-    btnNuevoProducto.addEventListener('click', abrirModalParaCrear);
-    closeButton.addEventListener('click', cerrarModal);
-    window.addEventListener('click', (e) => {
-        if (e.target === modal) cerrarModal();
-    });
-
-    tablaProductosContainer.addEventListener('click', async (e) => {
-        const id = e.target.dataset.id;
-        if (e.target.classList.contains('btn-eliminar')) {
-            if (confirm(`¿Estás seguro de que quieres eliminar el producto con ID ${id}?`)) await eliminarProducto(id);
-        } else if (e.target.classList.contains('btn-editar')) {
-            await abrirModalParaEditar(id);
-        } else if (e.target.classList.contains('btn-toggle-status')) {
-            await toggleEstadoProducto(id);
-        }
-    });
-
-    productoForm.addEventListener('submit', async (e) => {
+    async function guardarProducto(e) {
         e.preventDefault();
-        const id = productoId.value;
+        const id = document.getElementById('producto-id').value;
         const esNuevo = !id;
+        const formData = new FormData(productoForm);
 
-        const formData = new FormData();
-        formData.append('nombre', nombre.value);
-        formData.append('marca', marca.value);
-        formData.append('precio', parseFloat(precio.value));
-        formData.append('stock', parseInt(stock.value, 10));
-        formData.append('descripcion', descripcion.value);
-        formData.append('numero_referencia', numero_referencia.value);
-
-        const categoriaIdNum = parseInt(categoria.value, 10);
-        if (!isNaN(categoriaIdNum)) {
-            formData.append('categoria_id', categoriaIdNum);
-        }
-
-        const subcategoriaIdNum = parseInt(subcategoria.value, 10);
-        if (!isNaN(subcategoriaIdNum)) {
-            formData.append('subcategoria_id', subcategoriaIdNum);
-        }
-
-        formData.append('activo', activo.checked);
-        formData.append('destacado', destacado.checked);
-
-        if (imagen_frontal.files[0]) formData.append('imagen_frontal', imagen_frontal.files[0]);
-        if (imagen_icono.files[0]) formData.append('imagen_icono', imagen_icono.files[0]);
-        if (imagen_trasera.files[0]) formData.append('imagen_trasera', imagen_trasera.files[0]);
-        if (imagen_lateral_derecha.files[0]) formData.append('imagen_lateral_derecha', imagen_lateral_derecha.files[0]);
-        if (imagen_lateral_izquierda.files[0]) formData.append('imagen_lateral_izquierda', imagen_lateral_izquierda.files[0]);
-
+        // Append file inputs to formData
+        document.querySelectorAll('.image-preview-card input[type="file"]').forEach(input => {
+            if (input.files[0]) {
+                formData.append(input.name, input.files[0]);
+            }
+        });
 
         const url = esNuevo ? `${API_URL}/productos` : `${API_URL}/productos/${id}`;
         const method = esNuevo ? 'POST' : 'PUT';
 
         try {
-            const response = await fetch(url, {
-                method: method,
-                headers: { 'x-auth-token': token },
-                body: formData
-            });
-
+            const response = await fetchWithAuth(url, { method, body: formData });
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Error al guardar el producto.');
+                throw new Error(errorData.message || 'Error saving product.');
             }
-
             alert(`Producto ${esNuevo ? 'creado' : 'actualizado'} correctamente.`);
             cerrarModal();
             cargarProductos();
         } catch (error) {
-            console.error('Error al guardar:', error);
+            console.error('Error saving product:', error);
             alert(`Hubo un error: ${error.message}`);
         }
-    });
+    }
 
     async function toggleEstadoProducto(id) {
         try {
-            const response = await fetch(`${API_URL}/productos/${id}/toggle-active`, {
-                method: 'PATCH',
-                headers: { 'x-auth-token': token }
-            });
-            if (!response.ok) throw new Error('No se pudo cambiar el estado del producto.');
-            cargarProductos(); // Recargar la tabla para mostrar el cambio
+            const response = await fetchWithAuth(`${API_URL}/productos/${id}/toggle-active`, { method: 'PATCH' });
+            if (!response.ok) throw new Error('Could not change product status.');
+            cargarProductos();
         } catch (error) {
-            console.error('Error al cambiar estado:', error);
-            alert('Hubo un error al cambiar el estado del producto.');
+            console.error('Error toggling status:', error);
+            alert('Error changing product status.');
         }
     }
 
     async function eliminarProducto(id) {
         try {
-            const response = await fetch(`${API_URL}/productos/${id}`, {
-                method: 'DELETE',
-                headers: { 'x-auth-token': token }
-            });
-            if (!response.ok) throw new Error('No se pudo eliminar el producto.');
+            const response = await fetchWithAuth(`${API_URL}/productos/${id}`, { method: 'DELETE' });
+            if (!response.ok) throw new Error('Could not delete product.');
             alert('Producto eliminado correctamente.');
             cargarProductos();
         } catch (error) {
-            console.error('Error al eliminar:', error);
-            alert('Hubo un error al eliminar el producto.');
+            console.error('Error deleting product:', error);
+            alert('Error deleting product.');
         }
     }
 
-    const logoutBtn = document.getElementById('logout-btn');
-    logoutBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        localStorage.removeItem('token');
-        window.location.href = 'login.html';
-    });
+    // 7. Initialization and Event Listeners
+    function inicializar() {
+        // Initial data loads
+        cargarCategorias().then(() => {
+            cargarSubcategoriasFiltro(filtroCategoria ? filtroCategoria.value : null).then(() => {
+                cargarProductos();
+            });
+        });
 
-    // Event listener for category change to load subcategories
-    document.getElementById('producto-categoria').addEventListener('change', (e) => {
-        cargarSubcategorias(e.target.value);
-    });
+        // General UI Listeners
+        if (btnAgregarProducto) btnAgregarProducto.addEventListener('click', abrirModalParaCrear);
+        if (filtroCategoria) {
+            filtroCategoria.addEventListener('change', async () => {
+                await cargarSubcategoriasFiltro(filtroCategoria.value);
+                cargarProductos();
+            });
+        }
+        if (filtroSubcategoria) filtroSubcategoria.addEventListener('change', cargarProductos);
+        if (filtroNombre) filtroNombre.addEventListener('input', cargarProductos); // Optional: filter as you type
 
-    // Event listeners for filters
-    document.getElementById('buscar').addEventListener('input', cargarProductos);
-    
-    document.getElementById('filtro-categoria').addEventListener('change', async () => {
-        const categoriaId = document.getElementById('filtro-categoria').value;
-        await cargarSubcategoriasFiltro(categoriaId);
-        cargarProductos();
-    });
+        // Modal Listeners
+        if (closeButton) closeButton.addEventListener('click', cerrarModal);
+        if (productoForm) productoForm.addEventListener('submit', guardarProducto);
+        window.addEventListener('click', (e) => { if (modal && e.target === modal) cerrarModal(); });
+        if (productoCategoriaSelect) productoCategoriaSelect.addEventListener('change', (e) => cargarSubcategorias(e.target.value));
 
-    document.getElementById('filtro-subcategoria').addEventListener('change', cargarProductos);
+        // Table Event Delegation
+        if (tablaProductosContainer) {
+            tablaProductosContainer.addEventListener('click', (e) => {
+                const target = e.target.closest('button');
+                if (!target) return;
+                
+                const id = target.dataset.id;
+                if (!id) return;
 
-    // Initial data load
-    cargarProductos();
-    cargarCategorias();
-    cargarSubcategoriasFiltro(); // Cargar todas las subcategorías al inicio
+                if (target.classList.contains('btn-editar')) {
+                    abrirModalParaEditar(id);
+                } else if (target.classList.contains('btn-eliminar')) {
+                    if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+                        eliminarProducto(id);
+                    }
+                } else if (target.classList.contains('btn-activar') || target.classList.contains('btn-desactivar')) {
+                    toggleEstadoProducto(id);
+                }
+            });
+        }
+    }
+
+    inicializar();
 });

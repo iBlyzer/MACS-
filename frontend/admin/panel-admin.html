@@ -8,141 +8,110 @@
 <body>
     <div class="admin-container">
         <aside class="sidebar">
-            <h2>Admin Panel</h2>
+            <div class="sidebar-header">
+                <h2>Macs Admin</h2>
+            </div>
             <nav>
                 <ul>
-                    <li><a href="#productos">Gestionar Productos</a></li>
-                    <li><a href="gestor-slider.html">Gestor de Imágenes del Slider</a></li>
+                    <li><a href="#dashboard">Dashboard</a></li>
+                    <li><a href="#productos" class="active">Productos</a></li>
                     <li><a href="#categorias">Categorías</a></li>
-                    <li><a href="#inventario">Inventario</a></li>
-                    <li><a href="#reportes">Reportes</a></li>
-                    <li><a href="#" id="logout-btn">Cerrar Sesión</a></li>
+                    <li><a href="gestor-slider.html">Slider</a></li>
                 </ul>
             </nav>
         </aside>
-        
-        <main class="content">
+        <main class="main-content">
+            <header class="main-header">
+                <h1>Gestión de Productos</h1>
+                <div class="header-actions">
+                    <span>Admin</span>
+                    <button id="logout-btn" class="btn-logout">Cerrar Sesión</button>
+                </div>
+            </header>
             <section id="productos">
-                <div class="header-section">
-                    <h1>Gestión de Productos</h1>
-                    <button id="btn-nuevo-producto" class="btn-primary">
-                        + Nuevo Producto
-                    </button>
-                </div>
-                
                 <div class="filtros">
-                    <input type="text" id="buscar" placeholder="Buscar productos...">
-                    <select id="filtro-categoria">
-                        <option value="">Todas las categorías</option>
-                        <!-- Opciones de categoría se cargarán aquí -->
-                    </select>
-                    <select id="filtro-subcategoria">
-                        <option value="">Todas las subcategorías</option>
-                        <!-- Opciones de subcategoría se cargarán aquí -->
-                    </select>
+                    <input type="text" id="filtro-nombre" placeholder="Buscar un producto...">
+                    <select id="filtro-categoria"></select>
+                    <select id="filtro-subcategoria"></select>
                 </div>
+
+                <div class="header-section">
+                    <h2>Productos</h2>
+                    <button id="btn-agregar-producto" class="btn-primary">Agregar Producto</button>
+                </div>
+
                 <div id="tabla-productos-container">
-                    <!-- La tabla se generará aquí -->
+                    <!-- La tabla se genera aquí -->
                 </div>
             </section>
         </main>
     </div>
-        <!-- Modal para Crear/Editar Producto -->
-    <div id="producto-modal" class="modal" style="display:none;">
-        <div class="modal-content">
+
+    <!-- Modal -->
+    <div id="producto-modal" class="modal">
+        <div class="modal-content large">
             <span class="close-button">&times;</span>
-            <h2 id="modal-titulo">Nuevo Producto</h2>
-            <form id="producto-form">
-                <input type="hidden" id="producto-id">
-                
-                <div class="form-group">
-                    <label for="nombre">Nombre:</label>
-                    <input type="text" id="nombre" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="marca">Marca:</label>
-                    <input type="text" id="marca" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="precio">Precio:</label>
-                    <input type="number" id="precio" step="0.01" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="stock">Stock:</label>
-                    <input type="number" id="stock" value="0" required>
-                </div>
-
-                <div class="form-group">
-                <label for="producto-descripcion">Descripción</label>
-                <textarea class="form-control" id="producto-descripcion" rows="3"></textarea>
-              </div>
-              <div class="form-group">
-                <label for="producto-referencia">Número de Referencia</label>
-                <input type="text" class="form-control" id="producto-referencia" placeholder="Ej: REF12345">
-              </div>
-
-                <div class="form-group">
-                    <label for="producto-categoria">Categoría:</label>
-                    <select id="producto-categoria" required>
-                        <!-- Las categorías se cargarán dinámicamente -->
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="producto-subcategoria">Subcategoría:</label>
-                    <select id="producto-subcategoria" required>
-                        <!-- Las subcategorías se cargarán dinámicamente -->
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Imágenes del Producto:</label>
-                    <div class="image-upload-group">
-                        <label for="imagen_frontal">Imagen Frontal:</label>
-                        <input type="file" id="imagen_frontal" name="imagen_frontal" accept="image/*">
-                        <span id="frontal-preview" class="image-preview-text"></span>
+            <h2 id="modal-titulo">Agregar Producto</h2>
+            <form id="producto-form" autocomplete="off">
+                <input type="hidden" id="producto-id" name="id">
+                <div class="form-container">
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label for="nombre">Nombre:</label>
+                            <input type="text" id="nombre" name="nombre" required>
+                        </div>
+                         <div class="form-group">
+                            <label for="marca">Marca:</label>
+                            <input type="text" id="marca" name="marca" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="producto-descripcion">Descripción:</label>
+                            <textarea id="producto-descripcion" name="descripcion" rows="4"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="precio">Precio:</label>
+                            <input type="number" id="precio" name="precio" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="stock">Stock:</label>
+                            <input type="number" id="stock" name="stock" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="producto-referencia">Nº Referencia:</label>
+                            <input type="text" id="producto-referencia" name="numero_referencia">
+                        </div>
+                        <div class="form-group">
+                            <label for="producto-categoria">Categoría:</label>
+                            <select id="producto-categoria" name="categoria_id" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="producto-subcategoria">Subcategoría:</label>
+                            <select id="producto-subcategoria" name="subcategoria_id"></select>
+                        </div>
+                        <div class="form-group-inline">
+                            <label for="activo">Activo:</label>
+                            <input type="checkbox" id="activo" name="activo" checked>
+                        </div>
+                        <div class="form-group-inline">
+                            <label for="destacado">Destacado:</label>
+                            <input type="checkbox" id="destacado" name="destacado">
+                        </div>
                     </div>
-                    <div class="image-upload-group">
-                        <label for="imagen_icono">Imagen Icono:</label>
-                        <input type="file" id="imagen_icono" name="imagen_icono" accept="image/*">
-                        <span id="icono-preview" class="image-preview-text"></span>
-                    </div>
-                    <div class="image-upload-group">
-                        <label for="imagen_trasera">Imagen Trasera:</label>
-                        <input type="file" id="imagen_trasera" name="imagen_trasera" accept="image/*">
-                        <span id="trasera-preview" class="image-preview-text"></span>
-                    </div>
-                    <div class="image-upload-group">
-                        <label for="imagen_lateral_derecha">Imagen Lateral Derecha:</label>
-                        <input type="file" id="imagen_lateral_derecha" name="imagen_lateral_derecha" accept="image/*">
-                        <span id="derecha-preview" class="image-preview-text"></span>
-                    </div>
-                    <div class="image-upload-group">
-                        <label for="imagen_lateral_izquierda">Imagen Lateral Izquierda:</label>
-                        <input type="file" id="imagen_lateral_izquierda" name="imagen_lateral_izquierda" accept="image/*">
-                        <span id="izquierda-preview" class="image-preview-text"></span>
+                    <div class="form-column">
+                        <div id="image-previews-container"></div>
+                        <div class="image-count-container">
+                            <span id="image-count">0/6</span> imágenes cargadas
+                        </div>
                     </div>
                 </div>
-                
-                <div class="form-group-inline">
-                    <label for="activo">Activo:</label>
-                    <input type="checkbox" id="activo" checked>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Guardar</button>
                 </div>
-
-                <div class="form-group-inline">
-                    <label for="destacado">Destacado:</label>
-                    <input type="checkbox" id="destacado">
-                </div>
-                
-                <button type="submit" class="btn-primary">Guardar</button>
             </form>
         </div>
     </div>
 
-    <script src="../js/admin.js"></script>
     <script src="../js/auth.js"></script>
+    <script src="../js/admin.js"></script>
 </body>
 </html>

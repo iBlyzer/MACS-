@@ -1,4 +1,24 @@
-/* Estilos generales del Menú (para mantener consistencia) */
+/* Estilos para el indicador de stock */
+.stock-status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stock-status.in-stock {
+    background-color: #28a745; /* Verde éxito */
+    color: #fff;
+}
+
+.stock-status.out-of-stock {
+    background-color: #dc3545; /* Rojo peligro */
+    color: #fff;
+}
 
 /* --- Estilos para la Página de Detalles del Producto --- */
 
@@ -62,6 +82,7 @@
 .detalle-info h1 {
     font-size: 2.2em;
     margin: 5px 0;
+    text-align: left;
     font-weight: bold;
 }
 
@@ -269,15 +290,31 @@ body {
   color: inherit;
 }
 
+.product-card__image-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  margin-bottom: 1.5rem; /* This provides space between image and info */
+  display: block;
+}
+
 .product-card__image {
-  max-width: 100%;
+  display: block;
+  width: 100%;
   height: 200px;
   object-fit: contain;
-  margin-bottom: 1.5rem;
+  transition: transform 0.3s ease;
 }
+
+
 
 .product-card__info {
   flex-grow: 1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.product-card:hover .product-card__info {
+  opacity: 0.2;
 }
 
 .product-card__brand {
@@ -315,6 +352,10 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
+}
+
+.product-card:hover .product-card__btn {
+  opacity: 0.2;
 }
 
 .product-card__btn:hover {
@@ -386,7 +427,27 @@ body {
   color: #111;
 }
 
-/* --- Estilos para el efecto 'Ver Producto' en el hover --- */
+/* --- Animación de texto RGB para la marca MACS */
+.product-card__brand.macs-rgb {
+  font-weight: bold;
+  background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+  background-size: 400% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: rgb-text-animation 5s linear infinite;
+}
+
+@keyframes rgb-text-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Estilos para el contenedor de productos en páginas de categorías */
 
 .product-card__image-container {
     position: relative;
@@ -400,9 +461,9 @@ body {
     transform: translate(-50%, -50%) scale(0.9);
     background-color: rgba(17, 17, 17, 0.8);
     color: white;
-    padding: 0.6em 1.4em;
+    padding: 10px 15px;
     border-radius: 50px;
-    font-size: 0.9rem;
+    font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
     opacity: 0;

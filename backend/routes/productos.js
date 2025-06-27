@@ -24,60 +24,103 @@ const auth = require('../middleware/authMiddleware');
 
 // Helper function to format image paths consistently for URLs
 const formatImagePath = (filename) => {
-  if (!filename) return null;
-  // Use path.basename to be safe, then create a URL-friendly path with forward slashes
-  const imagePath = path.join('uploads', path.basename(filename)).replace(/\\/g, '/');
-  return `/${imagePath}`;
+  if (!filename || typeof filename !== 'string') return null;
+  // Extraer solo el nombre del archivo, sin importar si viene con ruta
+  const baseFilename = filename.split('/').pop().split('\\').pop();
+  if (!baseFilename) return null;
+  return `/uploads/${baseFilename}`;
 };
 
 // Configuración de Multer para la subida de archivos
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const dir = 'uploads/';
-    // Crear el directorio si no existe
     if (!fs.existsSync(dir)){
         fs.mkdirSync(dir, { recursive: true });
     }
     cb(null, dir);
   },
   filename: function (req, file, cb) {
-    // Crear un nombre de archivo único para evitar colisiones
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
-// Middleware para manejar la subida de las 5 imágenes del producto
-const upload = multer({ storage: storage }).fields([
-    { name: 'imagen_frontal', maxCount: 1 },
-    { name: 'imagen_icono', maxCount: 1 },
-    { name: 'imagen_trasera', maxCount: 1 },
-    { name: 'imagen_lateral_derecha', maxCount: 1 },
-    { name: 'imagen_lateral_izquierda', maxCount: 1 }
-]);
+// Define los nombres de los campos de imagen que se esperan del formulario
+const imageFields = [
+    'imagen_3_4',
+    'imagen_frontal',
+    'imagen_lateral',
+    'imagen_trasera',
+    'imagen_superior',
+    'imagen_inferior'
+];
 
-// GET /api/productos - Obtener todos los productos
+// Middleware para manejar la subida de las imágenes del producto, ahora usando la lista de campos
+const upload = multer({ storage: storage }).fields(
+    imageFields.map(field => ({ name: field, maxCount: 1 }))
+);
+
+// GET /api/productos - Obtener todos los productos con filtros avanzados
 router.get('/', async (req, res) => {
   try {
-    const { categoria, categoriaId } = req.query;
-    // Modificamos la consulta para que siempre traiga todos los campos de producto
-    let query = 'SELECT p.id, p.nombre, p.marca, p.precio, p.descripcion, p.numero_referencia, p.categoria_id, p.subcategoria_id, p.stock, p.activo, p.destacado, p.fecha_creacion, p.imagen_frontal, p.imagen_icono, p.imagen_trasera, p.imagen_lateral_derecha, p.imagen_lateral_izquierda, c.nombre as categoria_nombre FROM productos p JOIN categorias c ON p.categoria_id = c.id WHERE p.activo = TRUE';
+    const { categoria, categoriaId, marca, subcategoria, limit } = req.query;
+
+    let query = `
+      SELECT 
+        p.id, p.nombre, p.marca, p.precio, p.descripcion, p.numero_referencia, 
+        p.categoria_id, p.subcategoria_id, p.stock, p.activo, p.destacado, 
+        p.fecha_creacion, c.nombre as categoria_nombre, s.nombre as subcategoria_nombre,
+        ${imageFields.map(f => `p.${f}`).join(', ')}
+      FROM productos p
+      JOIN categorias c ON p.categoria_id = c.id
+      LEFT JOIN subcategorias s ON p.subcategoria_id = s.id
+    `;
+    
+    const conditions = ['p.activo = TRUE'];
     const params = [];
 
     if (categoria) {
-      logger.info(`Buscando productos por categoría: ${categoria}`);
-      query += ' AND LOWER(c.nombre) LIKE ?';
-      params.push(`%${categoria.toLowerCase().replace(/s$/, '')}%`);
-    } else if (categoriaId) {
-      logger.info(`Buscando productos por ID de categoría: ${categoriaId}`);
-      query += ' AND p.categoria_id = ?';
+      conditions.push('LOWER(c.nombre) = ?');
+      params.push(categoria.toLowerCase());
+    }
+    if (categoriaId) {
+      conditions.push('p.categoria_id = ?');
       params.push(categoriaId);
+    }
+    if (marca) {
+      conditions.push('p.marca = ?');
+      params.push(marca);
+    }
+    if (subcategoria) {
+      conditions.push('LOWER(s.nombre) = ?');
+      params.push(subcategoria.toLowerCase());
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
     }
 
     query += ' ORDER BY p.fecha_creacion DESC';
 
+    if (limit) {
+      query += ' LIMIT ?';
+      params.push(parseInt(limit, 10));
+    }
+
     const [rows] = await db.query(query, params);
-    res.json(rows);
+
+    const formattedRows = rows.map(product => {
+      const formattedProduct = { ...product };
+      imageFields.forEach(field => {
+        if (product[field]) {
+          formattedProduct[field] = formatImagePath(product[field]);
+        }
+      });
+      return formattedProduct;
+    });
+
+    res.json(formattedRows);
   } catch (error) {
     console.error('Error al obtener productos:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
@@ -89,7 +132,16 @@ router.get('/get-all', auth, async (req, res) => {
   console.log('Request received for /api/productos/get-all with query:', req.query);
   try {
     const { search, categoria, subcategoriaId } = req.query;
-    let query = 'SELECT p.*, c.nombre as categoria_nombre, s.nombre as subcategoria_nombre FROM productos p LEFT JOIN categorias c ON p.categoria_id = c.id LEFT JOIN subcategorias s ON p.subcategoria_id = s.id';
+
+    const columns = [
+      'p.id', 'p.nombre', 'p.marca', 'p.precio', 'p.descripcion', 'p.numero_referencia',
+      'p.categoria_id', 'p.subcategoria_id', 'p.stock', 'p.activo', 'p.destacado',
+      'p.fecha_creacion', 'c.nombre as categoria_nombre', 's.nombre as subcategoria_nombre',
+      ...imageFields.map(f => `p.${f}`)
+    ].join(', ');
+
+    let query = `SELECT ${columns} FROM productos p LEFT JOIN categorias c ON p.categoria_id = c.id LEFT JOIN subcategorias s ON p.subcategoria_id = s.id`;
+    
     const params = [];
     let conditions = [];
 
@@ -113,7 +165,18 @@ router.get('/get-all', auth, async (req, res) => {
     query += ' ORDER BY p.fecha_creacion DESC';
 
     const [rows] = await db.query(query, params);
-    res.json(rows);
+
+    const formattedRows = rows.map(product => {
+      const formattedProduct = { ...product };
+      imageFields.forEach(field => {
+        if (product[field]) {
+          formattedProduct[field] = formatImagePath(product[field]);
+        }
+      });
+      return formattedProduct;
+    });
+
+    res.json(formattedRows);
   } catch (error) {
     console.error('Error al obtener todos los productos para admin:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
@@ -136,69 +199,70 @@ router.get('/top-stock', async (req, res) => {
       JOIN categorias c ON p.categoria_id = c.id
       WHERE c.nombre = ? AND p.activo = TRUE
       ORDER BY p.stock DESC
-      LIMIT ?
-    `;
+      LIMIT ?`;
+
     const [rows] = await db.query(query, [categoria, parseInt(limit, 10)]);
     res.json(rows);
   } catch (error) {
-    console.error('Error al obtener productos con más stock:', error);
+    console.error(`Error al obtener top stock para ${categoria}:`, error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
 
-// GET /api/productos/recomendados - Obtener productos recomendados
+// GET productos recomendados
 router.get('/recomendados', async (req, res) => {
-  console.log('--- [DEBUG] Request received for /api/productos/recomendados');
-  const { categoriaId, excludeId, limit = 4 } = req.query;
+  const { categoriaId, excludeId, limit = 10 } = req.query;
 
-  if (!categoriaId || !excludeId) {
-    return res.status(400).json({ message: 'Los parámetros categoriaId y excludeId son obligatorios.' });
+  // Convertir IDs a números y validarlos
+  const numCategoriaId = parseInt(categoriaId, 10);
+  const numExcludeId = parseInt(excludeId, 10);
+  const numLimit = parseInt(limit, 10);
+
+  if (isNaN(numCategoriaId) || isNaN(numExcludeId)) {
+    return res.status(400).json({ message: 'ID de categoría o producto inválido.' });
   }
 
   try {
+    // Seleccionamos todos los campos necesarios y filtramos por activos
     const query = `
-      SELECT *
-      FROM productos
-      WHERE categoria_id = ? AND id != ? AND activo = TRUE
+      SELECT p.id, p.nombre, p.marca, p.precio, p.activo, ${imageFields.map(f => `p.${f}`).join(', ')}
+      FROM productos p
+      WHERE p.categoria_id = ? AND p.id != ? AND p.activo = TRUE
       ORDER BY RAND()
-      LIMIT ?
-    `;
-    const [rows] = await db.query(query, [parseInt(categoriaId, 10), parseInt(excludeId, 10), parseInt(limit, 10)]);
-    res.json(rows);
+      LIMIT ?`;
+    
+    const params = [numCategoriaId, numExcludeId, numLimit];
+
+    const [rows] = await db.query(query, params);
+
+    // Formatear las rutas de imagen para la URL
+    const formattedRows = rows.map(product => {
+      const formattedProduct = { ...product };
+      imageFields.forEach(field => {
+        if (product[field]) {
+          formattedProduct[field] = formatImagePath(product[field]);
+        }
+      });
+      return formattedProduct;
+    });
+
+    res.json(formattedRows);
   } catch (error) {
-    console.error('Error al obtener productos recomendados:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    logger.error(`Error al obtener productos recomendados para categoría ${categoriaId}:`, error);
+    res.status(500).json({ message: 'Error interno del servidor al obtener recomendaciones.' });
   }
 });
 
-
-
-// POST /api/productos - Crear un nuevo producto (Ruta protegida)
-router.post('/', [auth, upload], async (req, res) => {
+// POST /api/productos/create - Crear un nuevo producto
+router.post('/create', [auth, upload], async (req, res) => {
   const { 
-    nombre, 
-    marca, 
-    precio, 
-    descripcion, 
-    numero_referencia, 
-    categoria_id, 
-    subcategoria_id, 
-    stock,
-    activo,
-    destacado
+    nombre, marca, precio, descripcion, numero_referencia, 
+    categoria_id, subcategoria_id, stock, activo, destacado 
   } = req.body;
 
-  if (!nombre || !marca || !precio || isNaN(parseFloat(precio)) || !categoria_id) {
-    return res.status(400).json({ message: 'Los campos nombre, marca, precio y categoría son obligatorios, y el precio debe ser un número válido.' });
+  if (!nombre || !precio || !categoria_id) {
+    return res.status(400).json({ message: 'Los campos nombre, precio y categoría son obligatorios.' });
   }
-
-  const getPath = (fieldName) => (req.files && req.files[fieldName]) ? formatImagePath(req.files[fieldName][0].filename) : null;
-
-  const imagen_frontal = getPath('imagen_frontal');
-  const imagen_icono = getPath('imagen_icono');
-  const imagen_trasera = getPath('imagen_trasera');
-  const imagen_lateral_derecha = getPath('imagen_lateral_derecha');
-  const imagen_lateral_izquierda = getPath('imagen_lateral_izquierda');
 
   try {
     const precioNum = parseFloat(precio);
@@ -206,40 +270,31 @@ router.post('/', [auth, upload], async (req, res) => {
     const categoriaIdNum = parseInt(categoria_id, 10);
     const subcategoriaIdNum = parseInt(subcategoria_id, 10);
 
-    // Validación de consistencia entre categoría y subcategoría
     if (!isNaN(subcategoriaIdNum)) {
       const [subcatRows] = await db.query('SELECT categoria_id FROM subcategorias WHERE id = ?', [subcategoriaIdNum]);
       if (subcatRows.length === 0 || subcatRows[0].categoria_id !== categoriaIdNum) {
-        return res.status(400).json({ message: 'La subcategoría seleccionada no pertenece a la categoría indicada.' });
+        return res.status(400).json({ message: 'La subcategoría no pertenece a la categoría.' });
       }
     }
 
+    const images = {};
+    imageFields.forEach(field => {
+      images[field] = req.files[field] ? formatImagePath(req.files[field][0].filename) : null;
+    });
+
     const [result] = await db.query(
-      `INSERT INTO productos (nombre, marca, precio, descripcion, numero_referencia, categoria_id, subcategoria_id, stock, 
-        imagen_frontal, imagen_icono, imagen_trasera, imagen_lateral_derecha, imagen_lateral_izquierda, activo, destacado) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO productos (nombre, marca, precio, descripcion, numero_referencia, categoria_id, subcategoria_id, stock, activo, destacado, 
+        ${imageFields.join(', ')}) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${imageFields.map(() => '?').join(', ')})`, 
       [
-        nombre, 
-        marca, 
-        precioNum, 
-        descripcion, 
-        numero_referencia, 
-        categoriaIdNum, 
-        isNaN(subcategoriaIdNum) ? null : subcategoriaIdNum, 
-        isNaN(stockNum) ? 0 : stockNum, 
-        imagen_frontal,
-        imagen_icono,
-        imagen_trasera,
-        imagen_lateral_derecha,
-        imagen_lateral_izquierda,
-        (activo === 'true') ? 1 : 0,
-        (destacado === 'true') ? 1 : 0
+        nombre, marca, precioNum, descripcion, numero_referencia, 
+        categoriaIdNum, isNaN(subcategoriaIdNum) ? null : subcategoriaIdNum, 
+        isNaN(stockNum) ? 0 : stockNum, activo === 'true' || activo === true, destacado === 'true' || destacado === true,
+        ...imageFields.map(field => images[field])
       ]
     );
 
-    const nuevoProductoId = result.insertId;
-    const [productoRows] = await db.query('SELECT * FROM productos WHERE id = ?', [nuevoProductoId]);
-
+    const [productoRows] = await db.query('SELECT * FROM productos WHERE id = ?', [result.insertId]);
     res.status(201).json(productoRows[0]);
   } catch (error) {
     console.error('Error al crear el producto:', error);
@@ -247,93 +302,74 @@ router.post('/', [auth, upload], async (req, res) => {
   }
 });
 
-// PUT /api/productos/:id - Actualizar un producto existente (Ruta protegida)
-router.put('/:id', [auth, upload], async (req, res) => {
+// PUT /api/productos/update/:id - Actualizar un producto
+router.put('/update/:id', [auth, upload], async (req, res) => {
   const { id } = req.params;
   const { 
-    nombre, 
-    marca, 
-    precio, 
-    descripcion, 
-    numero_referencia, 
-    categoria_id, 
-    subcategoria_id, 
-    stock, 
-    activo, 
-    destacado
+    nombre, marca, precio, descripcion, numero_referencia, 
+    categoria_id, subcategoria_id, stock, activo, destacado 
   } = req.body;
 
-  if (!nombre || !marca || !precio || !categoria_id) {
-    return res.status(400).json({ message: 'Los campos nombre, marca, precio y categoría son obligatorios.' });
+  if (!nombre || !precio || !categoria_id) {
+    return res.status(400).json({ message: 'Los campos nombre, precio y categoría son obligatorios.' });
   }
 
   try {
     const [currentProductRows] = await db.query('SELECT * FROM productos WHERE id = ?', [id]);
     if (currentProductRows.length === 0) {
-        return res.status(404).json({ message: 'Producto no encontrado para actualizar.' });
+      return res.status(404).json({ message: 'Producto no encontrado.' });
     }
-    const currentImages = currentProductRows[0];
+    const currentProduct = currentProductRows[0];
 
-    const getPath = (fieldName) => {
-        if (req.files && req.files[fieldName]) {
-            const newPath = formatImagePath(req.files[fieldName][0].filename);
-            if (currentImages[fieldName]) {
-                const oldPath = path.join(__dirname, '..', currentImages[fieldName]);
-                if (fs.existsSync(oldPath)) {
-                    fs.unlinkSync(oldPath);
-                }
-            }
-            return newPath;
+    const images = {};
+    imageFields.forEach(field => {
+      const wasRemoved = req.body[`remove_${field}`] === 'true';
+      // Si la imagen fue eliminada desde el frontend
+      if (wasRemoved && currentProduct[field]) {
+        const oldPath = path.join(__dirname, '..', 'uploads', path.basename(currentProduct[field]));
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        images[field] = null;
+      // Si se sube una nueva imagen
+      } else if (req.files[field]) {
+        if (currentProduct[field]) {
+          const oldPath = path.join(__dirname, '..', 'uploads', path.basename(currentProduct[field]));
+          if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
         }
-        return currentImages[fieldName];
-    };
-
-    const imagen_frontal = getPath('imagen_frontal');
-    const imagen_icono = getPath('imagen_icono');
-    const imagen_trasera = getPath('imagen_trasera');
-    const imagen_lateral_derecha = getPath('imagen_lateral_derecha');
-    const imagen_lateral_izquierda = getPath('imagen_lateral_izquierda');
+        images[field] = formatImagePath(req.files[field][0].filename);
+      // Si no hay cambios, mantener la imagen actual
+      } else {
+        images[field] = currentProduct[field];
+      }
+    });
 
     const precioNum = parseFloat(precio);
     const stockNum = parseInt(stock, 10);
     const categoriaIdNum = parseInt(categoria_id, 10);
     const subcategoriaIdNum = parseInt(subcategoria_id, 10);
-    const activoBool = activo === 'true' || activo === true;
-    const destacadoBool = destacado === 'true' || destacado === true;
 
-    // Validación de consistencia entre categoría y subcategoría
     if (!isNaN(subcategoriaIdNum)) {
       const [subcatRows] = await db.query('SELECT categoria_id FROM subcategorias WHERE id = ?', [subcategoriaIdNum]);
       if (subcatRows.length === 0 || subcatRows[0].categoria_id !== categoriaIdNum) {
-        return res.status(400).json({ message: 'La subcategoría seleccionada no pertenece a la categoría indicada.' });
+        return res.status(400).json({ message: 'La subcategoría no pertenece a la categoría.' });
       }
     }
 
-    await db.query(
-      `UPDATE productos SET 
+    const updateQuery = `UPDATE productos SET 
         nombre = ?, marca = ?, precio = ?, descripcion = ?, numero_referencia = ?, categoria_id = ?, 
         subcategoria_id = ?, stock = ?, activo = ?, destacado = ?, 
-        imagen_frontal = ?, imagen_icono = ?, imagen_trasera = ?, imagen_lateral_derecha = ?, imagen_lateral_izquierda = ?
-      WHERE id = ?`,
-      [
-        nombre, 
-        marca, 
-        precioNum, 
-        descripcion, 
-        numero_referencia, 
-        categoriaIdNum,
-        isNaN(subcategoriaIdNum) ? null : subcategoriaIdNum,
-        isNaN(stockNum) ? currentImages.stock : stockNum,
-        activoBool ? 1 : 0,
-        destacadoBool ? 1 : 0,
-        imagen_frontal, 
-        imagen_icono,
-        imagen_trasera,
-        imagen_lateral_derecha,
-        imagen_lateral_izquierda,
-        id
-      ]
-    );
+        ${imageFields.map(f => `${f} = ?`).join(', ')}
+      WHERE id = ?`;
+      
+    const params = [
+      nombre, marca, precioNum, descripcion, numero_referencia, categoriaIdNum,
+      isNaN(subcategoriaIdNum) ? null : subcategoriaIdNum,
+      isNaN(stockNum) ? currentProduct.stock : stockNum,
+      activo === 'true' || activo === true, destacado === 'true' || destacado === true,
+      ...imageFields.map(field => images[field]),
+      id
+    ];
+
+    await db.query(updateQuery, params);
 
     const [productoRows] = await db.query('SELECT * FROM productos WHERE id = ?', [id]);
     res.json(productoRows[0]);
@@ -344,59 +380,26 @@ router.put('/:id', [auth, upload], async (req, res) => {
   }
 });
 
-// PATCH /api/productos/:id/toggle-active - Cambiar el estado activo de un producto (Ruta protegida)
-router.patch('/:id/toggle-active', auth, async (req, res) => {
+// DELETE /api/productos/delete/:id - Eliminar un producto
+router.delete('/delete/:id', auth, async (req, res) => {
   const { id } = req.params;
-
   try {
-    // Invertir el estado 'activo' directamente en la base de datos
-    await db.query('UPDATE productos SET activo = NOT activo WHERE id = ?', [id]);
-    
-    // Obtener el producto actualizado para devolverlo
-    const [rows] = await db.query('SELECT * FROM productos WHERE id = ?', [id]);
-    
-    if (rows.length === 0) {
-      return res.status(404).json({ message: 'Producto no encontrado después de la actualización.' });
-    }
-
-    res.status(200).json(rows[0]);
-  } catch (error) {
-    console.error(`Error al cambiar el estado del producto ${id}:`, error);
-    res.status(500).json({ message: 'Error interno del servidor' });
-  }
-});
-
-// DELETE /api/productos/:id - Eliminar un producto (Ruta protegida)
-router.delete('/:id', auth, async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    // Primero, obtener las rutas de las imágenes para poder eliminarlas
-    const [rows] = await db.query('SELECT imagen_frontal, imagen_icono, imagen_trasera, imagen_lateral_derecha, imagen_lateral_izquierda FROM productos WHERE id = ?', [id]);
+    const [rows] = await db.query(`SELECT ${imageFields.join(', ')} FROM productos WHERE id = ?`, [id]);
     if (rows.length === 0) {
       return res.status(404).json({ message: 'Producto no encontrado' });
     }
     const product = rows[0];
 
-    // Eliminar imágenes del sistema de archivos
-    Object.values(product).forEach(imgPath => {
-      if (imgPath) {
-        // La ruta guardada es relativa al servidor (ej: /uploads/...), necesitamos la ruta del sistema de archivos
-        const fullPath = path.join(__dirname, '..', imgPath);
+    imageFields.forEach(field => {
+      if (product[field]) {
+        const fullPath = path.join(__dirname, '..', 'uploads', path.basename(product[field]));
         if (fs.existsSync(fullPath)) {
           fs.unlinkSync(fullPath);
         }
       }
     });
 
-    // Ahora, eliminar el producto de la base de datos
-    const [result] = await db.query('DELETE FROM productos WHERE id = ?', [id]);
-
-    if (result.affectedRows === 0) {
-      // Esto no debería ocurrir si la consulta anterior encontró el producto, pero es una buena práctica
-      return res.status(404).json({ message: 'Producto no encontrado para eliminar' });
-    }
-
+    await db.query('DELETE FROM productos WHERE id = ?', [id]);
     res.status(200).json({ message: 'Producto eliminado correctamente' });
   } catch (error) {
     console.error(`Error al eliminar el producto ${id}:`, error);
@@ -404,26 +407,117 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
+// PATCH /api/productos/status/:id - Cambiar estado de un producto
+router.patch('/status/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  const { activo } = req.body;
 
-// GET /api/productos/:id - Obtener un producto específico
-router.get('/:id', async (req, res, next) => {
-  // Si el ID no es un número, podría ser otra sub-ruta como 'debug-categorias'.
-  if (isNaN(parseInt(req.params.id, 10))) {
-    return next(); // Pasa a la siguiente ruta que coincida.
+  if (typeof activo !== 'boolean') {
+    return res.status(400).json({ message: 'El campo "activo" es obligatorio y debe ser un booleano.' });
   }
 
-  console.log(`Request received for /api/productos/:id with ID: ${req.params.id}`);
-  const { id } = req.params;
   try {
-    const [productoRows] = await db.query('SELECT * FROM productos WHERE id = ?', [id]);
+    const [result] = await db.query(
+      'UPDATE productos SET activo = ? WHERE id = ?',
+      [activo, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Producto no encontrado.' });
+    }
+
+    res.status(200).json({ message: 'Estado del producto actualizado correctamente.' });
+  } catch (error) {
+    console.error(`Error al cambiar el estado del producto ${id}:`, error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// GET /api/productos/:id - Obtener un producto específico con sus imágenes y tallas
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+  if (isNaN(parseInt(id, 10))) {
+    return res.status(400).json({ message: 'ID de producto inválido.' });
+  }
+
+  try {
+    // 1. Obtener los detalles principales del producto
+    const productoQuery = `
+      SELECT p.*, c.nombre as categoria_nombre 
+      FROM productos p 
+      LEFT JOIN categorias c ON p.categoria_id = c.id 
+      WHERE p.id = ?`;
+    const [productoRows] = await db.query(productoQuery, [id]);
 
     if (productoRows.length === 0) {
       return res.status(404).json({ message: 'Producto no encontrado' });
     }
     
-    res.json(productoRows[0]);
+    const producto = productoRows[0];
+
+    // 2. Transformar las columnas de imágenes de la tabla productos en un array 'Imagenes'
+    const imagenes = [];
+    imageFields.forEach(field => {
+      // Excluir 'imagen_3_4' de la galería
+      if (field !== 'imagen_3_4' && producto[field]) {
+        imagenes.push({
+          id_imagen: null, // No tenemos un ID de imagen individual en esta estructura
+          ruta_imagen: formatImagePath(producto[field])
+        });
+      }
+    });
+
+    // 3. Asignar la talla única 'OS' ya que el concepto de tallas no existe en el sistema.
+    const tallas = [{ id_talla: 0, talla: 'OS' }];
+
+    // 4. Construir el objeto de producto completo para la respuesta
+    const productoCompleto = {
+      ...producto,
+      Imagenes: imagenes, // Usar el array de imágenes transformado
+      Tallas: tallas
+    };
+
+    // Limpiar los campos de imagen individuales del nivel superior del objeto para evitar redundancia
+    imageFields.forEach(field => {
+      delete productoCompleto[field];
+    });
+
+    res.json(productoCompleto);
+
   } catch (error) {
     console.error(`Error al obtener el producto ${id}:`, error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// GET /api/productos/admin/:id - Obtener un producto específico para el panel de admin
+router.get('/admin/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  if (isNaN(parseInt(id, 10))) {
+    return res.status(400).json({ message: 'ID de producto inválido.' });
+  }
+
+  try {
+    const query = 'SELECT * FROM productos WHERE id = ?';
+    const [rows] = await db.query(query, [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+
+    const product = rows[0];
+    
+    const formattedProduct = { ...product };
+    imageFields.forEach(field => {
+      if (product[field]) {
+        formattedProduct[field] = formatImagePath(product[field]);
+      }
+    });
+
+    res.json(formattedProduct);
+
+  } catch (error) {
+    console.error(`Error al obtener el producto ${id} para admin:`, error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });

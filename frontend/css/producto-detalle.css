@@ -1,22 +1,476 @@
 /* Estilos específicos para la página de detalle del producto */
 
-/* Contenedor principal */
-.detalle-producto-main {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 30px;
-  max-width: 1200px;
-  margin: 2em auto;
-  padding: 1em;
+/* Estilos para el contenedor de subcategoría y stock */
+.subcat-stock-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 4px; /* Reducido para acercar al título */
 }
 
-/* Contenedor de la galería de imágenes */
-.product-gallery {
+.subcategoria-default {
+    color:#444;
+    font-weight:bold;
+    font-size:1.1em;
+    letter-spacing:1px;
+}
+
+/* Estilos para la cuadrícula de precios */
+/* Contenedor de precios, cantidad y botón */
+.price-and-cart-container {
+    background-color: #f9f9f9;
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
     display: flex;
     flex-direction: column;
     gap: 15px;
-    grid-column: 1 / 2;
 }
+
+.dynamic-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dynamic-unit-price {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #d9534f; /* Rojo por defecto */
+    transition: color 0.3s ease;
+}
+
+.dynamic-unit-price.discounted {
+    color: #28a745; /* Verde cuando hay descuento */
+}
+
+.dynamic-total-price {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #333;
+}
+
+.price-separator {
+    border: none;
+    border-top: 1px solid #eaeaea;
+    margin: 0;
+}
+
+.tiered-prices-container {
+    display: flex;
+    gap: 24px;
+}
+
+.tiered-price-item {
+    text-align: left;
+}
+
+.tiered-price {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #28a745; /* Verde */
+}
+
+.tiered-condition {
+    font-size: 0.9em;
+    color: #6c757d;
+}
+
+/* Ocultar el contenedor de precios escalonados original si aún existiera */
+.prices-grid-container {
+    display: none;
+}
+
+/* Estilos para Tallas y Descripción */
+.sizes-container {
+    margin-top: 25px;
+    margin-bottom: 15px;
+    text-align: left;
+    width: 100%;
+}
+
+.sizes-title {
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+    text-align: left;
+    color: #111;
+}
+
+.size-options {
+    text-align: left;
+}
+
+.size-options .size-option {
+    background-color: #fff;
+    color: #111;
+    border: 1px solid #ccc;
+    padding: 8px 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 50px;
+}
+
+.size-options .size-option:hover {
+    border-color: #111;
+}
+
+.size-options .size-option.selected {
+    background-color: #000;
+    color: #fff;
+    border-color: #000;
+}
+
+.size-options .size-option:disabled {
+    cursor: default;
+    opacity: 1;
+}
+
+/* Estilos para la descripción estática */
+.descripcion-container {
+    border-top: 1px solid #e5e5e5;
+    padding-top: 20px;
+    margin-top: 20px;
+    text-align: left;
+    width: 100%;
+}
+
+.descripcion-title {
+    font-weight: 600;
+    font-size: 1em;
+    color: #333;
+    margin: 0 0 10px 0;
+    text-align: left;
+}
+
+.descripcion-text {
+    font-size: 0.95em;
+    color: #555;
+    line-height: 1.6;
+    margin: 0;
+    text-align: left;
+}
+
+/* Contenedor de acciones: selector de cantidad y botón de añadir */
+/* Contenedor de acciones: selector de cantidad y botón de añadir */
+
+.product-add-to-cart {
+    display: flex;
+    align-items: flex-end; /* Alinear en la parte inferior */
+    gap: 15px;
+    width: 100%;
+}
+
+/* Estilos para el nuevo selector de cantidad */
+.quantity-wrapper {
+    display: flex;
+    margin-top: -30px;
+    flex-direction: column;
+}
+
+.quantity-title {
+    font-weight: 700;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+    color: #111;
+    text-transform: uppercase;
+}
+
+.quantity-selector {
+    display: flex;
+    border: 2px solid #111;
+    border-radius: 6px;
+    overflow: hidden;
+    width: -moz-fit-content;
+    width: fit-content;
+}
+
+.quantity-btn {
+    background-color: #f7f7f7;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 1.4em;
+    font-weight: 300;
+    color: #666;
+    transition: background-color 0.2s;
+    line-height: 1;
+}
+
+.quantity-btn:hover {
+    background-color: #e9e9e9;
+}
+
+#quantity-input {
+    width: 45px;
+    text-align: center;
+    border: none;
+    border-left: 1px solid #e0e0e0;
+    border-right: 1px solid #e0e0e0;
+    font-size: 1.1em;
+    font-weight: 500;
+    background-color: #fff;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+#quantity-input::-webkit-outer-spin-button,
+#quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Estilos mejorados para el botón de añadir a la cesta */
+
+#add-to-cart-btn {
+    text-align: center;
+    flex-grow: 1; /* Ocupa el espacio restante */
+    background-color: #1a1a1a;
+    color: #fff;
+    text-transform: uppercase;
+    border: none;
+    padding: 12px 20px;
+    font-weight: bold;
+    font-size: 1em;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    height: 48px; /* Misma altura que el botón de personalizar */
+    box-sizing: border-box;
+    white-space: nowrap; /* Evita que el texto se parta */
+}
+
+#add-to-cart-btn:active {
+    transform: scale(0.98);
+}
+
+.macs-stock-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+
+
+.stock-badge {
+  display: inline-block;
+  background: #1ed760;
+  color: #fff;
+  font-weight: bold;
+  border-radius: 20px;
+  padding: 4px 18px;
+  font-size: 0.95em
+}
+
+.price-box {
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 10px 0 20px 0;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.main-price-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.precio-principal {
+  color: #b12704;
+  font-weight: bold;
+  font-size: 2rem;
+}
+
+.precio-tachado {
+  color: #888;
+  text-decoration: line-through;
+  font-size: 1.2rem;
+  margin-left: 8px;
+}
+
+.tiered-prices-container {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 15px;
+}
+
+.tiered-price-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tiered-price {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #2a8a2a;
+}
+
+.tiered-condition {
+  font-size: 0.85em;
+  color: #555;
+}
+
+.discount-message {
+  color: #b12704;
+  font-weight: bold;
+  margin: -10px 0 15px 0;
+  padding: 8px;
+  background-color: #fdf2f2;
+  border-radius: 4px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .detalle-producto-main {
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+  }
+  .product-gallery, .detalle-info {
+    max-width: 100%;
+  }
+  .price-box {
+    padding: 14px;
+  }
+}
+
+
+/* Contenedor principal */
+.detalle-producto-main {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0px auto 0 auto;
+  padding: 0 24px;
+}
+
+.product-gallery {
+  flex-shrink: 0;
+  max-width: 500px;
+  width: 55%;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  /* Se elimina el margin-top para que flex-start haga su trabajo */
+}
+
+.detalle-info {
+  flex-grow: 1;
+  min-width: 360px;
+  width: 45%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px; /* Reducido para juntar los elementos */
+  text-align: left; /* Asegura que todo el texto esté alineado a la izquierda */
+}
+
+/* Estilos para el slider principal (cuadrado) */
+.gallery-top {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.gallery-top .swiper-slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Oculta el exceso de la imagen al hacer zoom */
+}
+
+.gallery-top .swiper-slide img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease; /* Transición suave para el zoom */
+    cursor: zoom-in;
+}
+
+/* Estilos para las miniaturas de Swiper (cuadradas) */
+.gallery-thumbs {
+    height: auto;
+    padding: 10px 0;
+    width: 100%;
+    max-width: 380px; /* Limita el ancho para centrar las miniaturas */
+}
+
+.gallery-thumbs .swiper-slide {
+    width: 65px !important;
+    height: 65px !important; /* Forzar altura para que sea cuadrado */
+    opacity: 1 !important;
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.gallery-thumbs .swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 2px solid transparent;
+    transition: border-color 0.3s;
+    border-radius: 6px; /* Bordes redondeados para la imagen interna */
+}
+
+.gallery-thumbs .swiper-slide:hover img {
+    border-color: #ccc;
+}
+
+.gallery-thumbs .swiper-slide-thumb-active img {
+    border-color: #000;
+}
+
+.price-box {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 32px;
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 20px 32px;
+  margin: 10px 0 20px 0;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.main-price-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.tiered-prices-container {
+  display: flex;
+  flex-direction: row;
+  gap: 28px;
+  align-items: flex-end;
+  margin-bottom: 0;
+}
+
+/* Regla .product-gallery duplicada y consolidada. */
 
 .main-image-container {
     position: relative;
@@ -33,7 +487,7 @@
     transition: transform 0.2s ease;
 }
 
-/* --- Image Modal Styles --- */
+/* --- Image Modal Styles (Swiper Implementation) --- */
 .image-modal-overlay {
     position: fixed;
     top: 0;
@@ -55,10 +509,17 @@
     to { opacity: 1; }
 }
 
-.image-modal-close {
+.image-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 85vw;
+    max-height: 90vh;
+}
+
+.close-modal-btn {
     position: absolute;
-    top: 20px;
-    right: 30px;
+    top: -15px;
+    right: -10px;
     font-size: 40px;
     color: white;
     background: none;
@@ -66,101 +527,49 @@
     cursor: pointer;
     line-height: 1;
     transition: transform 0.2s;
+    z-index: 1010;
 }
 
-.image-modal-close:hover {
+.close-modal-btn:hover {
     transform: scale(1.1);
 }
 
-.image-modal-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    max-width: 90vw;
+.modal-swiper {
+    width: 100%;
+    height: 100%;
     max-height: 90vh;
 }
 
-.modal-main-image-wrapper {
-    position: relative;
-}
-
-.modal-main-image-container {
-    overflow: hidden; /* This is crucial for the zoom effect */
-    border-radius: 8px;
-    cursor: zoom-in;
-    position: relative; /* Create stacking context */
-    z-index: 1; /* Base layer */
-}
-
-#modal-main-image {
-    max-height: 80vh;
-    max-width: 100%;
-    object-fit: contain;
-    border-radius: 8px;
-    transition: transform 0.2s ease;
-    display: block; /* Prevents extra space below image */
-}
-
-.modal-nav-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(255, 255, 255, 0.7);
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    font-size: 24px;
-    cursor: pointer;
-    z-index: 2; /* Higher layer */
+.modal-swiper .swiper-slide {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #000; /* Black arrow */
-    transition: background-color 0.2s, color 0.2s;
+    overflow: hidden;
 }
 
-.modal-nav-btn:hover {
-    background-color: #333;
-    color: #FFD700; /* Yellow arrow on hover */
+.modal-swiper .swiper-zoom-container {
+    width: 100%;
+    height: 100%;
 }
 
-.modal-nav-btn.prev {
-    left: -55px;
+.modal-swiper .swiper-zoom-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
-.modal-nav-btn.next {
-    right: -55px;
+/* Swiper navigation buttons in modal */
+.modal-swiper .swiper-button-next,
+.modal-swiper .swiper-button-prev {
+    color: #fff;
+    --swiper-navigation-size: 30px;
 }
 
-.modal-thumbnails {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    flex-wrap: wrap;
-    padding: 10px;
-    background: rgba(0,0,0,0.2);
-    border-radius: 8px;
+.modal-swiper .swiper-button-next:after,
+.modal-swiper .swiper-button-prev:after {
+    font-weight: bold;
 }
 
-.modal-thumbnail-item {
-    width: 70px;
-    height: 70px;
-    object-fit: cover;
-    cursor: pointer;
-    border: 2px solid transparent;
-    border-radius: 6px;
-    transition: border-color 0.3s, transform 0.2s;
-}
-
-.modal-thumbnail-item:hover {
-    transform: scale(1.1);
-}
-
-.modal-thumbnail-item.active {
-    border-color: #fff;
-}
 
 @media (max-width: 768px) {
     .modal-nav-btn.prev {
@@ -243,37 +652,122 @@
 
 /* Información del producto */
 .detalle-info {
-    grid-column: 2 / 3;
-    grid-row: 1 / 2;
+    flex: 1 1 400px; /* Base size for info */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Alinear items del flexbox a la izquierda */
+    text-align: left;       /* Alinear el texto a la izquierda */
 }
 
-/* Información del producto */
-.detalle-info .product-brand {
-  text-transform: uppercase;
-  color: #666;
-  font-size: 0.9em;
+/* Estilo de píldora para el Stock */
+.detalle-info .stock-status {
+    display: inline-block;
+    padding: 5px 15px;
+    margin: 10px 0;
+    font-size: 0.9em;
+    font-weight: bold;
+    border-radius: 20px; /* Píldora */
+    line-height: 1.3;
+    text-align: center;
+    color: #fff; /* Texto blanco */
 }
 
-.detalle-info h1 {
-  font-size: 2.2em;
-  margin: 0.2em 0;
+.stock-status.in-stock {
+    background-color: #28a745; /* Verde sólido */
 }
 
-.detalle-info .ref {
-  color: #888;
-  font-size: 0.8em;
+.stock-status.out-of-stock {
+    background-color: #dc3545; /* Rojo sólido */
+}
+
+/* Sección de compra unificada */
+.price-box {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 10px 0;
+  width: 100%;
+}
+
+.price-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .detalle-info .price {
-  font-size: 1.8em;
+  font-size: 2.2em;
+  font-weight: bold;
+  color: #b12704;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.price-total {
+  font-size: 2.2em;
+  font-weight: bold;
+  color: #333; /* Color más oscuro para el total */
+}
+
+.price-separator {
+  border: 0;
+  border-top: 1px solid #eee;
+  margin: 15px 0;
+}
+
+.tiered-prices-container {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 15px;
+}
+
+.tiered-price-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tiered-price {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #2a8a2a;
+}
+
+.tiered-condition {
+  font-size: 0.85em;
+  color: #555;
+}
+
+.quantity-container {
+  margin-top: 10px;
+}
+
+.quantity-details {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quantity-details label {
+  font-weight: bold;
+}
+
+.discount-message {
   color: #b12704;
   font-weight: bold;
-  margin: 0.5em 0;
+  margin: -10px 0 15px 0;
+  display: none;
+  padding: 8px;
+  background-color: #fdf2f2;
+  border-radius: 4px;
+  text-align: center;
 }
 
 /* Botón de Talla OS */
 .detalle-info .tallas {
-  margin: 20px 0;
+  margin: 0 0 20px;
 }
 
 .detalle-info .tallas p {
@@ -305,22 +799,70 @@
   font-size: 1.1em;
   background-color: #000;
   color: #fff;
-  border: none;
+  border: 1px solid #000;
   border-radius: 5px;
   cursor: pointer;
   margin: 10px 0;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+.detalle-info .add-to-cart-btn:hover:not(:disabled),
+.personalize-btn:hover {
+  background-color: #fff;
+  color: #000;
+  transform: scale(1.02);
+}
+
+.detalle-info .add-to-cart-btn:disabled {
+  background-color: #ccc;
+  border-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
+/* Botón de Personalizar */
+
+.personalize-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: #25D366;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1em;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    white-space: nowrap; /* Evita que el texto se parta */
+    height: 48px; /* Asegurar misma altura que el botón de añadir */
+    box-sizing: border-box;
+}
+
+.personalize-btn:hover {
+    background-color: #1EAE54;
+    transform: scale(1.02);
+}
+
+.personalize-btn .fa-whatsapp {
+    font-size: 1.2em;
 }
 
 /* Sección de Recomendados */
 .recomendados-section {
-  width: 80%;
-  max-width: 1200px;
+  width: 90%; /* Aumentar el ancho para aprovechar más espacio */
+  max-width: 1400px; /* Aumentar el ancho máximo */
   margin: 40px auto;
   text-align: center;
 }
 
 .carousel-container {
   position: relative;
+  padding: 0 50px; /* Añadir padding para que los botones no se superpongan */
+  box-sizing: border-box;
 }
 
 .carousel-track-container {
@@ -331,24 +873,19 @@
 .carousel-track {
   display: flex;
   transition: transform 0.5s ease-in-out;
+  gap: 20px; /* Espaciado entre tarjetas */
 }
 
-.carousel-track .producto {
-  min-width: calc(25% - 20px);
-  max-width: calc(25% - 20px);
-  margin: 0 10px;
+/* Tarjetas de producto dentro del carrusel */
+.carousel-track .product-card {
+  flex: 0 0 calc(25% - 15px); /* Muestra 4 items por defecto */
   box-sizing: border-box;
-  flex-shrink: 0;
-  border: 1px solid #eee;
-  padding: 1em;
-  border-radius: 8px;
+  min-width: 0; /* Permitir que la tarjeta se encoja */
 }
 
-.carousel-track .producto img {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1 / 1;
-  object-fit: contain;
+/* Ajuste menor para la imagen dentro del carrusel */
+.carousel-track .product-card .product-card__image {
+  height: 180px; /* Un poco más pequeña para el layout del carrusel */
 }
 
 .carousel-btn {
@@ -386,7 +923,7 @@
         grid-column: 1 / 2;
         grid-row: auto;
     }
-    .zoom-container {
+    .img-zoom-result {
         display: none !important;
     }
 }
@@ -394,94 +931,7 @@
 /* --- Ajustes para el carrusel de recomendados --- */
 
 /* Quitar subrayado y definir color para los enlaces en el carrusel */
-.carousel-track .producto a {
-  text-decoration: none;
-  color: #333;
-}
 
-/* --- Estilos para Precios por Volumen y Cantidad --- */
-
-.price-main-container {
-  border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 15px;
-  margin: 1em 0;
-  background-color: #f9f9f9;
-}
-
-.detalle-info .price {
-  font-size: 2em; /* Hacer el precio principal más grande */
-  margin-bottom: 10px;
-}
-
-.tiered-prices {
-  display: flex;
-  gap: 20px;
-  border-top: 1px solid #ddd;
-  padding-top: 15px;
-}
-
-.tiered-price-item {
-  text-align: center;
-}
-
-.tiered-price {
-  font-size: 1.2em;
-  font-weight: bold;
-  color: #2a8a2a;
-}
-
-.tiered-condition {
-  font-size: 0.8em;
-  color: #555;
-}
-
-.discount-message {
-  color: #b12704;
-  font-weight: bold;
-  margin: -10px 0 15px 0;
-  display: none; /* Oculto por defecto */
-  padding: 8px;
-  background-color: #fdf2f2;
-  border-radius: 4px;
-  text-align: center;
-}
-
-/* Estilos para el input de cantidad */
-.quantity-selector {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 20px 0;
-}
-
-.quantity-selector label {
-  font-weight: bold;
-  font-size: 0.9em;
-  color: #555;
-}
-
-#quantity-input {
-  width: 70px;
-  padding: 8px;
-  text-align: center;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1.1em;
-  -moz-appearance: textfield; /* Para Firefox */
-  appearance: textfield;
-}
-
-#quantity-input::-webkit-outer-spin-button,
-#quantity-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.stock-available {
-  font-size: 0.9em;
-  color: #666;
-}
 
 /* Añadir subrayado solo al nombre del producto en hover para feedback visual */
 .carousel-track .producto a:hover h3 {
@@ -495,4 +945,268 @@
   margin-top: auto; /* Empuja el botón al fondo */
   width: 100%; /* Asegurar que ocupe todo el ancho */
   border-radius: 4px; /* Bordes un poco menos redondeados */
+}
+
+/* --- Estilos para la Galería con Swiper.js --- */
+
+.product-gallery .swiper {
+    width: 100%;
+}
+
+/* Regla duplicada para .gallery-top eliminada para quitar la sombra. */
+
+.gallery-top .swiper-slide {
+    background-size: cover;
+    background-position: center;
+    aspect-ratio: 1 / 1; /* Mantiene la imagen cuadrada */
+}
+
+.gallery-top .swiper-slide img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Ajusta la imagen sin cortarla */
+}
+
+.gallery-thumbs {
+    height: 20%;
+    box-sizing: border-box;
+    padding: 10px 0;
+    margin-top: 10px;
+}
+
+.gallery-thumbs .swiper-slide {
+    width: 25%;
+    height: 100%;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.gallery-thumbs .swiper-slide-thumb-active {
+    opacity: 1;
+    border: 2px solid #000;
+}
+
+.gallery-thumbs .swiper-slide img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.swiper-button-next, .swiper-button-prev {
+    color: #000 !important; /* Asegura que las flechas sean negras */
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    width: 40px !important;
+    height: 40px !important;
+    transform: scale(0.8);
+}
+
+.swiper-button-next:after, .swiper-button-prev:after {
+    font-size: 20px !important;
+    font-weight: bold;
+}
+
+/* --- Estilos para el nuevo cuadro de precios --- */
+.price-box-container {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    width: 100%; /* Ocupar todo el ancho del contenedor padre */
+    box-sizing: border-box; /* Asegurar que el padding no afecte el ancho total */
+}
+
+.main-prices {
+    display: flex;
+    justify-content: space-between; /* Alinea los precios a los extremos */
+    align-items: baseline;
+    margin-bottom: 20px;
+    width: 100%; /* Asegura que el contenedor ocupe todo el ancho */
+}
+
+.price-offer {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #E53935;
+}
+
+.price-normal {
+    font-size: 2.2rem; /* Mismo tamaño que la oferta */
+    font-weight: 400; /* Peso de fuente normal como en la imagen */
+    color: #333333; /* Color oscuro, sin tachado */
+}
+
+.tiered-prices {
+    display: flex;
+    justify-content: space-around; /* Distribuye los precios equitativamente */
+    gap: 16px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 20px;
+    text-align: center;
+}
+
+.tiered-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.tiered-price-amount {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #43A047;
+}
+
+.tiered-price-condition {
+    font-size: 0.85rem;
+    color: #666666;
+}
+
+.actions-container {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.discount-message {
+    font-size: 0.9rem;
+    color: #28a745; /* Verde para el ahorro */
+    font-weight: 500;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px; /* Espacio antes de los precios por volumen */
+    display: none; /* Oculto por defecto */
+}
+
+/* Estilos para el contenedor de precios por volumen */
+.tiered-prices {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.tiered-prices-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.tiered-prices-row:last-child {
+    margin-bottom: 0;
+}
+
+.tiered-price-item {
+    text-align: center;
+    margin: 0 10px;
+    min-width: 100px; /* Evita que los elementos se amontonen */
+}
+
+.tiered-price-value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #28a745; /* Verde */
+}
+
+.tiered-price-qty {
+    font-size: 0.8rem;
+    color: #6c757d; /* Gris */
+}
+
+
+.tiered-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.tiered-price-amount {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #43A047;
+}
+
+.tiered-price-condition {
+    font-size: 0.85rem;
+    color: #666666;
+}
+
+.actions-container {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.discount-message {
+    font-size: 0.9rem;
+    color: #28a745; /* Verde para el ahorro */
+    font-weight: 500;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px; /* Espacio antes de los precios por volumen */
+    display: none; /* Oculto por defecto */
+}
+
+/* Estilos para el contenedor de precios por volumen */
+.tiered-prices {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.tiered-prices-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.tiered-prices-row:last-child {
+    margin-bottom: 0;
+}
+
+.tiered-price-item {
+    text-align: center;
+    margin: 0 10px;
+    min-width: 100px; /* Evita que los elementos se amontonen */
+}
+
+.tiered-price-value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #28a745; /* Verde */
+}
+
+.tiered-price-qty {
+    font-size: 0.8rem;
+    color: #6c757d; /* Gris */
 }

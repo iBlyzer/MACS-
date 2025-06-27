@@ -33,11 +33,12 @@ const updateSchema = async () => {
 
     const tableName = 'productos';
     const columnsToAdd = [
-      { name: 'imagen_icono', definition: 'VARCHAR(500) NULL' },
+      { name: 'imagen_3_4', definition: 'VARCHAR(500) NULL' },
       { name: 'imagen_frontal', definition: 'VARCHAR(500) NULL' },
+      { name: 'imagen_lateral', definition: 'VARCHAR(500) NULL' },
       { name: 'imagen_trasera', definition: 'VARCHAR(500) NULL' },
-      { name: 'imagen_lateral_derecha', definition: 'VARCHAR(500) NULL' },
-      { name: 'imagen_lateral_izquierda', definition: 'VARCHAR(500) NULL' }
+      { name: 'imagen_superior', definition: 'VARCHAR(500) NULL' },
+      { name: 'imagen_inferior', definition: 'VARCHAR(500) NULL' }
     ];
 
     for (const col of columnsToAdd) {

@@ -8,31 +8,36 @@
 <body>
     <div class="admin-container">
         <aside class="sidebar">
-            <h2>Admin Panel</h2>
+            <div class="sidebar-header">
+                <h2>Admin Panel</h2>
+            </div>
             <nav>
                 <ul>
-                    <li><a href="panel-admin.html#productos">Gestionar Productos</a></li>
-                    <li><a href="gestor-slider.html">Gestor de Imágenes del Slider</a></li>
-                    <li><a href="panel-admin.html#categorias">Categorías</a></li>
-                    <li><a href="panel-admin.html#inventario">Inventario</a></li>
-                    <li><a href="panel-admin.html#reportes">Reportes</a></li>
-                    <li><a href="#" id="logout-btn">Cerrar Sesión</a></li>
+                    <li><a href="#">Dashboard</a></li>
+                    <li><a href="panel-admin.html">Productos</a></li>
+                    <li><a href="#">Categorías</a></li>
+                    <li><a href="gestor-slider.html" class="active">Slider</a></li>
                 </ul>
             </nav>
         </aside>
-        
-        <main class="content">
-            <section id="slider-manager">
-                <div class="header-section">
-                    <h1>Gestor de Imágenes del Slider</h1>
-                </div>
 
+        <main class="main-content">
+            <header class="main-header">
+                <h1>Gestor de Imágenes del Slider</h1>
+                <div class="header-actions">
+                    <span id="admin-user-name"></span>
+                    <button id="btn-logout" class="btn-logout">Cerrar Sesión</button>
+                </div>
+            </header>
+
+            <section id="slider-manager">
                 <div class="card">
                     <h3>Subir Nuevas Imágenes</h3>
                     <form id="upload-form">
                         <div class="form-group">
-                            <label for="image-files">Selecciona una o más imágenes:</label>
+                            <label for="image-files" class="custom-file-upload">Elegir archivos</label>
                             <input type="file" id="image-files" name="sliderImages" accept="image/*" multiple>
+                            <span id="file-name">No se ha seleccionado ningún archivo</span>
                         </div>
                         <button type="submit" class="btn-primary">Subir Imágenes</button>
                     </form>

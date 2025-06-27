@@ -1,0 +1,110 @@
+/* Estilos para mejorar el panel de administración */
+
+/* Mejora para la información del usuario y botón de logout */
+.admin-user-info span {
+    font-weight: bold;
+    padding: 8px 0;
+    color: #495057;
+    background-color: transparent;
+}
+
+#logout-btn {
+    background-color: #f44336; /* Rojo más brillante */
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px; /* Bordes más redondeados */
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+#logout-btn:hover {
+    background-color: #d32f2f; /* Rojo más oscuro al pasar el mouse */
+}
+
+/* Mejora general para los botones de acción */
+.acciones button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    margin-right: 5px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.acciones button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.btn-toggle-status {
+    margin-top: 5px;
+}
+
+/* Estilos específicos para cada botón de acción */
+.btn-editar {
+    background-color: #ffc107;
+    color: #333;
+}
+
+.btn-eliminar {
+    background-color: #f44336;
+}
+
+.btn-toggle-status.activar {
+    background-color: #28a745; /* Verde */
+    min-width: 110px;
+}
+
+.btn-toggle-status.desactivar {
+    background-color: #34495e; /* Dark Blue */
+    min-width: auto;
+    padding: 4px 10px;
+    font-size: 11px;
+}
+
+/* Estilos para la galería de imágenes del slider */
+.image-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding-top: 20px;
+}
+
+.gallery-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    width: 200px; /* Ancho fijo para cada item */
+    text-align: center;
+}
+
+.gallery-item img {
+    max-width: 100%;
+    height: 150px; /* Altura fija */
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.gallery-item p {
+    font-size: 12px;
+    color: #333;
+    margin-bottom: 10px;
+    word-break: break-all;
+    min-height: 28px;
+}
+
+.gallery-item .btn-eliminar {
+    width: 100%;
+}

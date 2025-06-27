@@ -27,18 +27,9 @@ app.use('/api/categorias', require('./routes/categorias'));
 app.use('/api/subs', require('./routes/subcategorias'));
 app.use('/api/slider', require('./routes/slider'));
 app.use('/api/slider-manager', require('./routes/slider-manager'));
+app.use('/api/new-slider', require('./routes/new-slider'));
 
-app.get('/api/slider/images', (req, res) => {
-    const sliderDir = path.join(__dirname, '..', 'frontend', 'assets', 'slider-imgs');
-    fs.readdir(sliderDir, (err, files) => {
-        if (err) {
-            console.error('Error al leer el directorio de imágenes del slider:', err);
-            return res.status(500).json({ message: 'Error al obtener las imágenes.' });
-        }
-        const imageUrls = files.map(file => `/assets/slider-imgs/${file}`);
-        res.json(imageUrls);
-    });
-});
+// Ruta conflictiva eliminada. La lógica correcta está en routes/slider.js
 
 // --- Servir archivos estáticos --- 
 // Servir la carpeta frontend primero para asegurar que CSS, JS e imágenes se carguen siempre.
