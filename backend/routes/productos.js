@@ -209,6 +209,85 @@ router.get('/top-stock', async (req, res) => {
   }
 });
 
+// GET /api/productos/destacados - Obtener todos los productos marcados como destacados
+router.get('/destacados', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        p.id, p.nombre, p.marca, p.precio, p.stock,
+        c.nombre as categoria_nombre,
+        p.imagen_3_4 as imagen_principal
+      FROM productos p
+      JOIN categorias c ON p.categoria_id = c.id
+      WHERE p.activo = TRUE
+      ORDER BY p.stock DESC
+      LIMIT 10
+    `;
+    const [rows] = await db.query(query);
+
+    const formattedRows = rows.map(product => ({
+      ...product,
+      imagen_principal: product.imagen_principal ? formatImagePath(product.imagen_principal) : 'https://via.placeholder.com/300x300.png?text=Sin+Imagen'
+    }));
+
+    res.json(formattedRows);
+  } catch (error) {
+    logger.error('Error al obtener productos destacados:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// GET /api/productos/categoria/:nombre - Obtener productos por nombre de categoría
+router.get('/categoria/:nombre', async (req, res) => {
+  try {
+    const { nombre } = req.params;
+    let query;
+    const params = [];
+    
+    // Lógica condicional para los sliders específicos
+    if (nombre.toLowerCase() === 'macs') {
+      query = `
+        SELECT p.id, p.nombre, p.marca, p.precio, p.stock, c.nombre as categoria_nombre, p.imagen_3_4 as imagen_principal
+        FROM productos p
+        JOIN categorias c ON p.categoria_id = c.id
+        WHERE p.marca = ? AND LOWER(c.nombre) NOT IN (?, ?) AND p.activo = TRUE
+        ORDER BY p.fecha_creacion DESC
+        LIMIT 10`;
+      params.push('MACS', 'sombreros', 'importada');
+    } else if (nombre.toLowerCase() === 'importada') {
+      query = `
+        SELECT p.id, p.nombre, p.marca, p.precio, p.stock, c.nombre as categoria_nombre, p.imagen_3_4 as imagen_principal
+        FROM productos p
+        JOIN categorias c ON p.categoria_id = c.id
+        WHERE p.marca = ? AND LOWER(c.nombre) NOT IN (?, ?) AND p.activo = TRUE
+        ORDER BY p.fecha_creacion DESC
+        LIMIT 10`;
+      params.push('IMPORTADA', 'sombreros', 'macs');
+    } else {
+      // Comportamiento por defecto para otras categorías
+      query = `
+        SELECT p.id, p.nombre, p.marca, p.precio, p.stock, c.nombre as categoria_nombre, p.imagen_3_4 as imagen_principal
+        FROM productos p
+        JOIN categorias c ON p.categoria_id = c.id
+        WHERE LOWER(c.nombre) = ? AND p.activo = TRUE
+        ORDER BY p.fecha_creacion DESC`;
+      params.push(nombre.toLowerCase());
+    }
+
+    const [rows] = await db.query(query, params);
+
+    const formattedRows = rows.map(product => ({
+      ...product,
+      imagen_principal: product.imagen_principal ? formatImagePath(product.imagen_principal) : 'https://via.placeholder.com/300x300.png?text=Sin+Imagen'
+    }));
+
+    res.json(formattedRows);
+  } catch (error) {
+    logger.error('Error al obtener productos para la categoría ' + nombre, error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
 // GET productos recomendados
 router.get('/recomendados', async (req, res) => {
   const { categoriaId, excludeId, limit = 10 } = req.query;

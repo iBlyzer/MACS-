@@ -35,140 +35,199 @@ function renderizarProductoPrincipal(product) {
     const detalleContainer = document.getElementById('detalle-producto-container');
     if (!detalleContainer) return;
 
+    detalleContainer.innerHTML = ''; // Limpiar contenido anterior
+
     const formatCurrency = (value) => new Intl.NumberFormat('es-CO', { 
         style: 'currency', currency: 'COP', minimumFractionDigits: 0 
     }).format(value);
 
-    const precioFormateado = formatCurrency(product.precio);
-
-    const images = [
-        product.imagen_frontal,
-        product.imagen_trasera,
-        product.imagen_lateral_izquierda,
-        product.imagen_lateral_derecha
-    ].filter(Boolean);
-
-    const galleryHTML = `
-    <div class="product-gallery">
+    // --- Columna de Galería ---
+    const galleryColumn = document.createElement('div');
+    galleryColumn.className = 'product-gallery';
+    const images = [product.imagen_frontal, product.imagen_trasera, product.imagen_lateral_izquierda, product.imagen_lateral_derecha].filter(Boolean);
+    galleryColumn.innerHTML = `
         <div class="main-image-container">
-            <img id="main-product-image" src="${getImageUrl(images[0])}" alt="Vista principal del producto">
+            <img id="main-product-image" src="${getImageUrl(images.length > 0 ? images[0] : '')}" alt="Vista principal del producto">
             <button class="gallery-nav-btn prev" id="slider-prev">&#10094;</button>
             <button class="gallery-nav-btn next" id="slider-next">&#10095;</button>
         </div>
         <div class="thumbnail-slider">
             <div class="thumbnails" id="thumbnails">
-                ${images.map((img, index) => `
-                    <img src="${getImageUrl(img)}" alt="Miniatura ${index + 1}" class="thumbnail-item ${index === 0 ? 'active' : ''}" data-index="${index}">
-                `).join('')}
+                ${images.map((img, index) => `<img src="${getImageUrl(img)}" alt="Miniatura ${index + 1}" class="thumbnail-item ${index === 0 ? 'active' : ''}" data-index="${index}">`).join('')}
             </div>
         </div>
-    </div>
-  `;
+    `;
 
-    const infoHTML = `
-      <div class="detalle-info">
-          <p class="product-brand">${product.marca || 'Macs'}</p>
-          <h1>${product.nombre}</h1>
-          <p class="ref">REF: ${product.numero_referencia || 'N/A'}</p>
-          
-          <div class="price-main-container">
-            <p class="price" id="dynamic-price">${precioFormateado}</p>
-            <div class="tiered-prices">
-              <div class="tiered-price-item">
-                <p class="tiered-price">${formatCurrency(18000)}</p>
-                <p class="tiered-condition">por 50 unidades</p>
-              </div>
-              <div class="tiered-price-item">
-                <p class="tiered-price">${formatCurrency(16000)}</p>
-                <p class="tiered-condition">por 100 unidades</p>
-              </div>
+    // --- Columna de Información ---
+    const infoColumn = document.createElement('div');
+    infoColumn.className = 'detalle-info';
+    const priceAndActionsHTML = `
+        <div class="price-box-container">
+            <div class="main-prices">
+                <span id="unit-price" class="price-offer"></span>
+                <span id="total-price" class="price-normal"></span>
             </div>
-          </div>
-          <p id="discount-message" class="discount-message"></p>
+            <div id="discount-message" class="discount-message"></div>
+            <div id="tiered-prices-display" class="tiered-prices"></div>
+        </div>
+        
+        <div class="actions-wrapper">
+            ${product.stock > 0 ? `
+                <div class="quantity-control">
+                    <button type="button" class="quantity-btn minus">-</button>
+                    <input type="number" id="quantity-input" value="1" min="1" max="${product.stock}">
+                    <button type="button" class="quantity-btn plus">+</button>
+                </div>
+                <button id="add-to-cart-main" class="add-to-cart-btn">Añadir a la cesta</button>
+            ` : `<p class="stock-agotado">AGOTADO</p>`}
+        </div>
 
-          <div class="stock-section">
-              ${product.stock > 0 ? `
-                  <p class="stock-title">Stock disponible</p>
-                  <div class="quantity-selector">
-                      <label for="quantity-input">Cantidad:</label>
-                      <input type="number" id="quantity-input" name="quantity" value="1" min="1" max="${product.stock}" />
-                      <span class="stock-available">(${product.stock} disponibles)</span>
-                  </div>
-              ` : `<p class="stock-agotado">AGOTADO</p>`}
-          </div>
-          <div class="tallas"><p>TALLAS</p><button class="talla-btn active">OS</button></div>
-          <button id="add-to-cart-main" class="add-to-cart-btn" ${product.stock === 0 ? 'disabled' : ''}>
-              ${product.stock > 0 ? 'AGREGAR AL CARRITO' : 'SIN STOCK'}
-          </button>
-          <div class="descripcion">
-              <h3>Descripción</h3>
-              <p>${product.descripcion ? product.descripcion.replace(/\n/g, '<br>') : 'Sin descripción.'}</p>
-          </div>
-      </div>
-  `;
+        <button class="personalize-btn">
+            Personalizar ahora <i class="fab fa-whatsapp"></i>
+        </button>
+    `;
+    const colorRGB = product.color_rgb || '128, 128, 128'; // Fallback a gris
+    const stockText = product.stock > 0 ? `EN STOCK (${product.stock})` : 'AGOTADO';
+    const stockClass = product.stock > 0 ? 'in-stock' : 'out-of-stock';
 
-    detalleContainer.innerHTML = galleryHTML + infoHTML;
+    infoColumn.innerHTML = `
+        <div class="brand-stock-container">
+            <p class="product-brand">${product.marca || 'Macs'}</p>
+            <div class="stock-info">
+                <span class="stock-indicator ${stockClass}">${stockText}</span>
+            </div>
+        </div>
+        <h1>${product.nombre}</h1>
+        <p class="ref">REF: ${product.numero_referencia || 'N/A'}</p>
+        ${priceAndActionsHTML}
+        <div class="descripcion">
+            <h3>Descripción</h3>
+            <p>${product.descripcion ? product.descripcion.replace(/\n/g, '<br>') : 'Sin descripción.'}</p>
+        </div>
+    `;
+    
+    // --- Contenedor Principal ---
+    const mainContainer = document.createElement('div');
+    mainContainer.className = 'detalle-producto-main';
+    mainContainer.appendChild(galleryColumn);
+    mainContainer.appendChild(infoColumn);
+    detalleContainer.appendChild(mainContainer);
 
     setupImageGallery(images);
-
     if (product.stock > 0) {
         setupDynamicPricing(product, formatCurrency);
+
+        // Lógica para los botones de cantidad
+        const quantityInput = document.getElementById('quantity-input');
+        const plusBtn = document.querySelector('.quantity-btn.plus');
+        const minusBtn = document.querySelector('.quantity-btn.minus');
+
+        if (quantityInput && plusBtn && minusBtn) {
+            plusBtn.addEventListener('click', () => {
+                let currentValue = parseInt(quantityInput.value);
+                const maxStock = parseInt(quantityInput.max);
+                if (currentValue < maxStock) {
+                    quantityInput.value = currentValue + 1;
+                    quantityInput.dispatchEvent(new Event('input')); // Disparar evento para actualizar precios
+                }
+            });
+
+            minusBtn.addEventListener('click', () => {
+                let currentValue = parseInt(quantityInput.value);
+                if (currentValue > 1) {
+                    quantityInput.value = currentValue - 1;
+                    quantityInput.dispatchEvent(new Event('input')); // Disparar evento para actualizar precios
+                }
+            });
+        }
     }
 }
 
 function setupDynamicPricing(product, formatCurrency) {
     const quantityInput = document.getElementById('quantity-input');
-    const priceDisplay = document.getElementById('dynamic-price');
-    const discountMessage = document.getElementById('discount-message');
-    const addToCartBtn = document.getElementById('add-to-cart-main');
+    if (!quantityInput) return;
 
-    const basePrice = product.precio;
-    const priceTier1 = 18000;
-    const priceTier2 = 16000;
+    const basePrice = 20000;
+    const priceTiers = [
+        { min: 200, price: 13000 },
+        { min: 100, price: 14000 },
+        { min: 50, price: 15000 },
+        { min: 25, price: 16000 },
+        { min: 13, price: 17000 },
+        { min: 1, price: 20000 }
+    ];
 
-    let currentPrice = basePrice;
+    const unitPriceEl = document.getElementById('unit-price');
+    const totalPriceEl = document.getElementById('total-price');
+    const discountMessageEl = document.getElementById('discount-message');
+    const tieredPricesDisplayEl = document.getElementById('tiered-prices-display');
 
-    quantityInput.addEventListener('input', () => {
-        let quantity = parseInt(quantityInput.value, 10);
+    if (tieredPricesDisplayEl) {
+        const tiersForDisplay = [
+            { tier: priceTiers.find(t => t.min === 1), label: "de 1 a 12 unds" },
+            { tier: priceTiers.find(t => t.min === 13), label: "de 13 a 24 unds" },
+            { tier: priceTiers.find(t => t.min === 25), label: "por 25+ unds" },
+            { tier: priceTiers.find(t => t.min === 50), label: "por 50+ unds" },
+            { tier: priceTiers.find(t => t.min === 100), label: "por 100+ unds" },
+            { tier: priceTiers.find(t => t.min === 200), label: "por 200+ unds" },
+        ].filter(item => item.tier);
 
-        if (isNaN(quantity) || quantity < 1) {
-            quantity = 1;
-            quantityInput.value = 1;
-        }
+        const row1 = tiersForDisplay.slice(0, 4);
+        const row2 = tiersForDisplay.slice(4);
 
+        const generateHtml = (tiers) => tiers.map(item => `
+            <div class="tiered-price-item">
+                <span class="tiered-price-value">${formatCurrency(item.tier.price)}</span>
+                <span class="tiered-price-qty">${item.label}</span>
+            </div>
+        `).join('');
+
+        tieredPricesDisplayEl.innerHTML = `
+            <div class="tiered-prices-row">${generateHtml(row1)}</div>
+            <div class="tiered-prices-row centered-row">${generateHtml(row2)}</div>
+        `;
+    }
+
+    function updatePrices(quantity) {
+        if (!quantity || quantity < 1) quantity = 1;
         if (quantity > product.stock) {
             quantity = product.stock;
-            quantityInput.value = product.stock;
+            if(quantityInput) quantityInput.value = product.stock;
         }
 
-        if (quantity >= 100) {
-            currentPrice = priceTier2;
-            priceDisplay.textContent = formatCurrency(currentPrice);
-            discountMessage.textContent = `Descuento de ${formatCurrency(priceTier2)}`;
-            discountMessage.style.display = 'block';
-        } else if (quantity >= 50) {
-            currentPrice = priceTier1;
-            priceDisplay.textContent = formatCurrency(currentPrice);
-            discountMessage.textContent = `Descuento de ${formatCurrency(priceTier1)}`;
-            discountMessage.style.display = 'block';
-        } else {
-            currentPrice = basePrice;
-            priceDisplay.textContent = formatCurrency(currentPrice);
-            discountMessage.style.display = 'none';
-        }
-    });
+        const tier = priceTiers.find(t => quantity >= t.min);
+        const unitPrice = tier ? tier.price : basePrice;
+        const totalPrice = unitPrice * quantity;
 
-    addToCartBtn.addEventListener('click', () => {
-        if (typeof agregarAlCarrito !== 'undefined') {
-            const selectedQuantity = parseInt(quantityInput.value, 10);
-            const productToAdd = {
-                ...product,
-                precio: currentPrice, // Usar el precio dinámico actual
-                cantidad: selectedQuantity
-            };
-            agregarAlCarrito(productToAdd);
+        if (unitPriceEl) unitPriceEl.textContent = formatCurrency(unitPrice);
+        if (totalPriceEl) totalPriceEl.textContent = formatCurrency(totalPrice);
+        if (quantityInput) quantityInput.dataset.currentPrice = unitPrice;
+
+        if (discountMessageEl) {
+            if (quantity > 12) {
+                const totalDiscount = (basePrice - unitPrice) * quantity;
+                discountMessageEl.textContent = `Descuento de ${formatCurrency(totalDiscount)} por ${quantity} unidades`;
+                discountMessageEl.style.display = 'block';
+            } else {
+                discountMessageEl.textContent = '';
+                discountMessageEl.style.display = 'none';
+            }
         }
-    });
+    }
+
+    quantityInput.addEventListener('input', () => updatePrices(parseInt(quantityInput.value, 10)));
+    updatePrices(parseInt(quantityInput.value, 10));
+
+    const addToCartBtn = document.getElementById('add-to-cart-main');
+    if(addToCartBtn) {
+        addToCartBtn.addEventListener('click', () => {
+            if (typeof agregarAlCarrito !== 'undefined') {
+                const selectedQuantity = parseInt(quantityInput.value, 10);
+                const currentPrice = parseFloat(quantityInput.dataset.currentPrice) || product.precio;
+                agregarAlCarrito({ ...product, precio: currentPrice, cantidad: selectedQuantity });
+            }
+        });
+    }
 }
 
 function setupImageGallery(images) {

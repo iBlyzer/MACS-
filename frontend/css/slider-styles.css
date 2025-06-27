@@ -1,11 +1,9 @@
 /* === Main Slider Swiper Styles === */
 
 .main-slider {
-    height: 65vh; /* Altura del slider ajustada */
+    height: 80vh; /* Altura del slider restaurada */
     width: 100%;
     position: relative;
-    border-radius: 15px; /* Bordes redondeados */
-    overflow: hidden; /* Asegura que el contenido respete los bordes */
 }
 
 #main-swiper {
@@ -135,9 +133,152 @@
 .productos-section .swiper-slide {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: stretch; /* Estira los items para que tengan la misma altura */
   box-sizing: border-box;
-  padding: 0 10px;
+  padding: 15px 10px; /* Añade padding vertical para que la sombra no se corte */
+  height: auto;
+}
+
+.productos-section .product-card {
+    width: 100%;
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.productos-section .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.productos-section .product-image-link {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px 12px 0 0;
+}
+
+.productos-section .product-card img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.productos-section .product-card:hover img {
+    transform: scale(1.1);
+}
+
+.productos-section .product-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.productos-section .product-card:hover .product-overlay {
+    opacity: 1;
+}
+
+.productos-section .btn-ver-producto {
+    color: #fff;
+    background-color: rgba(26, 26, 26, 0.8);
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 0.9em;
+    font-weight: 600;
+    text-decoration: none;
+    transform: translateY(20px);
+    transition: transform 0.4s ease;
+}
+
+.productos-section .product-card:hover .btn-ver-producto {
+    transform: translateY(0);
+}
+
+.productos-section .product-info {
+    padding: 15px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.productos-section .product-info .marca {
+    font-size: 0.8em;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 2px; /* Reducido */
+    font-weight: bold;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.productos-section .stock-label {
+    font-size: 0.75em;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 5px;
+    display: inline-block;
+    margin-bottom: 8px;
+    background-color: #e9f5ec;
+    color: #28a745;
+    border: 1px solid #b8e0c2;
+}
+
+.productos-section .stock-label.out-of-stock {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+.productos-section .product-info .nombre {
+    font-size: 0.95em;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.4;
+    margin-bottom: 10px;
+    flex-grow: 1;
+}
+
+.productos-section .product-info .precio {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #d90429; /* Color rojo */
+    margin-bottom: 15px;
+}
+
+.productos-section .btn-add-to-cart {
+    background-color: #1a1a1a;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease;
+    margin-top: auto;
+}
+
+.productos-section .btn-add-to-cart:hover {
+    background-color: #333;
 }
 
 .productos-section .swiper-pagination-progressbar {
@@ -247,4 +388,21 @@
 .productos-section .swiper-button-next::after,
 .productos-section .swiper-button-prev::after {
     font-size: 18px;
+}
+
+/* === RGB Text Effect === */
+@keyframes rgb-animation {
+    0% { color: #ff0000; }
+    15% { color: #ff7f00; }
+    30% { color: #ffff00; }
+    45% { color: #00ff00; }
+    60% { color: #0000ff; }
+    75% { color: #4b0082; }
+    90% { color: #9400d3; }
+    100% { color: #ff0000; }
+}
+
+.rgb-text {
+    animation: rgb-animation 4s infinite linear;
+    font-weight: bold;
 }

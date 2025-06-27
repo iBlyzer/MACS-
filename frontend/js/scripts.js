@@ -1,166 +1,155 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Cargar productos con más stock
-  async function cargarTopStockProductos() {
-    const container = document.getElementById('top-stock-container');
-    if (!container) return;
 
-    try {
-            const response = await fetch('/api/productos/top-stock?categoria=Gorras&limit=3');
-      if (!response.ok) throw new Error('No se pudieron cargar los productos destacados.');
-      
-      const productos = await response.json();
-      container.innerHTML = '';
+    // 1. INICIALIZAR SLIDER PRINCIPAL
+    async function initializeMainSlider() {
+        try {
+            const response = await fetch('http://localhost:3001/api/new-slider/images');
+            if (!response.ok) {
+                throw new Error('La respuesta de la red no fue correcta');
+            }
+            const slidesData = await response.json();
+            const swiperWrapper = document.querySelector('#main-swiper .swiper-wrapper');
+            if (!swiperWrapper) return;
 
-      if (productos.length === 0) {
-        container.innerHTML = '<p>No hay productos destacados para mostrar.</p>';
-        return;
-      }
+            const slideContents = [
+                { title: 'BASICS & ESSENTIALS', buttonText: 'COMPRAR AHORA', buttonLink: '#productos-destacados-section' },
+                { title: 'NEW ERA COLLABS', buttonText: 'VER COLABORACIONES', buttonLink: '#productos-destacados-section' },
+                { title: 'NUEVA COLECCIÓN', buttonText: 'DESCUBRIR', buttonLink: '#productos-macs-section' }
+            ];
 
-      productos.forEach(product => {
-        const productElement = document.createElement('div');
-        productElement.className = 'producto';
+            if (slidesData && slidesData.length > 0) {
+                swiperWrapper.innerHTML = slidesData.map((imageUrl, index) => {
+                    const content = slideContents[index] || slideContents[0];
+                    const encodedImageUrl = encodeURI(imageUrl);
+                    return `
+                    <div class="swiper-slide" style="background-image: url(http://localhost:3001${encodedImageUrl})">
+                        <div class="slide-content">
+                            <h1>${content.title}</h1>
+                            <a href="${content.buttonLink}" class="btn-comprar">${content.buttonText}</a>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+            } else {
+                 swiperWrapper.innerHTML = '<p>No hay imágenes para mostrar.</p>';
+                 return;
+            }
 
-        const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(product.precio);
-                const imagenUrl = product.imagen_icono ? product.imagen_icono : 'https://via.placeholder.com/300x300.png?text=Imagen+no+disponible';
+            new Swiper('#main-swiper', {
+                loop: true,
+                autoplay: { delay: 5000, disableOnInteraction: false },
+                pagination: { el: '.swiper-pagination', clickable: true },
+                navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+                effect: 'fade',
+                fadeEffect: { crossFade: true },
+            });
 
-        productElement.innerHTML = `
-          <img src="${imagenUrl}" alt="${product.nombre}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300.png?text=Imagen+no+disponible';">
-          <p class="marca">${product.marca || 'Macs'}</p>
-          <h3>${product.nombre}</h3>
-          <p class="precio">${precioFormateado}</p>
-          <button class="add-to-cart-btn">Agregar al carrito</button>
-          <div class="overlay-text">Ver Producto</div>
-        `;
-
-        const addToCartBtn = productElement.querySelector('.add-to-cart-btn');
-        addToCartBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (typeof agregarAlCarrito !== 'undefined') {
-            const productData = {
-              id: product.id,
-              nombre: product.nombre,
-              precio: product.precio,
-              imagen_icono: product.imagen_icono,
-              marca: product.marca
-            };
-            agregarAlCarrito(productData);
-          } else {
-            console.error('La función agregarAlCarrito no está definida.');
-          }
-        });
-
-        productElement.addEventListener('click', () => {
-          window.location.href = `producto-detalle.html?id=${product.id}`;
-        });
-
-        container.appendChild(productElement);
-      });
-    } catch (error) {
-      console.error('Error al cargar productos destacados:', error);
-      container.innerHTML = '<p>No se pudieron cargar los productos destacados.</p>';
-    }
-  }
-
-  cargarTopStockProductos();
-
-  // --- Lógica del Slider Dinámico ---
-  async function initializeDynamicSlider() {
-    const sliderTrack = document.getElementById('sliderTrack');
-    const sliderDotsContainer = document.getElementById('sliderDots');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-
-    if (!sliderTrack || !sliderDotsContainer) {
-      console.error('Elementos del slider no encontrados.');
-      return;
+        } catch (error) {
+            console.error('Fallo al inicializar el slider principal:', error);
+            const sliderContainer = document.getElementById('main-swiper');
+            if (sliderContainer) {
+                sliderContainer.innerHTML = '<p style="color: red; text-align: center; padding: 20px;">Error al cargar el slider.</p>';
+            }
+        }
     }
 
-    try {
-            const apiUrl = `/api/slider/images?timestamp=${new Date().getTime()}`;
-      const response = await fetch(apiUrl);
-      if (!response.ok) {
-        console.error('La respuesta de la petición fetch no fue exitosa:', response);
-        throw new Error('No se pudieron cargar las imágenes del slider.');
-      }
-      
-      const imageUrls = await response.json();
+    // 2. INICIALIZAR SLIDERS DE PRODUCTOS
+    async function initializeProductSlider(containerId, apiEndpoint) {
+        const sliderContainer = document.querySelector(`#${containerId}`);
+        if (!sliderContainer) return;
 
-      if (imageUrls.length === 0) {
-        const sliderContainer = document.querySelector('.slider-container');
-        if (sliderContainer) sliderContainer.style.display = 'none';
-        return;
-      }
+        const swiperWrapper = sliderContainer.querySelector('.swiper-wrapper');
+        if (!swiperWrapper) return;
 
-      // Limpiar contenido estático
-      sliderTrack.innerHTML = '';
-      sliderDotsContainer.innerHTML = '';
+        try {
+            const response = await fetch(apiEndpoint);
+            if (!response.ok) {
+                swiperWrapper.innerHTML = '<p>Error al cargar los productos.</p>';
+                throw new Error(`Error al cargar productos de ${apiEndpoint}`);
+            }
+            const products = await response.json();
 
-      // Generar slides y dots
-      imageUrls.forEach((url, index) => {
-        const slide = document.createElement('div');
-        slide.className = 'slide';
-        if (index === 0) slide.classList.add('active');
-        
-        const img = document.createElement('img');
-                img.src = url;
-        img.alt = `Imagen del slider ${index + 1}`;
-        
-        slide.appendChild(img);
-        sliderTrack.appendChild(slide);
+            if (products.length === 0) {
+                swiperWrapper.innerHTML = '<p>No hay productos para mostrar.</p>';
+                return;
+            }
 
-        const dot = document.createElement('span');
-        dot.className = 'dot';
-        if (index === 0) dot.classList.add('active');
-        dot.dataset.slide = index;
-        sliderDotsContainer.appendChild(dot);
-      });
+            swiperWrapper.innerHTML = products.map(product => {
+                const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(product.precio);
+                const imagenUrl = product.imagen_principal ? `http://localhost:3001${product.imagen_principal}` : 'https://via.placeholder.com/300x300.png?text=Sin+Imagen';
+                const stockInfo = product.stock > 0 ? `<div class="stock-label">EN STOCK (${product.stock})</div>` : '<div class="stock-label out-of-stock">AGOTADO</div>';
 
-      // --- Lógica de control del slider ---
-      const slides = sliderTrack.querySelectorAll('.slide');
-      const dots = sliderDotsContainer.querySelectorAll('.dot');
-      const totalSlides = slides.length;
-      let currentIndex = 0;
+                // Lógica para el texto RGB - ahora se aplica a cualquier producto marca MACS
+                let marcaClass = 'marca';
+                if ((product.marca || '').toUpperCase() === 'MACS') {
+                    marcaClass += ' rgb-text';
+                }
 
-      function goToSlide(index) {
-        sliderTrack.style.transform = `translateX(-${index * 100}%)`;
-        dots.forEach((dot, i) => {
-          dot.classList.toggle('active', i === index);
-        });
-        currentIndex = index;
-      }
+                return `
+                    <div class="swiper-slide">
+                        <div class="product-card">
+                            <a href="producto-detalle.html?id=${product.id}" class="product-image-link">
+                                <img src="${imagenUrl}" alt="${product.nombre}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300.png?text=Sin+Imagen';">
+                                <div class="product-overlay">
+                                    <span class="btn-ver-producto">Ver Producto</span>
+                                </div>
+                            </a>
+                            <div class="product-info">
+                                <p class="${marcaClass}">${product.marca || 'MACS'}</p>
+                                ${stockInfo}
+                                <h3 class="nombre">${product.nombre}</h3>
+                                <p class="precio">${precioFormateado}</p>
+                                <button class="btn-add-to-cart" data-product-id="${product.id}">Añadir a la cesta</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
 
-      function nextSlide() {
-        goToSlide((currentIndex + 1) % totalSlides);
-      }
+            new Swiper(sliderContainer, {
+                loop: true,
+                slidesPerView: 1, 
+                spaceBetween: 15,
+                navigation: {
+                    nextEl: sliderContainer.querySelector('.swiper-button-next'),
+                    prevEl: sliderContainer.querySelector('.swiper-button-prev'),
+                },
+                breakpoints: {
+                    640: { slidesPerView: 2, spaceBetween: 20 },
+                    768: { slidesPerView: 4, spaceBetween: 30 },
+                    1024: { slidesPerView: 5, spaceBetween: 30 },
+                }
+            });
 
-      function prevSlide() {
-        goToSlide((currentIndex - 1 + totalSlides) % totalSlides);
-      }
+            // Si es el slider de destacados, ajustamos la altura del slider principal
+            if (containerId === 'destacados-slider') {
+                setTimeout(adjustMainSliderHeight, 200); // Espera a que el DOM se pinte
+            }
 
-      dots.forEach((dot, index) => {
-        dot.addEventListener('click', () => goToSlide(index));
-      });
-
-      if (nextBtn) nextBtn.addEventListener('click', nextSlide);
-      if (prevBtn) prevBtn.addEventListener('click', prevSlide);
-
-      // Iniciar el carrusel automático
-      setInterval(nextSlide, 4000);
-
-    } catch (error) {
-      console.error('Error al inicializar el slider dinámico:', error);
-      sliderTrack.innerHTML = '<p>No se pudieron cargar las imágenes.</p>';
+        } catch (error) {
+            console.error(`Error inicializando el slider ${containerId}:`, error);
+            // El mensaje de error ya se muestra en el bloque if(!response.ok)
+        }
     }
-  }
 
-  initializeDynamicSlider();
+    // 3. AJUSTAR ALTURA DEL SLIDER PRINCIPAL
+    function adjustMainSliderHeight() {
+        const mainSlider = document.querySelector('.main-slider');
+        const destacadosSlider = document.querySelector('#destacados-slider');
 
-  const whatsappContainer = document.querySelector('.whatsapp-container');
-  const floatingWhatsAppButton = document.getElementById('floatingWhatsAppButton');
+        if (mainSlider && destacadosSlider) {
+            const destacadosWidth = destacadosSlider.offsetWidth;
+            if (destacadosWidth > 0) {
+                const newHeight = destacadosWidth * 0.4; // Proporción del 40% del ancho
+                mainSlider.style.height = `${newHeight}px`;
+                console.log(`Ajustando altura del slider principal a: ${newHeight}px`);
+            }
+        }
+    }
 
-  if (whatsappContainer && floatingWhatsAppButton) {
-    floatingWhatsAppButton.addEventListener('click', () => {
-      whatsappContainer.classList.toggle('widget-open');
-    });
-  }
+    // 4. LLAMADAS A LAS FUNCIONES DE INICIALIZACIÓN
+    initializeMainSlider();
+    initializeProductSlider('destacados-slider', 'http://localhost:3001/api/productos/destacados');
+    initializeProductSlider('macs-slider', 'http://localhost:3001/api/productos/categoria/Macs');
+    initializeProductSlider('importadas-slider', 'http://localhost:3001/api/productos/categoria/Importada');
 });
