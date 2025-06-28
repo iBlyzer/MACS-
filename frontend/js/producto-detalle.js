@@ -130,12 +130,7 @@ function renderizarProductoPrincipal(product) {
     infoColumn.appendChild(descriptionContainer);
 
     // --- Configurar funcionalidades ---
-    // Extrae las imágenes del array 'Imagenes' que viene en el objeto del producto.
-    const productImages = (product.Imagenes && Array.isArray(product.Imagenes))
-        ? product.Imagenes.map(img => img.ruta_imagen).filter(Boolean)
-        : [];
-
-    setupImageGallery(productImages, galleryColumn);
+    setupImageGallery(product, galleryColumn);
 
     if (product.stock > 0) {
         setupDynamicPricing(product, formatCurrency);
@@ -249,31 +244,32 @@ function setupDynamicPricing(product, formatCurrency) {
     updatePrices(parseInt(quantityInput.value, 10));
 }
 
-function setupImageGallery(images, container) {
+function setupImageGallery(product, container) {
+    const images = (product.Imagenes && Array.isArray(product.Imagenes))
+        ? product.Imagenes.map(img => img.ruta_imagen).filter(Boolean)
+        : [];
+
     if (!container) return;
 
-    // Si no hay imágenes, muestra un placeholder
-    if (!images || images.length === 0) {
+    if (images.length === 0) {
         container.innerHTML = `<img src="https://via.placeholder.com/500x500.png?text=Imagen+no+disponible" alt="Imagen no disponible" style="width: 100%; border-radius: 12px;">`;
         return;
     }
 
-    // Genera la estructura HTML de Swiper
     container.innerHTML = `
-        <!-- Slider Principal -->
         <div style="--swiper-navigation-color: #000; --swiper-pagination-color: #000" class="swiper gallery-top">
             <div class="swiper-wrapper">
                 ${images.map(img => `
                     <div class="swiper-slide">
-                        <img src="${getImageUrl(img)}" alt="Imagen del producto">
+                        <div class="zoom-container">
+                            <img src="${getImageUrl(img)}" alt="Imagen del producto">
+                        </div>
                     </div>
                 `).join('')}
             </div>
             <div class="swiper-button-next"></div>
             <div class="swiper-button-prev"></div>
         </div>
-
-        <!-- Miniaturas -->
         <div class="swiper gallery-thumbs">
             <div class="swiper-wrapper">
                 ${images.map(img => `
@@ -285,7 +281,6 @@ function setupImageGallery(images, container) {
         </div>
     `;
 
-    // Inicializa Swiper
     const galleryThumbs = new Swiper(container.querySelector('.gallery-thumbs'), {
         spaceBetween: 10,
         slidesPerView: 5,
@@ -305,109 +300,127 @@ function setupImageGallery(images, container) {
         },
     });
 
-    // Abrir modal al hacer clic
     galleryTop.on('click', function () {
-        openImageModal(images, this.realIndex);
+        openImageModal(product, this.realIndex);
+    });
+
+    const zoomContainers = container.querySelectorAll('.zoom-container');
+    zoomContainers.forEach(zoomContainer => {
+        const img = zoomContainer.querySelector('img');
+        zoomContainer.addEventListener('mousemove', (e) => {
+            const rect = zoomContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const xPercent = (x / rect.width) * 100;
+            const yPercent = (y / rect.height) * 100;
+            img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+        });
+        zoomContainer.addEventListener('mouseleave', () => {
+            img.style.transformOrigin = 'center center';
+        });
     });
 }
 
-function openImageModal(images, startIndex) {
-    document.body.style.overflow = 'hidden';
+function openImageModal(product, startIndex) {
+    const images = (product.Imagenes && Array.isArray(product.Imagenes))
+        ? product.Imagenes.map(img => img.ruta_imagen).filter(Boolean)
+        : [];
+    
+    if (images.length === 0) return;
 
-    const modalHTML = `
-        <div class="image-modal-overlay" id="image-modal-overlay">
-            <button class="image-modal-close" id="image-modal-close">&times;</button>
-            <div class="image-modal-content">
-                <div class="modal-main-image-wrapper">
-                    <div class="modal-main-image-container">
-                        <img id="modal-main-image" src="${getImageUrl(images[startIndex])}" alt="Vista ampliada del producto">
-                    </div>
-                    <button class="modal-nav-btn prev" id="modal-prev">&#10094;</button>
-                    <button class="modal-nav-btn next" id="modal-next">&#10095;</button>
-                </div>
-                <div class="modal-thumbnails">
-                    ${images.map((img, index) => `
-                        <img src="${getImageUrl(img)}" alt="Miniatura modal ${index + 1}" class="modal-thumbnail-item ${index === startIndex ? 'active' : ''}" data-index="${index}">
+    const modal = document.createElement('div');
+    modal.className = 'image-modal';
+    modal.innerHTML = `
+        <div class="image-modal-content">
+            <span class="modal-close-btn">&times;</span>
+            <div style="--swiper-navigation-color: #fff; --swiper-pagination-color: #fff" class="swiper modal-gallery-top">
+                <div class="swiper-wrapper">
+                    ${images.map(img => `
+                        <div class="swiper-slide">
+                            <div class="swiper-zoom-container">
+                                <img src="${getImageUrl(img)}" alt="Imagen del producto">
+                            </div>
+                        </div>
                     `).join('')}
+                </div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
+            
+            <div class="modal-bottom-container">
+                <div class="modal-product-info">${product.nombre || ''}</div>
+                <div class="swiper modal-gallery-thumbs">
+                    <div class="swiper-wrapper">
+                        ${images.map(img => `
+                            <div class="swiper-slide">
+                                <img src="${getImageUrl(img)}" alt="Miniatura del producto">
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
             </div>
         </div>
     `;
 
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
 
-    const modalOverlay = document.getElementById('image-modal-overlay');
-    const modalMainImage = document.getElementById('modal-main-image');
-    const modalThumbnailsContainer = modalOverlay.querySelector('.modal-thumbnails');
-    const modalPrevBtn = document.getElementById('modal-prev');
-    const modalNextBtn = document.getElementById('modal-next');
-    const closeModalBtn = document.getElementById('image-modal-close');
-
-    let currentModalIndex = startIndex;
-
-    function updateModalImage(index) {
-        currentModalIndex = index;
-        modalMainImage.src = getImageUrl(images[index]);
-        modalOverlay.querySelectorAll('.modal-thumbnail-item').forEach(thumb => thumb.classList.remove('active'));
-        modalOverlay.querySelector(`.modal-thumbnail-item[data-index="${index}"]`).classList.add('active');
-        // Reset zoom when image changes
-        modalMainImage.style.transform = 'scale(1)';
-        modalMainImage.style.transformOrigin = 'center center';
-    }
-
-    modalThumbnailsContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal-thumbnail-item')) {
-            updateModalImage(parseInt(e.target.dataset.index, 10));
-        }
+    const modalThumbs = new Swiper(modal.querySelector('.modal-gallery-thumbs'), {
+        spaceBetween: 10,
+        slidesPerView: 4,
+        freeMode: true,
+        watchSlidesProgress: true,
+        breakpoints: { 500: { slidesPerView: 5 }, 768: { slidesPerView: 6 } }
     });
 
-    modalPrevBtn.addEventListener('click', () => {
-        const newIndex = (currentModalIndex - 1 + images.length) % images.length;
-        updateModalImage(newIndex);
+    const modalTop = new Swiper(modal.querySelector('.modal-gallery-top'), {
+        spaceBetween: 10,
+        navigation: {
+            nextEl: modal.querySelector('.swiper-button-next'),
+            prevEl: modal.querySelector('.swiper-button-prev'),
+        },
+        thumbs: { swiper: modalThumbs },
+        zoom: false, // Desactivamos el zoom nativo para usar el nuestro
     });
 
-    modalNextBtn.addEventListener('click', () => {
-        const newIndex = (currentModalIndex + 1) % images.length;
-        updateModalImage(newIndex);
+    modalTop.slideTo(startIndex, 0);
+
+    // Lógica para el zoom dinámico en el modal
+    const zoomContainers = modal.querySelectorAll('.swiper-zoom-container');
+    zoomContainers.forEach(container => {
+        const img = container.querySelector('img');
+        container.addEventListener('mousemove', (e) => {
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const xPercent = (x / rect.width) * 100;
+            const yPercent = (y / rect.height) * 100;
+            img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+        });
+        container.addEventListener('mouseleave', () => {
+            img.style.transformOrigin = 'center center';
+        });
     });
 
     const closeModal = () => {
+        document.body.removeChild(modal);
         document.body.style.overflow = '';
-        if (modalOverlay) {
-            modalOverlay.remove();
+        document.removeEventListener('keydown', handleEsc);
+    };
+
+    const handleEsc = (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
         }
     };
 
-    closeModalBtn.addEventListener('click', closeModal);
-    modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) {
+    modal.querySelector('.modal-close-btn').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
             closeModal();
         }
     });
-
-    // --- Zoom logic for modal image ---
-    const modalImageContainer = modalMainImage.parentElement;
-    const modalZoomFactor = 2;
-
-    modalImageContainer.addEventListener('mousemove', (e) => {
-        const rect = modalImageContainer.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const xPercent = (x / rect.width) * 100;
-        const yPercent = (y / rect.height) * 100;
-
-        modalMainImage.style.transformOrigin = `${xPercent}% ${yPercent}%`;
-    });
-
-    modalImageContainer.addEventListener('mouseenter', () => {
-        modalMainImage.style.transform = `scale(${modalZoomFactor})`;
-    });
-
-    modalImageContainer.addEventListener('mouseleave', () => {
-        modalMainImage.style.transform = 'scale(1)';
-        modalMainImage.style.transformOrigin = 'center center';
-    });
+    document.addEventListener('keydown', handleEsc);
 }
 
 async function cargarRecomendados(categoriaId, excludeId) {

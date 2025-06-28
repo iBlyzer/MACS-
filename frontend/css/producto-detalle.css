@@ -400,6 +400,174 @@
     color: #fff;
     border: none;
 }
+
+/* --- Estilos para el Modal de Imagen (Inmersivo) --- */
+.image-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(20, 20, 20, 0.95); /* Fondo más oscuro e inmersivo */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  box-sizing: border-box;
+  padding: 0; /* Sin padding para ocupar toda la pantalla */
+}
+
+.image-modal-content {
+  position: relative;
+  background-color: transparent; /* Sin fondo blanco */
+  padding: 0;
+  width: 100%;
+  height: 100%; /* Ocupar todo el espacio del modal */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centrar el contenido principal */
+  align-items: center;
+}
+
+.modal-close-btn {
+  position: fixed; /* Fijo en la ventana */
+  top: 20px;
+  right: 25px;
+  background: rgba(40, 40, 40, 0.6);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+  line-height: 40px;
+  text-align: center;
+  cursor: pointer;
+  z-index: 2010;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.modal-close-btn:hover {
+  transform: scale(1.1);
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.modal-gallery-top {
+  width: 100%;
+  height: 100%; /* Ocupa todo el alto disponible */
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.modal-gallery-top .swiper-slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent; /* El fondo del slide es transparente */
+}
+
+.modal-gallery-top .swiper-zoom-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Oculta el exceso de la imagen al hacer zoom */
+    cursor: zoom-in;
+}
+
+.modal-gallery-top .swiper-zoom-container > img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  transition: transform 0.3s ease; /* Transición suave para el zoom */
+}
+
+.modal-gallery-top .swiper-zoom-container:hover > img {
+    transform: scale(1.8); /* Nivel de zoom al pasar el cursor */
+}
+
+/* Contenedor para la información y las miniaturas en la parte inferior */
+.modal-bottom-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    z-index: 5;
+}
+
+.modal-product-info {
+  color: #fff;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 500;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+.modal-gallery-thumbs {
+  width: 100%;
+  max-width: 500px; /* Limitar el ancho de las miniaturas */
+  height: auto;
+}
+
+.modal-gallery-thumbs .swiper-slide {
+  opacity: 0.6;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+  height: 65px;
+}
+
+.modal-gallery-thumbs .swiper-slide:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.modal-gallery-thumbs .swiper-slide-thumb-active {
+  opacity: 1;
+  border-color: #fff;
+  transform: scale(1.1);
+}
+
+.modal-gallery-thumbs .swiper-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-gallery-top .swiper-button-next, 
+.modal-gallery-top .swiper-button-prev {
+  color: #fff;
+  background-color: rgba(40, 40, 40, 0.5);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  transition: background-color 0.2s;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.modal-gallery-top .swiper-button-next:hover, 
+.modal-gallery-top .swiper-button-prev:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal-gallery-top .swiper-button-next::after, 
+.modal-gallery-top .swiper-button-prev::after {
+  font-size: 20px;
+  font-weight: bold;
+}
+
 .controls-container .add-to-cart-btn:hover { background-color: #333; }
 
 .controls-container .personalize-btn {
@@ -452,6 +620,24 @@
     object-fit: cover;
     transition: transform 0.2s ease; /* Transición suave para el zoom */
     cursor: zoom-in;
+}
+
+/* Estilos para el efecto de zoom en la galería */
+.zoom-container {
+  overflow: hidden; /* Oculta el exceso de la imagen al hacer zoom */
+  position: relative;
+  cursor: zoom-in;
+}
+
+.zoom-container img {
+  transition: transform 0.3s ease; /* Transición suave para el zoom */
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.zoom-container:hover img {
+  transform: scale(2); /* Aumenta el tamaño de la imagen al pasar el cursor */
 }
 
 /* Estilos para las miniaturas de Swiper (cuadradas) */
