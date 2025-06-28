@@ -89,17 +89,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 const marcaClass = marca.toLowerCase() === 'macs' ? 'rgb-text' : '';
                 const marcaHTML = `<p class="product-card__brand ${marcaClass}">${marca}</p>`;
 
+                const stockInfo = product.stock > 0 ? `<div class="stock-indicator in-stock">EN STOCK (${product.stock})</div>` : `<div class="stock-indicator out-of-stock">AGOTADO</div>`;
+
                 const slideHTML = `
                     <div class="swiper-slide">
                         <div class="product-card">
                             <a href="producto-detalle.html?id=${productId}" class="product-card__link">
                                 <div class="product-card__image-container">
                                     <img src="${imagenUrl}" alt="${product.nombre}" class="product-card__image">
-                                    <div class="product-card__overlay">Ver detalle</div>
+                                    <div class="product-card__overlay"><i class="fas fa-eye"></i></div>
                                 </div>
                                 <div class="product-card__info">
                                     ${marcaHTML}
-                                    ${product.stock > 0 ? `<p class="product-card__stock available">EN STOCK (${product.stock})</p>` : `<p class="product-card__stock unavailable">AGOTADO</p>`}
+                                    ${stockInfo}
                                     <p class="product-card__name">${product.nombre}</p>
                                     <p class="product-card__price">${formatCurrency(product.precio)}</p>
                                 </div>

@@ -489,24 +489,20 @@ async function cargarRecomendados(categoriaId, excludeId) {
             return;
         }
 
-        const detailPromises = recommendedProducts.map(p =>
-            fetch(`http://localhost:3001/api/productos/${p._id || p.id}`).then(res => res.ok ? res.json() : null)
-        );
-        const productsWithDetails = (await Promise.all(detailPromises)).filter(p => p !== null);
-
         swiperWrapper.innerHTML = '';
         let productsAdded = 0;
 
-        productsWithDetails.forEach(product => {
+        recommendedProducts.forEach(product => {
             if (product.stock > 0) {
                 productsAdded++;
                 const productId = product._id || product.id;
                 productsMap.set(productId.toString(), product);
 
-                const imagenUrl = product.imagen_3_4 ? getImageUrl(product.imagen_3_4) : 'img/default-product.png';
+                const imagenUrl = product.imagen_3_4 ? getImageUrl(product.imagen_3_4) : (product.imagen_icono ? getImageUrl(product.imagen_icono) : 'img/default-product.png');
                 const marca = product.marca || 'Macs';
                 const marcaClass = marca.toLowerCase() === 'macs' ? 'rgb-text' : '';
                 const marcaHTML = `<p class="product-card__brand ${marcaClass}">${marca}</p>`;
+                const stockHTML = `<div class="stock-info-slider"><span class="stock-indicator-slider in-stock-slider">EN STOCK (${product.stock})</span></div>`;
                 const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(product.precio);
 
                 const slideHTML = `
@@ -515,10 +511,11 @@ async function cargarRecomendados(categoriaId, excludeId) {
                             <a href="producto-detalle.html?id=${productId}" class="product-card__link">
                                 <div class="product-card__image-container">
                                     <img src="${imagenUrl}" alt="${product.nombre}" class="product-card__image">
-                                    <div class="product-card__overlay">Ver detalle</div>
+                                    <div class="product-card__overlay"><i class="fas fa-eye"></i></div>
                                 </div>
                                 <div class="product-card__info">
                                     ${marcaHTML}
+                                    ${stockHTML}
                                     <p class="product-card__name">${product.nombre}</p>
                                     <p class="product-card__price">${precioFormateado}</p>
                                 </div>

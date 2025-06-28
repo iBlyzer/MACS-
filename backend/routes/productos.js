@@ -601,4 +601,38 @@ router.get('/admin/:id', auth, async (req, res) => {
   }
 });
 
+
+// GET /api/productos/random - Obtener productos aleatorios para el slider de recomendaciones
+router.get('/random', async (req, res) => {
+  const { limit = 10, exclude = '0' } = req.query;
+
+  try {
+    const query = `
+      SELECT p.id, p.nombre, p.marca, p.precio, p.stock, p.imagen_3_4
+      FROM productos p
+      WHERE p.id != ? AND p.activo = TRUE AND p.stock > 0
+      ORDER BY RAND()
+      LIMIT ?;
+    `;
+    
+    const params = [
+        parseInt(exclude, 10) || 0,
+        parseInt(limit, 10)
+    ];
+
+    const [rows] = await db.query(query, params);
+
+    const formattedRows = rows.map(product => ({
+      ...product,
+      imagen_3_4: product.imagen_3_4 ? formatImagePath(product.imagen_3_4) : null
+    }));
+
+    res.json(formattedRows);
+
+  } catch (error) {
+    logger.error(`Error al obtener productos aleatorios:`, error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
 module.exports = router;

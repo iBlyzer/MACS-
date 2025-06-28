@@ -667,13 +667,6 @@ form#formulario button {
   margin-bottom: 1.5rem; /* Añade espacio debajo del título */
 }
 
-/* Estilos para la sección de Ubicación */
-#contacto .location-content {
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: center;
-}
-
 #contacto .location-content p {
   font-size: 1.1rem;
   line-height: 1.6;
@@ -1477,4 +1470,55 @@ overflow: hidden; /* To contain the icons */
     .social-media a {
         margin: 0 10px; /* Adjust spacing for social icons */
     }
+}
+
+/* Estilos para la superposición de 'Ver detalle' en el slider de recomendados */
+.product-card .product-card__image-container {
+    position: relative;
+}
+
+.product-card__image-container .product-card__overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 55px;
+    height: 55px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.product-card .product-card__image-container:hover .product-card__overlay {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.product-card__overlay i {
+    color: #fff;
+    font-size: 22px;
+}
+
+/* Estilos para el indicador de stock en el slider de recomendados */
+.stock-info-slider {
+    text-align: center;
+    margin-top: -5px;
+    margin-bottom: 10px;
+}
+
+.stock-indicator-slider {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+    background-color: #28a745;
 }
