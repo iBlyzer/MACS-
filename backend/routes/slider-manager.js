@@ -42,21 +42,34 @@ router.get('/images', (req, res) => {
         let config = readConfig();
         const actualFiles = fs.readdirSync(SLIDER_IMGS_DIR);
 
-        // Eliminar de la config las entradas que ya no tienen un archivo físico
+        // Sincronizar el config con los archivos reales
         let syncedConfig = config.filter(c => actualFiles.includes(c.filename));
-        
-        // Añadir a la config los nuevos archivos encontrados en el directorio
-        const newFiles = actualFiles.filter(f => !syncedConfig.some(c => c.filename === f));
-        newFiles.forEach(f => syncedConfig.push({ filename: f }));
+        const existingFilenames = syncedConfig.map(c => c.filename);
 
-        // Limpiar la propiedad "active" de todas las entradas para eliminar la funcionalidad
-        syncedConfig.forEach(c => delete c.active);
+        actualFiles.forEach(file => {
+            if (!existingFilenames.includes(file)) {
+                syncedConfig.push({
+                    filename: file,
+                    title: "Título por defecto",
+                    buttonText: "Ver más"
+                });
+            }
+        });
+
+        // Asegurarse de que todos los elementos tengan los campos necesarios
+        syncedConfig.forEach(c => {
+            c.title = c.title || "";
+            c.buttonText = c.buttonText || "";
+            delete c.active; // Eliminar campo obsoleto
+        });
 
         writeConfig(syncedConfig);
 
         const images = syncedConfig.map(imageConfig => ({
             filename: imageConfig.filename,
-            url: `/assets/slider-imgs/${imageConfig.filename}`
+            url: `/assets/slider-imgs/${imageConfig.filename}`,
+            title: imageConfig.title,
+            buttonText: imageConfig.buttonText
         }));
 
         res.json(images);
@@ -65,22 +78,57 @@ router.get('/images', (req, res) => {
     }
 });
 
-// POST /api/slider-manager/upload - Upload new images
-router.post('/upload', upload.array('sliderImages'), (req, res) => {
+// POST /api/slider-manager/upload - Upload a new image with details
+router.post('/upload', upload.single('sliderImage'), (req, res) => {
     try {
-        const config = readConfig();
+        if (!req.file) {
+            return res.status(400).json({ message: 'No se ha subido ningún archivo.' });
+        }
 
-        req.files.forEach(file => {
-            const existing = config.find(c => c.filename === file.originalname);
-            if (!existing) {
-                config.push({ filename: file.originalname, active: true });
-            }
+        const { title, buttonText } = req.body;
+        const filename = req.file.originalname;
+
+        const config = readConfig();
+        const existing = config.find(c => c.filename === filename);
+
+        if (existing) {
+            return res.status(409).json({ message: `La imagen '${filename}' ya existe.` });
+        }
+
+        config.push({
+            filename,
+            title: title || '',
+            buttonText: buttonText || ''
         });
 
         writeConfig(config);
-        res.status(201).json({ message: 'Imágenes subidas y activadas correctamente.' });
+        res.status(201).json({ message: 'Imagen subida correctamente.' });
     } catch (error) {
-        res.status(500).json({ message: 'Error al subir las imágenes.', error });
+        res.status(500).json({ message: 'Error al subir la imagen.', error });
+    }
+});
+
+// PUT /api/slider-manager/update/:filename - Update image details
+router.put('/update/:filename', (req, res) => {
+    try {
+        const { filename } = req.params;
+        const { title, buttonText } = req.body;
+
+        let config = readConfig();
+        const imageIndex = config.findIndex(c => c.filename === filename);
+
+        if (imageIndex === -1) {
+            return res.status(404).json({ message: 'Imagen no encontrada en la configuración.' });
+        }
+
+        // Actualizar los datos
+        config[imageIndex].title = title !== undefined ? title : config[imageIndex].title;
+        config[imageIndex].buttonText = buttonText !== undefined ? buttonText : config[imageIndex].buttonText;
+
+        writeConfig(config);
+        res.status(200).json({ message: `Datos de '${filename}' actualizados.` });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar los datos de la imagen.', error });
     }
 });
 

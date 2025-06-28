@@ -1,17 +1,27 @@
 [
   {
-    "filename": "ChatGPT Image 24 jun 2025, 14_55_20.png"
+    "filename": "ChatGPT Image 24 jun 2025, 14_55_20.png",
+    "title": "Título de Ejemplo 1",
+    "buttonText": "Botón 1"
   },
   {
-    "filename": "ChatGPT Image 26 jun 2025, 17_11_22.png"
+    "filename": "ChatGPT Image 26 jun 2025, 17_11_22.png",
+    "title": "Título de Ejemplo ",
+    "buttonText": "Botón 2"
   },
   {
-    "filename": "ChatGPT Image 26 jun 2025, 17_14_09.png"
+    "filename": "ChatGPT Image 26 jun 2025, 17_14_09.png",
+    "title": "Título de Ejemplo 3",
+    "buttonText": "Botón 3"
   },
   {
-    "filename": "Proyecto nuevo.jpg"
+    "filename": "Proyecto nuevo.jpg",
+    "title": "Título de Ejemplo 4",
+    "buttonText": "Botón 4"
   },
   {
-    "filename": "Gorra estilo camionero sobre fondo blanco.png"
+    "filename": "Gorra estilo camionero sobre fondo blanco.png",
+    "title": "Título de Ejemplo 5",
+    "buttonText": "Botón 5"
   }
 ]

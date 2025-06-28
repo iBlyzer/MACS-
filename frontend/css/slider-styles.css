@@ -394,19 +394,4 @@
     font-size: 18px;
 }
 
-/* === RGB Text Effect === */
-@keyframes rgb-animation {
-    0% { color: #ff0000; }
-    15% { color: #ff7f00; }
-    30% { color: #ffff00; }
-    45% { color: #00ff00; }
-    60% { color: #0000ff; }
-    75% { color: #4b0082; }
-    90% { color: #9400d3; }
-    100% { color: #ff0000; }
-}
 
-.rgb-text {
-    animation: rgb-animation 4s infinite linear;
-    font-weight: bold;
-}

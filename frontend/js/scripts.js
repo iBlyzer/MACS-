@@ -3,7 +3,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // 1. INICIALIZAR SLIDER PRINCIPAL
     async function initializeMainSlider() {
         try {
-            const response = await fetch('http://localhost:3001/api/new-slider/images');
+            // Usamos el endpoint correcto que devuelve la información completa
+            const response = await fetch('http://localhost:3001/api/slider-manager/images');
             if (!response.ok) {
                 throw new Error('La respuesta de la red no fue correcta');
             }
@@ -11,21 +12,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const swiperWrapper = document.querySelector('#main-swiper .swiper-wrapper');
             if (!swiperWrapper) return;
 
-            const slideContents = [
-                { title: 'BASICS & ESSENTIALS', buttonText: 'COMPRAR AHORA', buttonLink: '#productos-destacados-section' },
-                { title: 'NEW ERA COLLABS', buttonText: 'VER COLABORACIONES', buttonLink: '#productos-destacados-section' },
-                { title: 'NUEVA COLECCIÓN', buttonText: 'DESCUBRIR', buttonLink: '#productos-macs-section' }
-            ];
-
             if (slidesData && slidesData.length > 0) {
-                swiperWrapper.innerHTML = slidesData.map((imageUrl, index) => {
-                    const content = slideContents[index] || slideContents[0];
-                    const encodedImageUrl = encodeURI(imageUrl);
+                // Ya no usamos contenido hardcodeado, usamos los datos de la API
+                swiperWrapper.innerHTML = slidesData.map(slide => {
+                    const { url, title, buttonText } = slide;
+                    // Aseguramos que la URL esté correctamente codificada
+                    const encodedImageUrl = encodeURI(url);
                     return `
-                    <div class="swiper-slide" style="background-image: url(http://localhost:3001${encodedImageUrl})">
+                    <div class="swiper-slide" style="background-image: url(${encodedImageUrl})">
                         <div class="slide-content">
-                            <h1>${content.title}</h1>
-                            <a href="${content.buttonLink}" class="btn-comprar">${content.buttonText}</a>
+                            <h1>${title || ''}</h1>
+                            <a href="#" class="btn-comprar">${buttonText || ''}</a>
                         </div>
                     </div>
                 `;
@@ -55,91 +52,101 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 2. INICIALIZAR SLIDERS DE PRODUCTOS
     async function initializeProductSlider(containerId, apiEndpoint) {
-        const sliderContainer = document.querySelector(`#${containerId}`);
-        if (!sliderContainer) return;
+    const sliderContainer = document.getElementById(containerId);
+    if (!sliderContainer) {
+        console.error(`Slider container with ID #${containerId} not found.`);
+        return;
+    }
+    const sliderWrapper = sliderContainer.querySelector('.swiper-wrapper');
+    if (!sliderWrapper) {
+        console.error(`Swiper wrapper for #${containerId} not found.`);
+        return;
+    }
 
-        const swiperWrapper = sliderContainer.querySelector('.swiper-wrapper');
-        if (!swiperWrapper) return;
+    const productsMap = new Map();
 
-        try {
-            const response = await fetch(apiEndpoint);
-            if (!response.ok) {
-                swiperWrapper.innerHTML = '<p>Error al cargar los productos.</p>';
-                throw new Error(`Error al cargar productos de ${apiEndpoint}`);
-            }
-            const products = await response.json();
+    try {
+        const response = await fetch(apiEndpoint);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const products = await response.json();
 
-            if (products.length === 0) {
-                swiperWrapper.innerHTML = '<p>No hay productos para mostrar.</p>';
-                return;
-            }
+        sliderWrapper.innerHTML = ''; // Clear existing slides
 
-            swiperWrapper.innerHTML = products.map(product => {
-                const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(product.precio);
+        if (products.length === 0) {
+            sliderWrapper.innerHTML = '<p>No hay productos para mostrar.</p>';
+            return;
+        }
 
-                const imagenUrl = product.imagen_3_4 || product.imagen_principal || product.imagen_icono || product.imagen_url;
-                const imagenUrlCompleta = imagenUrl
-                    ? `http://localhost:3001${imagenUrl}`
-                    : 'https://via.placeholder.com/300x300.png?text=Imagen no disponible';
+        products.forEach(product => {
+            if (product.stock > 0) {
+                const productId = product._id || product.id;
+                productsMap.set(productId.toString(), product);
 
-                const stock = parseInt(product.stock, 10) || 0;
-                const stockText = stock > 0 ? `EN STOCK (${stock})` : 'AGOTADO';
-                const stockClass = stock > 0 ? 'in-stock' : 'out-of-stock';
-                const stockInfoHTML = `<div class="stock-info"><span class="stock-indicator ${stockClass}">${stockText}</span></div>`;
-
+                const imagenUrl = product.imagen_principal ? getImageUrl(product.imagen_principal) : 'img/default-product.png';
                 const marca = product.marca || 'Macs';
-                let marcaClass = '';
-                if (marca.toLowerCase() === 'macs') {
-                    marcaClass = 'macs-brand-rgb';
-                }
+                const marcaClass = marca.toLowerCase() === 'macs' ? 'rgb-text' : '';
                 const marcaHTML = `<p class="product-card__brand ${marcaClass}">${marca}</p>`;
 
-                const addToCartCall = `agregarAlCarrito(${product.id}, '${product.nombre.replace(/'/g, "\\'")}', ${product.precio}, '${imagenUrlCompleta}')`;
-
-                return `
+                const slideHTML = `
                     <div class="swiper-slide">
                         <div class="product-card">
-                            <a href="producto-detalle.html?id=${product.id}" class="product-card__image-container">
-                                <img src="${imagenUrlCompleta}" alt="${product.nombre}" class="product-card__image" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300.png?text=Imagen no disponible';">
-                                <div class="product-card__overlay">Ver Producto</div>
+                            <a href="producto-detalle.html?id=${productId}" class="product-card__link">
+                                <div class="product-card__image-container">
+                                    <img src="${imagenUrl}" alt="${product.nombre}" class="product-card__image">
+                                    <div class="product-card__overlay">Ver detalle</div>
+                                </div>
+                                <div class="product-card__info">
+                                    ${marcaHTML}
+                                    ${product.stock > 0 ? `<p class="product-card__stock available">EN STOCK (${product.stock})</p>` : `<p class="product-card__stock unavailable">AGOTADO</p>`}
+                                    <p class="product-card__name">${product.nombre}</p>
+                                    <p class="product-card__price">${formatCurrency(product.precio)}</p>
+                                </div>
                             </a>
-                            <div class="product-card__info">
-                                ${marcaHTML}
-                                ${stockInfoHTML}
-                                <h3 class="product-card__name"><a href="producto-detalle.html?id=${product.id}">${product.nombre}</a></h3>
-                                <p class="product-card__price">${precioFormateado}</p>
-                            </div>
-                            <button class="product-card__btn" onclick="${addToCartCall}">Agregar al carrito</button>
+                            <button class="product-card__add-to-cart-btn" data-product-id="${productId}">AGREGAR AL CARRITO</button>
                         </div>
-                    </div>
-                `;
-            }).join('');
-
-            new Swiper(sliderContainer, {
-                loop: true,
-                slidesPerView: 1, 
-                spaceBetween: 15,
-                navigation: {
-                    nextEl: sliderContainer.querySelector('.swiper-button-next'),
-                    prevEl: sliderContainer.querySelector('.swiper-button-prev'),
-                },
-                breakpoints: {
-                    640: { slidesPerView: 2, spaceBetween: 20 },
-                    768: { slidesPerView: 4, spaceBetween: 30 },
-                    1024: { slidesPerView: 5, spaceBetween: 30 },
-                }
-            });
-
-            // Si es el slider de destacados, ajustamos la altura del slider principal
-            if (containerId === 'destacados-slider') {
-                setTimeout(adjustMainSliderHeight, 200); // Espera a que el DOM se pinte
+                    </div>`;
+                sliderWrapper.innerHTML += slideHTML;
             }
+        });
 
-        } catch (error) {
-            console.error(`Error inicializando el slider ${containerId}:`, error);
-            // El mensaje de error ya se muestra en el bloque if(!response.ok)
-        }
+        new Swiper(`#${containerId}`, {
+            slidesPerView: 1,
+            spaceBetween: 20,
+            navigation: {
+                nextEl: `#${containerId} .swiper-button-next`,
+                prevEl: `#${containerId} .swiper-button-prev`,
+            },
+            breakpoints: {
+                640: { slidesPerView: 2 },
+                768: { slidesPerView: 3 },
+                1024: { slidesPerView: 4 },
+            },
+        });
+
+    } catch (error) {
+        console.error(`Error initializing product slider for #${containerId}:`, error);
+        sliderWrapper.innerHTML = '<p>Error al cargar los productos.</p>';
     }
+
+    sliderContainer.addEventListener('click', (event) => {
+        if (event.target.matches('.product-card__add-to-cart-btn')) {
+            const productId = event.target.getAttribute('data-product-id');
+            const product = productsMap.get(productId);
+
+            if (product) {
+                if (typeof agregarAlCarrito === 'function') {
+                    agregarAlCarrito(product);
+                } else {
+                    console.error('The function agregarAlCarrito is not defined.');
+                }
+            } else {
+                console.error('Product not found in map:', productId);
+            }
+        }
+    });
+}
 
     // 3. AJUSTAR ALTURA DEL SLIDER PRINCIPAL
     function adjustMainSliderHeight() {

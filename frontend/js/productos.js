@@ -22,7 +22,7 @@ function createProductLinkElement(product) {
   const marca = product.marca || 'Macs';
   let marcaClass = '';
   if (marca.toLowerCase() === 'macs') {
-    marcaClass = 'macs-brand-rgb';
+    marcaClass = 'rgb-text';
   }
   const marcaHTML = `<p class="product-card__brand ${marcaClass}">${marca}</p>`;
 

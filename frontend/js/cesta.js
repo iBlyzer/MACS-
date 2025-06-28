@@ -166,13 +166,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cesta.length === 0) return;
 
         const numeroReferencia = `MACS-${Date.now()}`;
-        const numeroWhatsApp = '573204829726';
+        const numeroWhatsApp = '573019998933';
         let mensaje = `¡Hola! Quisiera hacer el siguiente pedido:\n\n*N° de Referencia: ${numeroReferencia}*\n\n`;
 
         cesta.forEach(item => {
-            mensaje += `*Producto:* ${item.nombre}\n`;
-            mensaje += `*Cantidad:* ${item.cantidad}\n`;
-            mensaje += `*Precio Unitario:* ${formatCurrency(item.precio)}\n\n`;
+            mensaje += `*Producto:* ${item.nombre} *Ref:* ${item.numero_referencia} *Cantidad:* ${item.cantidad} *Precio Unitario:* ${formatCurrency(item.precio)}`;
         });
 
         const totalItems = cesta.reduce((acc, item) => acc + item.cantidad, 0);

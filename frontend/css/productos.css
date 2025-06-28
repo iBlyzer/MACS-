@@ -320,12 +320,15 @@ body {
 }
 
 .product-card__brand {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin: 0 0 0.5rem 0;
+}
+
+.product-card__brand.rgb-text {
+  font-weight: bold;
 }
 
 .product-card__name {
@@ -429,23 +432,21 @@ body {
   color: #111;
 }
 
-/* --- Animación de texto RGB para la marca MACS */
-.macs-brand-rgb {
-  font-weight: bold;
-  background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: rgb-text-animation 5s linear infinite;
+/* === RGB Text Effect (MACS Brand) === */
+.rgb-text {
+    animation: rgb-animation 4s infinite linear;
+    font-weight: bold;
 }
 
-@keyframes rgb-text-animation {
-  0% {
-    background-position: 0% 50%;
-  }
-  100% {
-    background-position: 100% 50%;
-  }
+@keyframes rgb-animation {
+    0% { color: #ff0000; }
+    15% { color: #ff7f00; }
+    30% { color: #ffff00; }
+    45% { color: #00ff00; }
+    60% { color: #0000ff; }
+    75% { color: #4b0082; }
+    90% { color: #9400d3; }
+    100% { color: #ff0000; }
 }
 
 /* Estilos para el contenedor de productos en páginas de categorías */
@@ -457,20 +458,44 @@ body {
 
 .product-card__overlay {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.9);
-    background-color: rgba(17, 17, 17, 0.8);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
     color: white;
-    padding: 10px 15px;
-    border-radius: 50px;
-    font-size: 14px;
-    font-weight: 600;
-    white-space: nowrap;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     opacity: 0;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    pointer-events: none;
-    z-index: 2;
+    transition: opacity 0.3s ease;
+    font-weight: bold;
+    border-radius: 8px; /* Coincide con el contenedor de la imagen */
+}
+
+.product-card__image-container:hover .product-card__overlay {
+    opacity: 1;
+}
+
+/* Estilos para el indicador de stock */
+.product-card__stock {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 12px;
+    color: #fff;
+    text-align: center;
+    margin: 8px auto 4px;
+    display: inline-block;
+    letter-spacing: 0.5px;
+}
+
+.product-card__stock.available {
+    background-color: #28a745; /* Verde */
+}
+
+.product-card__stock.unavailable {
+    background-color: #dc3545; /* Rojo */
 }
 
 .product-card__image-container:hover .product-card__overlay {

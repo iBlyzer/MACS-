@@ -90,7 +90,7 @@ function renderizarProductoPrincipal(product) {
 
     const controlsContainer = document.createElement('div');
     controlsContainer.className = 'controls-container';
-    const personalizeBtnHTML = `<a href="https://wa.me/573204829726?text=Hola,%20estoy%20interesado%20en%20personalizar%20el%20producto:%20${encodeURIComponent(product.nombre)}%20(REF:%20${product.numero_referencia})" target="_blank" class="personalize-btn">Personalizar ahora <i class="fa-brands fa-whatsapp"></i></a>`;
+    const personalizeBtnHTML = `<a href="https://wa.me/573019998933?text=Hola,%20estoy%20interesado%20en%20personalizar%20el%20producto:%20${encodeURIComponent(product.nombre)}%20(REF:%20${product.numero_referencia})" target="_blank" class="personalize-btn">Personalizar ahora <i class="fa-brands fa-whatsapp"></i></a>`;
 
     if (product.stock > 0) {
         controlsContainer.innerHTML = `
@@ -209,31 +209,41 @@ function renderizarProductoPrincipal(product) {
         });
     }
 
-    // --- Configurar funcionalidad ---
-    setupImageGallery(product, galleryColumn);
-    if (product.stock > 0) {
-        setupQuantityButtons();
-        updatePrices(1); // Initial call
+// --- Configurar funcionalidad ---
+setupImageGallery(product, galleryColumn);
+if (product.stock > 0) {
+setupQuantityButtons();
+updatePrices(1); // Initial call
 
-        document.getElementById('add-to-cart-btn').addEventListener('click', () => {
-            const quantity = parseInt(quantityInput.value, 10);
-            const currentPrice = parseFloat(quantityInput.dataset.currentPrice) || product.precio;
-            if (typeof agregarAlCarrito !== 'undefined') {
-                agregarAlCarrito(product.id, product.nombre, currentPrice, quantity, getImageUrl(product.imagen_principal));
-            }
-        });
-    }
+const addToCartBtn = document.getElementById('add-to-cart-btn');
+if (addToCartBtn) {
+addToCartBtn.addEventListener('click', () => {
+const quantityInput = document.getElementById('quantity');
+const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+
+// Clonamos el producto para no modificar el objeto original
+const productToAdd = { ...product };
+productToAdd.cantidad = quantity;
+
+if (typeof agregarAlCarrito === 'function') {
+agregarAlCarrito(productToAdd);
+} else {
+console.error('La función agregarAlCarrito no está definida.');
+}
+});
+}
+}
 }
 
 function setupDynamicPricing(product, formatCurrency) {
-    const quantityInput = document.getElementById('quantity');
-    if (!quantityInput) return;
+const quantityInput = document.getElementById('quantity');
+if (!quantityInput) return;
 
-    const basePrice = product.precio;
-    const unitPriceEl = document.getElementById('unit-price');
-    const totalPriceEl = document.getElementById('total-price');
-    const discountMessageEl = document.getElementById('discount-message');
-    const tieredPricesDisplayEl = document.getElementById('tiered-prices-display');
+const basePrice = product.precio;
+const unitPriceEl = document.getElementById('unit-price');
+const totalPriceEl = document.getElementById('total-price');
+const discountMessageEl = document.getElementById('discount-message');
+const tieredPricesDisplayEl = document.getElementById('tiered-prices-display');
 
     // Usar la lógica centralizada de pricing.js
     const priceTiers = getPriceTiers();
@@ -457,100 +467,110 @@ function openImageModal(product, startIndex) {
 }
 
 async function cargarRecomendados(categoriaId, excludeId) {
-  const sliderContainer = document.querySelector('#recomendados-slider');
-  const swiperWrapper = sliderContainer ? sliderContainer.querySelector('.swiper-wrapper') : null;
-  
-  if (!sliderContainer || !swiperWrapper) {
-    console.error('No se encontraron los contenedores del slider de recomendados.');
-    return;
-  }
-
-  try {
-    // Paso 1: Obtener la lista de productos recomendados (contiene la imagen_3_4 correcta).
-    const recomendadosResponse = await fetch(`http://localhost:3001/api/productos/recomendados?categoriaId=${categoriaId}&excludeId=${excludeId}&limit=8`);
-    if (!recomendadosResponse.ok) throw new Error('No se pudieron cargar las recomendaciones básicas.');
-    const productosRecomendados = await recomendadosResponse.json();
-
+    const sliderContainer = document.querySelector('#recomendados-slider');
+    const swiperWrapper = sliderContainer ? sliderContainer.querySelector('.swiper-wrapper') : null;
     const recomendadosSection = document.getElementById('recomendados');
-    if (productosRecomendados.length < 4) {
-      if (recomendadosSection) recomendadosSection.style.display = 'none';
-      return;
+
+    if (!sliderContainer || !swiperWrapper) {
+        if (recomendadosSection) recomendadosSection.style.display = 'none';
+        return;
     }
 
-    // Paso 2: Obtener los detalles completos para cada producto para asegurar el stock.
-    const detallesPromises = productosRecomendados.map(p => 
-      fetch(`http://localhost:3001/api/productos/${p.id}`).then(res => {
-        if (!res.ok) return null; // Si un producto no se encuentra, devolver null y filtrar después.
-        return res.json();
-      })
-    );
-    const productosConDetalles = (await Promise.all(detallesPromises)).filter(p => p !== null);
+    const productsMap = new Map();
 
-    // Paso 3: Combinar los datos de forma segura.
-    const productosFinales = productosConDetalles.map(detalle => {
-      const recomendadoOriginal = productosRecomendados.find(r => String(r.id) === String(detalle.id));
-      return {
-        ...detalle, // Contiene stock, precio, nombre, etc. correctos
-        imagen_3_4: recomendadoOriginal ? recomendadoOriginal.imagen_3_4 : detalle.imagen_principal, // Usar imagen_3_4 si existe, si no, la principal como fallback.
-      };
-    });
+    try {
+        const response = await fetch(`http://localhost:3001/api/productos/recomendados?categoriaId=${categoriaId}&excludeId=${excludeId}&limit=8`);
+        if (!response.ok) throw new Error('No se pudieron cargar las recomendaciones.');
+        
+        const recommendedProducts = await response.json();
 
-    // Paso 4: Renderizar los productos.
-    swiperWrapper.innerHTML = productosFinales.map(product => {
-      const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(product.precio);
-      const imagenUrl = product.imagen_3_4 ? `http://localhost:3001${product.imagen_3_4}` : 'https://via.placeholder.com/300x300.png?text=Imagen';
-      
-      const stock = parseInt(product.stock, 10) || 0;
-      const stockText = stock > 0 ? `EN STOCK (${stock})` : 'AGOTADO';
-      const stockClass = stock > 0 ? 'in-stock' : 'out-of-stock';
-      const stockInfoHTML = `<div class="stock-info"><span class="stock-indicator ${stockClass}">${stockText}</span></div>`;
+        if (recommendedProducts.length < 4) {
+            if (recomendadosSection) recomendadosSection.style.display = 'none';
+            return;
+        }
 
-      const marca = product.marca || '';
-      let marcaClass = '';
-      if (marca.toLowerCase() === 'macs') {
-        marcaClass = 'macs-brand-rgb'; // Aplicar clase para el efecto RGB
-      }
-      const marcaHTML = `<p class="product-card__brand ${marcaClass}">${marca}</p>`;
+        const detailPromises = recommendedProducts.map(p =>
+            fetch(`http://localhost:3001/api/productos/${p._id || p.id}`).then(res => res.ok ? res.json() : null)
+        );
+        const productsWithDetails = (await Promise.all(detailPromises)).filter(p => p !== null);
 
-      return `
-        <div class="swiper-slide">
-          <div class="product-card">
-            <a href="producto-detalle.html?id=${product.id}" class="product-card__image-container">
-              <img src="${imagenUrl}" alt="${product.nombre}" class="product-card__image" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300.png?text=Imagen';">
-              <div class="product-card__overlay">Ver Producto</div>
-            </a>
-            <div class="product-card__info">
-              ${marcaHTML}
-              ${stockInfoHTML}
-              <h4 class="product-card__name"><a href="producto-detalle.html?id=${product.id}">${product.nombre}</a></h4>
-              <p class="product-card__price">${precioFormateado}</p>
-            </div>
-            <button class="product-card__add-to-cart-btn" onclick="agregarAlCarrito(${product.id}, '${product.nombre.replace(/'/g, "\\'")}', ${product.precio}, '${imagenUrl}')">AGREGAR AL CARRITO</button>
-          </div>
-        </div>
-      `;
-    }).join('');
+        swiperWrapper.innerHTML = '';
+        let productsAdded = 0;
 
-    // Paso 5: Inicializar Swiper.
-    new Swiper(sliderContainer, {
-      slidesPerView: 1,
-      spaceBetween: 10,
-      navigation: {
-        nextEl: sliderContainer.querySelector('.swiper-button-next'),
-        prevEl: sliderContainer.querySelector('.swiper-button-prev'),
-      },
-      breakpoints: {
-        640: { slidesPerView: 2, spaceBetween: 20 },
-        768: { slidesPerView: 3, spaceBetween: 30 },
-        1024: { slidesPerView: 4, spaceBetween: 40 },
-      }
-    });
+        productsWithDetails.forEach(product => {
+            if (product.stock > 0) {
+                productsAdded++;
+                const productId = product._id || product.id;
+                productsMap.set(productId.toString(), product);
 
-  } catch (error) {
-    console.error('Error al cargar productos recomendados:', error);
-    if (recomendadosSection) {
-      recomendadosSection.innerHTML = '<p>No se pudieron cargar las recomendaciones en este momento.</p>';
+                const imagenUrl = product.imagen_3_4 ? getImageUrl(product.imagen_3_4) : 'img/default-product.png';
+                const marca = product.marca || 'Macs';
+                const marcaClass = marca.toLowerCase() === 'macs' ? 'rgb-text' : '';
+                const marcaHTML = `<p class="product-card__brand ${marcaClass}">${marca}</p>`;
+                const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(product.precio);
+
+                const slideHTML = `
+                    <div class="swiper-slide">
+                        <div class="product-card">
+                            <a href="producto-detalle.html?id=${productId}" class="product-card__link">
+                                <div class="product-card__image-container">
+                                    <img src="${imagenUrl}" alt="${product.nombre}" class="product-card__image">
+                                    <div class="product-card__overlay">Ver detalle</div>
+                                </div>
+                                <div class="product-card__info">
+                                    ${marcaHTML}
+                                    <p class="product-card__name">${product.nombre}</p>
+                                    <p class="product-card__price">${precioFormateado}</p>
+                                </div>
+                            </a>
+                            <button class="product-card__add-to-cart-btn" data-product-id="${productId}">AGREGAR AL CARRITO</button>
+                        </div>
+                    </div>`;
+                swiperWrapper.innerHTML += slideHTML;
+            }
+        });
+
+        if (productsAdded === 0) {
+            if (recomendadosSection) recomendadosSection.style.display = 'none';
+            return;
+        }
+
+        new Swiper(sliderContainer, {
+            slidesPerView: 1,
+            spaceBetween: 10,
+            navigation: {
+                nextEl: sliderContainer.querySelector('.swiper-button-next'),
+                prevEl: sliderContainer.querySelector('.swiper-button-prev'),
+            },
+            breakpoints: {
+                640: { slidesPerView: 2, spaceBetween: 20 },
+                768: { slidesPerView: 3, spaceBetween: 30 },
+                1024: { slidesPerView: 4, spaceBetween: 40 },
+            }
+        });
+
+    } catch (error) {
+        console.error('Error al cargar productos recomendados:', error);
+        if (recomendadosSection) {
+            recomendadosSection.style.display = 'none';
+        }
     }
-  }
+
+    sliderContainer.addEventListener('click', (event) => {
+        if (event.target.matches('.product-card__add-to-cart-btn')) {
+            const productId = event.target.getAttribute('data-product-id');
+            const product = productsMap.get(productId);
+
+            if (product) {
+                if (typeof agregarAlCarrito === 'function') {
+                    agregarAlCarrito(product);
+                } else {
+                    console.error('La función agregarAlCarrito no está definida.');
+                }
+            } else {
+                console.error('Producto recomendado no encontrado en el mapa:', productId);
+            }
+        }
+    });
 }
 

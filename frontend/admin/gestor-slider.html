@@ -32,14 +32,22 @@
 
             <section id="slider-manager">
                 <div class="card">
-                    <h3>Subir Nuevas Imágenes</h3>
+                    <h3>Subir Nueva Imagen</h3>
                     <form id="upload-form">
                         <div class="form-group">
-                            <label for="image-files" class="custom-file-upload">Elegir archivos</label>
-                            <input type="file" id="image-files" name="sliderImages" accept="image/*" multiple>
+                            <label for="image-file" class="custom-file-upload">Elegir archivo</label>
+                            <input type="file" id="image-file" name="sliderImage" accept="image/*" required>
                             <span id="file-name">No se ha seleccionado ningún archivo</span>
                         </div>
-                        <button type="submit" class="btn-primary">Subir Imágenes</button>
+                        <div class="form-group">
+                            <label for="title">Texto Principal (Slider)</label>
+                            <input type="text" id="title" name="title" placeholder="Ej: New Era Collabs" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="button-text">Texto Botón (CTA)</label>
+                            <input type="text" id="button-text" name="buttonText" placeholder="Ej: Ver colaboraciones" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Subir Imagen</button>
                     </form>
                 </div>
 
@@ -51,6 +59,25 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <div id="edit-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3>Editar Detalles de la Imagen</h3>
+            <form id="edit-form">
+                <input type="hidden" id="edit-filename">
+                <div class="form-group">
+                    <label for="edit-title">Texto Principal (Slider)</label>
+                    <input type="text" id="edit-title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-button-text">Texto Botón (CTA)</label>
+                    <input type="text" id="edit-button-text" name="buttonText" required>
+                </div>
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+            </form>
+        </div>
     </div>
 
     <script src="../js/gestor-slider.js"></script>

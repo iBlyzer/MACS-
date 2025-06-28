@@ -1,170 +1,311 @@
-/* Estilos para la página de la cesta */
+/* ==========================================================================
+   Cesta de Compras - Estilos Rediseñados
+   ========================================================================== */
 
+/* Contenedor Principal
+-------------------------------------------------------------------------- */
+.cesta-container {
+    display: flex;
+    flex-wrap: wrap; /* Permite que el resumen se mueva debajo en pantallas pequeñas */
+    justify-content: space-between;
+    padding: 2rem 4%; /* Usar % para padding lateral adaptable */
+    max-width: 1400px;
+    margin: 2rem auto;
+    gap: 2.5rem; /* Aumentar el espacio entre la lista y el resumen */
+}
+
+/* Columna de Artículos
+-------------------------------------------------------------------------- */
+#cesta-con-items {
+    flex: 1 1 60%; /* Ocupa más espacio y es flexible */
+    min-width: 320px; /* Ancho mínimo para evitar que se comprima demasiado */
+}
+
+#cesta-con-items h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 1rem;
+}
+
+/* Estilo para cada artículo en la cesta
+-------------------------------------------------------------------------- */
 .cesta-item {
     display: flex;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid #eee;
+    align-items: flex-start; /* Alinear al inicio para mejor distribución vertical */
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.cesta-item:last-child {
+    border-bottom: none;
 }
 
 .cesta-item img {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     object-fit: cover;
-    margin-right: 1.5rem;
-    border-radius: 5px;
+    border-radius: 8px; /* Bordes más redondeados */
+    border: 1px solid #eee;
 }
 
-.item-info {
+.cesta-item-link {
+    display: flex;
+    align-items: flex-start;
+    text-decoration: none;
+    color: inherit;
+    gap: 1.5rem;
     flex-grow: 1;
 }
 
-.item-info p {
-    margin: 0.3rem 0;
+.item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex-grow: 1;
 }
 
 .item-marca {
     font-size: 0.8rem;
-    color: #888;
+    color: #666;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .item-nombre {
-    font-weight: bold;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.item-precio {
+    font-size: 1rem;
+    color: #111;
+    font-weight: 500;
+}
+
+/* Controles de Cantidad y Eliminación
+-------------------------------------------------------------------------- */
+.item-controles {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-left: auto; /* Empuja los controles a la derecha */
 }
 
 .item-cantidad {
     display: flex;
     align-items: center;
-    margin: 0 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden; /* Para que los bordes redondeados afecten a los botones */
 }
 
-.cesta-item .item-cantidad .item-quantity-input {
-    width: 50px;
+.btn-cantidad {
+    background: #f5f5f5;
+    border: none;
+    cursor: pointer;
+    padding: 0.6rem 0.8rem;
+    font-size: 1rem;
+    color: #555;
+    transition: background-color 0.2s;
+}
+
+.btn-cantidad:hover {
+    background-color: #e0e0e0;
+}
+
+.item-quantity-input {
+    width: 45px;
     text-align: center;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 1.1em;
-    margin: 0 5px;
-    -moz-appearance: textfield; /* Firefox */
+    border: none;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.5rem 0;
+    -moz-appearance: textfield;
     appearance: textfield;
 }
 
-.cesta-item .item-cantidad .item-quantity-input::-webkit-outer-spin-button,
-.cesta-item .item-cantidad .item-quantity-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+.item-quantity-input:focus {
+    outline: none;
 }
 
-.item-cantidad span {
-    padding: 0 1rem;
-    font-size: 1.1rem;
-}
-
-.cesta-item-link {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: inherit;
-    flex-grow: 1;
-}
-
-.btn-cantidad, .btn-eliminar {
-    background: #f0f0f0;
-    border: 1px solid #ddd;
-    cursor: pointer;
-    padding: 0.3rem 0.7rem;
-    border-radius: 5px;
+/* Ocultar flechas (spinners) en input de número */
+.item-quantity-input::-webkit-outer-spin-button,
+.item-quantity-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .btn-eliminar {
-    background: #fdecec;
-    color: #c53030;
-    border-color: #fbcaca;
+    background: none;
+    border: none;
+    color: #a94442;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: underline;
+    padding: 0;
+    transition: color 0.2s;
 }
 
-.cesta-container {
+.btn-eliminar:hover {
+    color: #c53030;
+}
+
+
+/* Resumen del Pedido
+-------------------------------------------------------------------------- */
+.resumen-pedido {
+    flex: 1 1 35%; /* Ocupa menos espacio y es flexible */
+    min-width: 300px;
+    background-color: #fdfdfd;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px; /* Bordes más pronunciados */
+    padding: 2rem;
+    height: fit-content; /* Se ajusta a su contenido */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Sombra sutil */
+    position: sticky; /* Se mantiene visible al hacer scroll */
+    top: 2rem;
+}
+
+.resumen-pedido h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 1.5rem 0;
+    text-align: center;
+}
+
+.resumen-linea {
     display: flex;
     justify-content: space-between;
-    padding: 2rem;
-    max-width: 1200px;
-    margin: 2rem auto;
-    gap: 2rem;
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 1rem;
 }
 
-#cesta-vacia, #cesta-con-items {
-    flex-grow: 1;
+.resumen-linea span:last-child {
+    font-weight: 500;
+    color: #333;
 }
 
-.cesta-vacia-contenido {
-    text-align: center;
-    padding: 4rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+.descuento-linea span:last-child {
+    color: #28a745; /* Color verde para el descuento */
 }
 
-.icono-cesta-vacia {
-    font-size: 5rem;
-    color: #ccc;
-}
-
-.cesta-vacia-contenido p {
-    font-size: 1.2rem;
-    margin: 1rem 0;
-}
-
-.boton-comprar {
-    background-color: #000;
-    color: #fff;
-    padding: 0.8rem 1.5rem;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-}
-
-.resumen-pedido {
-    width: 300px;
-    border: 1px solid #ddd;
-    padding: 1.5rem;
-    border-radius: 5px;
-    height: fit-content;
+.resumen-pedido hr {
+    border: 0;
+    border-top: 1px solid #e0e0e0;
+    margin: 1.5rem 0;
 }
 
 .total-pedido {
     display: flex;
     justify-content: space-between;
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 2rem;
 }
 
 .boton-pagar {
     width: 100%;
     padding: 1rem;
-    background-color: #333;
+    background-color: #1a1a1a;
     color: #fff;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     font-size: 1.1rem;
+    font-weight: 600;
     cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.boton-pagar:hover:not(:disabled) {
+    background-color: #000;
+    color: #fff; /* Asegurar que el texto permanezca blanco */
+    transform: translateY(-2px);
 }
 
 .boton-pagar:disabled {
     background-color: #ccc;
     cursor: not-allowed;
+    color: #888;
 }
 
-#cart-icon {
-    position: relative;
+/* Cesta Vacía
+-------------------------------------------------------------------------- */
+#cesta-vacia {
+    width: 100%;
+    text-align: center;
 }
 
-#cart-count {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    background: red;
-    color: white;
-    border-radius: 50%;
-    padding: 2px 6px;
-    font-size: 12px;
+.cesta-vacia-contenido {
+    padding: 4rem 2rem;
+    background-color: #f9f9f9;
+    border: 2px dashed #ddd;
+    border-radius: 12px;
+}
+
+.icono-cesta-vacia {
+    font-size: 4rem;
+    color: #ccc;
+    margin-bottom: 1rem;
+}
+
+.cesta-vacia-contenido p {
+    font-size: 1.3rem;
+    color: #666;
+    margin: 1rem 0 2rem 0;
+}
+
+.boton-comprar {
+    background-color: #000;
+    color: #fff;
+    padding: 0.8rem 2rem;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.boton-comprar:hover {
+    background-color: #333;
+}
+
+/* Media Queries para Responsividad
+-------------------------------------------------------------------------- */
+@media (max-width: 992px) {
+    .cesta-container {
+        flex-direction: column;
+    }
+    .resumen-pedido {
+        width: 100%;
+        position: static; /* Quitar sticky en móvil */
+    }
+}
+
+@media (max-width: 576px) {
+    .cesta-item {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .cesta-item-link {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .item-controles {
+        margin-top: 1rem;
+        flex-direction: row;
+        justify-content: center;
+        width: 100%;
+    }
 }
