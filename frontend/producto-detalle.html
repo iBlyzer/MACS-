@@ -70,10 +70,10 @@
         </button>
     </header>
 
-  <!-- Botón de Navegación Flotante -->
-  <div class="floating-btn floating-nav-btn" id="floatingNavButton">
-    &#9776;
-  </div>
+  <!-- Floating Nav Button & Modal -->
+  <button class="floating-btn" id="floatingNavButton">
+    <span class="icon-bars"></span>
+  </button>
 
   <!-- Botón flotante de WhatsApp y Widget -->
   <div class="whatsapp-container" id="whatsappContainer">
@@ -102,17 +102,20 @@
     </button>
   </div>
 
-  <!-- Menú Modal -->
   <div class="modal-menu" id="navModal">
-    <div class="modal-content">
-      <span class="modal-close-btn">&times;</span>
-      <ul class="modal-links">
-        <li><a href="index.html">INICIO</a></li>
-        <li><a href="index.html#productos">Catálogo</a></li>
-        <li><a href="index.html#contacto">Contacto</a></li>
-        <li><a href="macs.html">Quienes Somos</a></li>
-      </ul>
-    </div>
+    <ul class="modal-links">
+      <li><a href="index.html">INICIO</a></li>
+      <li><a href="index.html#productos-destacados-section">CATÁLOGO</a></li>
+      <li><a href="#">PERSONALIZADOS</a></li>
+      <li><a href="macs.html">QUIENES SOMOS</a></li>
+      <li><a href="index.html#contacto">CONTACTO</a></li>
+      <li>
+        <a href="cesta.html" class="modal-cart-link">
+          <i class="fas fa-shopping-cart"></i>
+          <span>CESTA</span>
+        </a>
+      </li>
+    </ul>
   </div>
 
   <main id="detalle-producto-container" class="detalle-producto-main">

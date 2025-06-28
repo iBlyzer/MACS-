@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const itemElement = document.createElement('div');
                 itemElement.classList.add('cesta-item');
                 const precioFormateado = formatCurrency(item.precio);
-                const imagenUrl = item.imagen_icono ? `http://localhost:3001${item.imagen_icono}` : 'https://via.placeholder.com/100x100.png?text=Imagen';
+                const imagenUrl = item.imagen_3_4 ? `http://localhost:3001${item.imagen_3_4}` : 'https://via.placeholder.com/100x100.png?text=Imagen';
 
                 itemElement.innerHTML = `
                     <a href="producto-detalle.html?id=${item.id}" class="cesta-item-link">
