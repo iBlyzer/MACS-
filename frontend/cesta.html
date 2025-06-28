@@ -125,8 +125,16 @@
 
     <div class="resumen-pedido">
         <h3>Resumen Del Pedido</h3>
+        <div class="resumen-linea">
+            <span>Subtotal:</span>
+            <span id="subtotal-cesta">$0</span>
+        </div>
+        <div class="resumen-linea descuento-linea">
+            <span>Descuento por volumen:</span>
+            <span id="descuento-cesta">-$0</span>
+        </div>
         <div class="total-pedido">
-            <span>Precio aproximado:</span>
+            <span>Total:</span>
             <span id="precio-total">$0</span>
         </div>
         <button id="pagar-ahora" class="boton-pagar" disabled>Pagar ahora</button>
@@ -163,6 +171,7 @@
 
   <script src="js/nav.js"></script>
   <script src="js/cart.js"></script>
+  <script src="js/pricing.js"></script>
   <script src="js/cesta.js"></script>
   <script src="js/animations.js"></script>
 </body>

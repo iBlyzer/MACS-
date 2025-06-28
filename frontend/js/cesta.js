@@ -1,34 +1,42 @@
 document.addEventListener('DOMContentLoaded', () => {
     const cestaVaciaDiv = document.getElementById('cesta-vacia');
     const cestaConItemsDiv = document.getElementById('cesta-con-items');
-    const resumenPedidoDiv = document.querySelector('.resumen-pedido');
-    const precioTotalSpan = document.getElementById('precio-total');
     const pagarAhoraBtn = document.getElementById('pagar-ahora');
-    const articulosTitulo = document.querySelector('#cesta-vacia h2') || document.querySelector('#cesta-con-items h2');
+    
+    const subtotalCestaSpan = document.getElementById('subtotal-cesta');
+    const descuentoCestaSpan = document.getElementById('descuento-cesta');
+    const precioTotalSpan = document.getElementById('precio-total');
 
     let cesta = JSON.parse(localStorage.getItem('cesta')) || [];
 
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+    }
+
     function renderizarCesta() {
-        // Actualizar contador en el header por si acaso
         if (typeof actualizarContadorCesta === 'function') {
             actualizarContadorCesta();
         }
 
+        const totalItems = cesta.reduce((acc, item) => acc + item.cantidad, 0);
+
         if (cesta.length === 0) {
             cestaVaciaDiv.style.display = 'block';
             cestaConItemsDiv.style.display = 'none';
-            resumenPedidoDiv.style.display = 'block'; // Mostrar resumen aunque esté en cero
+            if (document.querySelector('#cesta-vacia h2')) {
+                document.querySelector('#cesta-vacia h2').textContent = `TODOS LOS ARTÍCULOS (0)`;
+            }
             pagarAhoraBtn.disabled = true;
         } else {
             cestaVaciaDiv.style.display = 'none';
             cestaConItemsDiv.style.display = 'block';
             pagarAhoraBtn.disabled = false;
 
-            cestaConItemsDiv.innerHTML = `<h2>TODOS LOS ARTÍCULOS (${cesta.reduce((acc, item) => acc + item.cantidad, 0)})</h2>`;
+            cestaConItemsDiv.innerHTML = `<h2>TODOS LOS ARTÍCULOS (${totalItems})</h2>`;
             cesta.forEach(item => {
                 const itemElement = document.createElement('div');
                 itemElement.classList.add('cesta-item');
-                const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(item.precio);
+                const precioFormateado = formatCurrency(item.precio);
                 const imagenUrl = item.imagen_icono ? `http://localhost:3001${item.imagen_icono}` : 'https://via.placeholder.com/100x100.png?text=Imagen';
 
                 itemElement.innerHTML = `
@@ -54,9 +62,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function calcularTotal() {
-        const total = cesta.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
-        const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(total);
-        precioTotalSpan.textContent = precioFormateado;
+        const totalItems = cesta.reduce((acc, item) => acc + item.cantidad, 0);
+        const subtotal = cesta.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+
+        if (totalItems === 0) {
+            subtotalCestaSpan.textContent = formatCurrency(0);
+            descuentoCestaSpan.textContent = formatCurrency(0);
+            precioTotalSpan.textContent = formatCurrency(0);
+            descuentoCestaSpan.parentElement.style.display = 'none';
+            return;
+        }
+
+        const nuevoPrecioUnitario = getTieredUnitPrice(totalItems);
+        let totalFinal = subtotal;
+        let descuento = 0;
+
+        if (nuevoPrecioUnitario !== null) {
+            totalFinal = nuevoPrecioUnitario * totalItems;
+            descuento = subtotal - totalFinal;
+        }
+
+        subtotalCestaSpan.textContent = formatCurrency(subtotal);
+        precioTotalSpan.textContent = formatCurrency(totalFinal);
+
+        if (descuento > 0) {
+            descuentoCestaSpan.textContent = `- ${formatCurrency(descuento)}`;
+            descuentoCestaSpan.parentElement.style.display = 'flex';
+        } else {
+            descuentoCestaSpan.parentElement.style.display = 'none';
+        }
     }
 
     function actualizarCantidad(productId, accion) {
@@ -131,33 +165,38 @@ document.addEventListener('DOMContentLoaded', () => {
     pagarAhoraBtn.addEventListener('click', () => {
         if (cesta.length === 0) return;
 
-        // Generar número de referencia único
         const numeroReferencia = `MACS-${Date.now()}`;
-
-        const numeroWhatsApp = '573204829726'; // Reemplaza con tu número de WhatsApp
-        let mensaje = `¡Hola! Quisiera hacer el siguiente pedido:\n\n`;
-        mensaje += `*N° de Referencia: ${numeroReferencia}*\n\n`; // Añadir número de referencia
+        const numeroWhatsApp = '573204829726';
+        let mensaje = `¡Hola! Quisiera hacer el siguiente pedido:\n\n*N° de Referencia: ${numeroReferencia}*\n\n`;
 
         cesta.forEach(item => {
-            const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(item.precio * item.cantidad);
             mensaje += `*Producto:* ${item.nombre}\n`;
             mensaje += `*Cantidad:* ${item.cantidad}\n`;
-            mensaje += `*Subtotal:* ${precioFormateado}\n\n`;
+            mensaje += `*Precio Unitario:* ${formatCurrency(item.precio)}\n\n`;
         });
 
-        const total = cesta.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
-        const totalFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(total);
-        mensaje += `*TOTAL DEL PEDIDO: ${totalFormateado}*`;
+        const totalItems = cesta.reduce((acc, item) => acc + item.cantidad, 0);
+        const subtotal = cesta.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+        const nuevoPrecioUnitario = getTieredUnitPrice(totalItems);
+        let totalFinal = subtotal;
+        let descuento = 0;
+
+        if (nuevoPrecioUnitario !== null) {
+            totalFinal = nuevoPrecioUnitario * totalItems;
+            descuento = subtotal - totalFinal;
+        }
+
+        mensaje += `--- RESUMEN ---\n`;
+        mensaje += `*Subtotal:* ${formatCurrency(subtotal)}\n`;
+        if (descuento > 0) {
+            mensaje += `*Descuento por volumen:* - ${formatCurrency(descuento)}\n`;
+        }
+        mensaje += `*TOTAL DEL PEDIDO: ${formatCurrency(totalFinal)}*`;
 
         const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
 
-        // Limpiar cesta después de enviar
         localStorage.removeItem('cesta');
-        
-        // Redirigir a WhatsApp
         window.open(urlWhatsApp, '_blank');
-
-        // Actualizar la vista de la cesta
         cesta = [];
         renderizarCesta();
     });
