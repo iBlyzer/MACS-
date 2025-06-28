@@ -1,5 +1,5 @@
 /* Estilos para el indicador de stock */
-.stock-status {
+.stock-indicator {
     display: inline-block;
     padding: 4px 10px;
     border-radius: 12px;
@@ -10,12 +10,12 @@
     letter-spacing: 0.5px;
 }
 
-.stock-status.in-stock {
+.stock-indicator.in-stock {
     background-color: #28a745; /* Verde éxito */
     color: #fff;
 }
 
-.stock-status.out-of-stock {
+.stock-indicator.out-of-stock {
     background-color: #dc3545; /* Rojo peligro */
     color: #fff;
 }
@@ -430,13 +430,12 @@ body {
 }
 
 /* --- Animación de texto RGB para la marca MACS */
-.product-card__brand.macs-rgb {
+.macs-brand-rgb {
   font-weight: bold;
-  background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
-  background-size: 400% auto;
+  background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
   -webkit-background-clip: text;
   background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: transparent;
   animation: rgb-text-animation 5s linear infinite;
 }
 

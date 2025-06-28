@@ -424,95 +424,100 @@ function openImageModal(product, startIndex) {
 }
 
 async function cargarRecomendados(categoriaId, excludeId) {
-  const track = document.getElementById('recomendados-track');
-  if (!track) return;
+  const sliderContainer = document.querySelector('#recomendados-slider');
+  const swiperWrapper = sliderContainer ? sliderContainer.querySelector('.swiper-wrapper') : null;
+  
+  if (!sliderContainer || !swiperWrapper) {
+    console.error('No se encontraron los contenedores del slider de recomendados.');
+    return;
+  }
 
   try {
-    const response = await fetch(`http://localhost:3001/api/productos/recomendados?categoriaId=${categoriaId}&excludeId=${excludeId}&limit=8`);
-    if (!response.ok) throw new Error('No se pudieron cargar las recomendaciones.');
-    
-    const recomendados = await response.json();
-    track.innerHTML = '';
+    // Paso 1: Obtener la lista de productos recomendados (contiene la imagen_3_4 correcta).
+    const recomendadosResponse = await fetch(`http://localhost:3001/api/productos/recomendados?categoriaId=${categoriaId}&excludeId=${excludeId}&limit=8`);
+    if (!recomendadosResponse.ok) throw new Error('No se pudieron cargar las recomendaciones básicas.');
+    const productosRecomendados = await recomendadosResponse.json();
 
-    if (recomendados.length < 4) {
-      document.getElementById('recomendados').style.display = 'none';
+    const recomendadosSection = document.getElementById('recomendados');
+    if (productosRecomendados.length < 4) {
+      if (recomendadosSection) recomendadosSection.style.display = 'none';
       return;
     }
 
-    recomendados.forEach(recProduct => {
-      const productElement = document.createElement('div');
-      productElement.className = 'product-card'; // Estandarizar clase
+    // Paso 2: Obtener los detalles completos para cada producto para asegurar el stock.
+    const detallesPromises = productosRecomendados.map(p => 
+      fetch(`http://localhost:3001/api/productos/${p.id}`).then(res => {
+        if (!res.ok) return null; // Si un producto no se encuentra, devolver null y filtrar después.
+        return res.json();
+      })
+    );
+    const productosConDetalles = (await Promise.all(detallesPromises)).filter(p => p !== null);
 
-      const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(recProduct.precio);
-      const imagenUrl = recProduct.imagen_icono ? `http://localhost:3001${recProduct.imagen_icono}` : 'https://via.placeholder.com/300x300.png?text=Imagen';
-
-      // Usar la nueva estructura estandarizada con overlay
-      productElement.innerHTML = `
-        <a href="producto-detalle.html?id=${recProduct.id}" class="product-card__image-container">
-            <img src="${imagenUrl}" alt="${recProduct.nombre}" class="product-card__image" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300.png?text=Imagen';">
-            <div class="product-card__overlay">Ver Producto</div>
-        </a>
-        <div class="product-card__info">
-            <p class="product-card__brand">${recProduct.marca || 'Macs'}</p>
-            <h4 class="product-card__name"><a href="producto-detalle.html?id=${recProduct.id}">${recProduct.nombre}</a></h4>
-            <p class="product-card__price">${precioFormateado}</p>
-        </div>
-        <button class="product-card__btn add-to-cart">Agregar al Carrito</button>
-      `;
-
-      productElement.querySelector('.add-to-cart').addEventListener('click', (e) => {
-        e.preventDefault();
-        if (typeof agregarAlCarrito !== 'undefined') {
-          agregarAlCarrito(recProduct);
-        }
-      });
-
-      track.appendChild(productElement);
+    // Paso 3: Combinar los datos de forma segura.
+    const productosFinales = productosConDetalles.map(detalle => {
+      const recomendadoOriginal = productosRecomendados.find(r => String(r.id) === String(detalle.id));
+      return {
+        ...detalle, // Contiene stock, precio, nombre, etc. correctos
+        imagen_3_4: recomendadoOriginal ? recomendadoOriginal.imagen_3_4 : detalle.imagen_principal, // Usar imagen_3_4 si existe, si no, la principal como fallback.
+      };
     });
 
-    if (recomendados.length > 0) setupCarousel(recomendados.length);
+    // Paso 4: Renderizar los productos.
+    swiperWrapper.innerHTML = productosFinales.map(product => {
+      const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(product.precio);
+      const imagenUrl = product.imagen_3_4 ? `http://localhost:3001${product.imagen_3_4}` : 'https://via.placeholder.com/300x300.png?text=Imagen';
+      
+      const stock = parseInt(product.stock, 10) || 0;
+      const stockText = stock > 0 ? `EN STOCK (${stock})` : 'AGOTADO';
+      const stockClass = stock > 0 ? 'in-stock' : 'out-of-stock';
+      const stockInfoHTML = `<div class="stock-info"><span class="stock-indicator ${stockClass}">${stockText}</span></div>`;
+
+      const marca = product.marca || '';
+      let marcaClass = '';
+      if (marca.toLowerCase() === 'macs') {
+        marcaClass = 'macs-brand-rgb'; // Aplicar clase para el efecto RGB
+      }
+      const marcaHTML = `<p class="product-card__brand ${marcaClass}">${marca}</p>`;
+
+      return `
+        <div class="swiper-slide">
+          <div class="product-card">
+            <a href="producto-detalle.html?id=${product.id}" class="product-card__image-container">
+              <img src="${imagenUrl}" alt="${product.nombre}" class="product-card__image" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300.png?text=Imagen';">
+              <div class="product-card__overlay">Ver Producto</div>
+            </a>
+            <div class="product-card__info">
+              ${marcaHTML}
+              ${stockInfoHTML}
+              <h4 class="product-card__name"><a href="producto-detalle.html?id=${product.id}">${product.nombre}</a></h4>
+              <p class="product-card__price">${precioFormateado}</p>
+            </div>
+            <button class="product-card__add-to-cart-btn" onclick="agregarAlCarrito(${product.id}, '${product.nombre.replace(/'/g, "\\'")}', ${product.precio}, '${imagenUrl}')">AGREGAR AL CARRITO</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Paso 5: Inicializar Swiper.
+    new Swiper(sliderContainer, {
+      slidesPerView: 1,
+      spaceBetween: 10,
+      navigation: {
+        nextEl: sliderContainer.querySelector('.swiper-button-next'),
+        prevEl: sliderContainer.querySelector('.swiper-button-prev'),
+      },
+      breakpoints: {
+        640: { slidesPerView: 2, spaceBetween: 20 },
+        768: { slidesPerView: 3, spaceBetween: 30 },
+        1024: { slidesPerView: 4, spaceBetween: 40 },
+      }
+    });
 
   } catch (error) {
-    console.error('Error al cargar recomendados:', error);
-    document.getElementById('recomendados').style.display = 'none';
+    console.error('Error al cargar productos recomendados:', error);
+    if (recomendadosSection) {
+      recomendadosSection.innerHTML = '<p>No se pudieron cargar las recomendaciones en este momento.</p>';
+    }
   }
 }
 
-function setupCarousel(itemCount) {
-  const track = document.getElementById('recomendados-track');
-  const prevBtn = document.getElementById('recomendados-prev');
-  const nextBtn = document.getElementById('recomendados-next');
-  
-  let currentIndex = 0;
-  const itemsVisible = 4;
-
-  if (itemCount <= itemsVisible) {
-      prevBtn.style.display = 'none';
-      nextBtn.style.display = 'none';
-      return;
-  }
-
-  function updateCarousel() {
-    const itemWidth = track.querySelector('.product-card').getBoundingClientRect().width;
-    track.style.transform = `translateX(-${currentIndex * itemWidth}px)`;
-    prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
-    nextBtn.style.display = currentIndex >= itemCount - itemsVisible ? 'none' : 'flex';
-  }
-
-  nextBtn.addEventListener('click', () => {
-    if (currentIndex < itemCount - itemsVisible) {
-      currentIndex++;
-      updateCarousel();
-    }
-  });
-
-  prevBtn.addEventListener('click', () => {
-    if (currentIndex > 0) {
-      currentIndex--;
-      updateCarousel();
-    }
-  });
-
-  window.addEventListener('resize', updateCarousel);
-  updateCarousel();
-}

@@ -1,4 +1,81 @@
 /* Estilos para el botón de añadir a la cesta */
+
+/* Estilos para el carrusel de recomendados */
+#recomendados.productos-section {
+    position: relative;
+    overflow: hidden;
+}
+
+#recomendados-slider {
+    overflow: hidden;
+}
+
+#recomendados-slider .swiper-button-next,
+#recomendados-slider .swiper-button-prev {
+    position: absolute;
+    top: 40%; /* Ajustar para centrar en las tarjetas */
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    background-color: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    z-index: 10;
+    color: #000;
+    --swiper-navigation-size: 22px;
+}
+
+#recomendados-slider .swiper-button-prev {
+    left: 10px;
+}
+
+#recomendados-slider .swiper-button-next {
+    right: 10px;
+}
+
+#recomendados-slider .swiper-button-disabled {
+    opacity: 0.35;
+    cursor: auto;
+    pointer-events: none;
+}
+
+
+.product-card__info .stock-info {
+    margin-bottom: 8px; /* Espacio debajo del stock */
+}
+
+.product-card__info .stock-indicator {
+    font-size: 0.75em;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    display: inline-block; /* Para que el padding y borde funcionen bien */
+}
+
+.product-card__info .stock-indicator.in-stock {
+    background-color: #28a745; /* Verde sólido */
+    color: #fff;
+    border: none;
+}
+
+.product-card__info .stock-indicator.out-of-stock {
+    background-color: #dc3545; /* Rojo sólido */
+    color: #fff;
+    border: none;
+}
+
+@media (max-width: 768px) {
+    #recomendados.productos-section {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    #recomendados-slider .swiper-button-next,
+    #recomendados-slider .swiper-button-prev {
+        display: none; /* Ocultar flechas en móviles */
+    }
+}
 .add-to-cart-btn {
     background-color: #dc3545; /* Rojo */
     color: #fff;

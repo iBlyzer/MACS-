@@ -76,31 +76,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
             swiperWrapper.innerHTML = products.map(product => {
                 const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(product.precio);
-                const imagenUrl = product.imagen_principal ? `http://localhost:3001${product.imagen_principal}` : 'https://via.placeholder.com/300x300.png?text=Sin+Imagen';
-                const stockInfo = product.stock > 0 ? `<div class="stock-label">EN STOCK (${product.stock})</div>` : '<div class="stock-label out-of-stock">AGOTADO</div>';
 
-                // Lógica para el texto RGB - ahora se aplica a cualquier producto marca MACS
-                let marcaClass = 'marca';
-                if ((product.marca || '').toUpperCase() === 'MACS') {
-                    marcaClass += ' rgb-text';
+                const imagenUrl = product.imagen_3_4 || product.imagen_principal || product.imagen_icono || product.imagen_url;
+                const imagenUrlCompleta = imagenUrl
+                    ? `http://localhost:3001${imagenUrl}`
+                    : 'https://via.placeholder.com/300x300.png?text=Imagen no disponible';
+
+                const stock = parseInt(product.stock, 10) || 0;
+                const stockText = stock > 0 ? `EN STOCK (${stock})` : 'AGOTADO';
+                const stockClass = stock > 0 ? 'in-stock' : 'out-of-stock';
+                const stockInfoHTML = `<div class="stock-info"><span class="stock-indicator ${stockClass}">${stockText}</span></div>`;
+
+                const marca = product.marca || 'Macs';
+                let marcaClass = '';
+                if (marca.toLowerCase() === 'macs') {
+                    marcaClass = 'macs-brand-rgb';
                 }
+                const marcaHTML = `<p class="product-card__brand ${marcaClass}">${marca}</p>`;
+
+                const addToCartCall = `agregarAlCarrito(${product.id}, '${product.nombre.replace(/'/g, "\\'")}', ${product.precio}, '${imagenUrlCompleta}')`;
 
                 return `
                     <div class="swiper-slide">
                         <div class="product-card">
-                            <a href="producto-detalle.html?id=${product.id}" class="product-image-link">
-                                <img src="${imagenUrl}" alt="${product.nombre}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300.png?text=Sin+Imagen';">
-                                <div class="product-overlay">
-                                    <span class="btn-ver-producto">Ver Producto</span>
-                                </div>
+                            <a href="producto-detalle.html?id=${product.id}" class="product-card__image-container">
+                                <img src="${imagenUrlCompleta}" alt="${product.nombre}" class="product-card__image" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300.png?text=Imagen no disponible';">
+                                <div class="product-card__overlay">Ver Producto</div>
                             </a>
-                            <div class="product-info">
-                                <p class="${marcaClass}">${product.marca || 'MACS'}</p>
-                                ${stockInfo}
-                                <h3 class="nombre">${product.nombre}</h3>
-                                <p class="precio">${precioFormateado}</p>
-                                <button class="btn-add-to-cart" data-product-id="${product.id}">Añadir a la cesta</button>
+                            <div class="product-card__info">
+                                ${marcaHTML}
+                                ${stockInfoHTML}
+                                <h3 class="product-card__name"><a href="producto-detalle.html?id=${product.id}">${product.nombre}</a></h3>
+                                <p class="product-card__price">${precioFormateado}</p>
                             </div>
+                            <button class="product-card__btn" onclick="${addToCartCall}">Agregar al carrito</button>
                         </div>
                     </div>
                 `;
@@ -140,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (mainSlider && destacadosSlider) {
             const destacadosWidth = destacadosSlider.offsetWidth;
             if (destacadosWidth > 0) {
-                const newHeight = destacadosWidth * 0.4; // Proporción del 40% del ancho
+                const newHeight = destacadosWidth * 0.5; // Proporción del 50% del ancho
                 mainSlider.style.height = `${newHeight}px`;
                 console.log(`Ajustando altura del slider principal a: ${newHeight}px`);
             }

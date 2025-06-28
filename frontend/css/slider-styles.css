@@ -1,9 +1,14 @@
 /* === Main Slider Swiper Styles === */
 
 .main-slider {
-    height: 80vh; /* Altura del slider restaurada */
+    height: auto; /* Altura automática para respetar el aspect-ratio */
     width: 100%;
+    max-width: 1200px; /* Ancho máximo para centrar */
+    margin: 0 auto 2rem auto; /* Centrado horizontal y margen inferior */
     position: relative;
+    aspect-ratio: 16 / 7; /* Proporción para que no sea tan bajo */
+    padding: 0 15px; /* Padding lateral igual al contenedor */
+    box-sizing: border-box; /* Para que el padding no afecte el ancho total */
 }
 
 #main-swiper {
@@ -123,7 +128,6 @@
 /* === Product Sliders Swiper Styles === */
 
 .productos-section .swiper-container {
-  width: 100%;
   padding: 10px 0;
   box-sizing: border-box;
   position: relative;
