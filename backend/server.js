@@ -41,6 +41,15 @@ app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 // --- Manejador para rutas API no encontradas ---
 // Captura todas las solicitudes a /api/* que no coincidieron con una ruta.
+// --- Manejador para SPA (Single Page Application) ---
+// Para cualquier otra ruta que no sea de la API, sirve el index.html principal.
+// Esto permite que el enrutamiento del lado del cliente en el frontend funcione.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+});
+
+// --- Manejador para rutas API no encontradas ---
+// Captura todas las solicitudes a /api/* que no coincidieron con una ruta.
 app.use('/api', (req, res, next) => {
   res.status(404).json({ message: `La ruta API '${req.method} ${req.originalUrl}' no fue encontrada en el servidor.` });
 });

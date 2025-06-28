@@ -37,124 +37,154 @@ function renderizarProductoPrincipal(product) {
 
     detalleContainer.innerHTML = ''; // Limpiar contenido anterior
 
-    const formatCurrency = (value) => new Intl.NumberFormat('es-CO', { 
-        style: 'currency', currency: 'COP', minimumFractionDigits: 0 
+    const formatCurrency = (value) => new Intl.NumberFormat('es-CO', {
+        style: 'currency', currency: 'COP', minimumFractionDigits: 0
     }).format(value);
 
-    // --- Columna de Galería ---
+    // --- Crear columnas principales ---
     const galleryColumn = document.createElement('div');
     galleryColumn.className = 'product-gallery';
-    const images = [product.imagen_frontal, product.imagen_trasera, product.imagen_lateral_izquierda, product.imagen_lateral_derecha].filter(Boolean);
-    galleryColumn.innerHTML = `
-        <div class="main-image-container">
-            <img id="main-product-image" src="${getImageUrl(images.length > 0 ? images[0] : '')}" alt="Vista principal del producto">
-            <button class="gallery-nav-btn prev" id="slider-prev">&#10094;</button>
-            <button class="gallery-nav-btn next" id="slider-next">&#10095;</button>
-        </div>
-        <div class="thumbnail-slider">
-            <div class="thumbnails" id="thumbnails">
-                ${images.map((img, index) => `<img src="${getImageUrl(img)}" alt="Miniatura ${index + 1}" class="thumbnail-item ${index === 0 ? 'active' : ''}" data-index="${index}">`).join('')}
-            </div>
-        </div>
-    `;
-
-    // --- Columna de Información ---
+    
     const infoColumn = document.createElement('div');
     infoColumn.className = 'detalle-info';
-    const priceAndActionsHTML = `
-        <div class="price-box-container">
-            <div class="main-prices">
-                <span id="unit-price" class="price-offer"></span>
-                <span id="total-price" class="price-normal"></span>
-            </div>
-            <div id="discount-message" class="discount-message"></div>
-            <div id="tiered-prices-display" class="tiered-prices"></div>
-        </div>
-        
-        <div class="actions-wrapper">
-            ${product.stock > 0 ? `
-                <div class="quantity-control">
-                    <button type="button" class="quantity-btn minus">-</button>
-                    <input type="number" id="quantity-input" value="1" min="1" max="${product.stock}">
-                    <button type="button" class="quantity-btn plus">+</button>
-                </div>
-                <button id="add-to-cart-main" class="add-to-cart-btn">Añadir a la cesta</button>
-            ` : `<p class="stock-agotado">AGOTADO</p>`}
-        </div>
 
-        <button class="personalize-btn">
-            Personalizar ahora <i class="fab fa-whatsapp"></i>
-        </button>
-    `;
-    const colorRGB = product.color_rgb || '128, 128, 128'; // Fallback a gris
-    const stockText = product.stock > 0 ? `EN STOCK (${product.stock})` : 'AGOTADO';
-    const stockClass = product.stock > 0 ? 'in-stock' : 'out-of-stock';
+    // --- Añadir columnas al DOM ---
+    detalleContainer.appendChild(galleryColumn);
+    detalleContainer.appendChild(infoColumn);
 
-    infoColumn.innerHTML = `
-        <div class="brand-stock-container">
-            <p class="product-brand">${product.marca || 'Macs'}</p>
-            <div class="stock-info">
-                <span class="stock-indicator ${stockClass}">${stockText}</span>
-            </div>
-        </div>
-        <h1>${product.nombre}</h1>
-        <p class="ref">REF: ${product.numero_referencia || 'N/A'}</p>
-        ${priceAndActionsHTML}
-        <div class="descripcion">
-            <h3>Descripción</h3>
-            <p>${product.descripcion ? product.descripcion.replace(/\n/g, '<br>') : 'Sin descripción.'}</p>
+    // --- Llenar la columna de Información ---
+    const brandStockContainer = document.createElement('div');
+    brandStockContainer.className = 'brand-stock-container';
+    brandStockContainer.innerHTML = `
+        <p class="product-brand">${product.marca || 'Macs'}</p>
+        <div class="stock-info">
+            <span class="stock-indicator ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}">
+                ${product.stock > 0 ? `EN STOCK (${product.stock})` : 'AGOTADO'}
+            </span>
         </div>
     `;
-    
-    // --- Contenedor Principal ---
-    const mainContainer = document.createElement('div');
-    mainContainer.className = 'detalle-producto-main';
-    mainContainer.appendChild(galleryColumn);
-    mainContainer.appendChild(infoColumn);
-    detalleContainer.appendChild(mainContainer);
 
-    setupImageGallery(images);
+    const productName = document.createElement('h1');
+    productName.textContent = product.nombre;
+
+    const productRef = document.createElement('p');
+    productRef.className = 'ref';
+    productRef.innerHTML = `<span class="ref-number">REF: ${product.numero_referencia || 'N/A'}</span><span class="unpersonalized-text">¡Gorra sin personalizar!</span>`;
+
+    const priceBoxContainer = document.createElement('div');
+    priceBoxContainer.className = 'price-box-container';
+    priceBoxContainer.innerHTML = `
+        <div class="main-prices">
+            <span id="unit-price" class="price-offer"></span>
+            <span id="total-price" class="price-normal"></span>
+        </div>
+        <div id="discount-message" class="discount-message"></div>
+        <div id="tiered-prices-display" class="tiered-prices"></div>
+    `;
+
+    // --- Tallas ---
+    const sizesContainer = document.createElement('div');
+    sizesContainer.className = 'sizes-container';
+    sizesContainer.innerHTML = `
+        <h3 class="sizes-title">TALLA</h3>
+        <div class="size-options">
+            <button class="size-option selected" disabled>OS</button>
+        </div>
+    `;
+
+    // --- Controles de Compra (Cantidad, Personalizar, Añadir) ---
+    const controlsContainer = document.createElement('div');
+    controlsContainer.className = 'controls-container';
+
+    const personalizeBtnHTML = `<a href="https://wa.me/573204829726?text=Hola,%20estoy%20interesado%20en%20personalizar%20el%20producto:%20${encodeURIComponent(product.nombre)}%20(REF:%20${product.numero_referencia})" target="_blank" class="personalize-btn">Personalizar ahora <i class="fa-brands fa-whatsapp"></i></a>`;
+
+    if (product.stock > 0) {
+        controlsContainer.innerHTML = `
+            <div class="quantity-selector">
+                <button id="decrease-quantity">-</button>
+                <input type="number" id="quantity" value="1" min="1" max="${product.stock}">
+                <button id="increase-quantity">+</button>
+            </div>
+            ${personalizeBtnHTML}
+            <button id="add-to-cart-btn" class="add-to-cart-btn">AÑADIR A LA CESTA</button>
+        `;
+    } else {
+        controlsContainer.innerHTML = personalizeBtnHTML;
+    }
+
+    // --- Descripción ---
+    const descriptionContainer = document.createElement('div');
+    descriptionContainer.className = 'descripcion-container';
+    descriptionContainer.innerHTML = `
+        <h3 class="descripcion-title">Descripción</h3>
+        <p class="descripcion-text">${product.descripcion}</p>
+    `;
+
+    // --- Añadir elementos a la columna de información ---
+    infoColumn.appendChild(brandStockContainer);
+    infoColumn.appendChild(productName);
+    infoColumn.appendChild(productRef);
+    infoColumn.appendChild(priceBoxContainer);
+    infoColumn.appendChild(controlsContainer);
+    infoColumn.appendChild(sizesContainer);
+    infoColumn.appendChild(descriptionContainer);
+
+    // --- Configurar funcionalidades ---
+    // Extrae las imágenes del array 'Imagenes' que viene en el objeto del producto.
+    const productImages = (product.Imagenes && Array.isArray(product.Imagenes))
+        ? product.Imagenes.map(img => img.ruta_imagen).filter(Boolean)
+        : [];
+
+    setupImageGallery(productImages, galleryColumn);
+
     if (product.stock > 0) {
         setupDynamicPricing(product, formatCurrency);
 
-        // Lógica para los botones de cantidad
-        const quantityInput = document.getElementById('quantity-input');
-        const plusBtn = document.querySelector('.quantity-btn.plus');
-        const minusBtn = document.querySelector('.quantity-btn.minus');
+        document.getElementById('add-to-cart-btn').addEventListener('click', () => {
+            const quantityInput = document.getElementById('quantity');
+            const quantity = parseInt(quantityInput.value, 10);
+            if (typeof agregarAlCarrito !== 'undefined') {
+                const currentPrice = parseFloat(quantityInput.dataset.currentPrice) || product.precio;
+                agregarAlCarrito({ ...product, precio: currentPrice }, quantity);
+            } else {
+                console.error('La función agregarAlCarrito no está definida.');
+            }
+        });
 
-        if (quantityInput && plusBtn && minusBtn) {
-            plusBtn.addEventListener('click', () => {
-                let currentValue = parseInt(quantityInput.value);
-                const maxStock = parseInt(quantityInput.max);
-                if (currentValue < maxStock) {
-                    quantityInput.value = currentValue + 1;
-                    quantityInput.dispatchEvent(new Event('input')); // Disparar evento para actualizar precios
-                }
-            });
+        const quantityInput = document.getElementById('quantity');
+        const increaseBtn = document.getElementById('increase-quantity');
+        const decreaseBtn = document.getElementById('decrease-quantity');
 
-            minusBtn.addEventListener('click', () => {
-                let currentValue = parseInt(quantityInput.value);
-                if (currentValue > 1) {
-                    quantityInput.value = currentValue - 1;
-                    quantityInput.dispatchEvent(new Event('input')); // Disparar evento para actualizar precios
-                }
-            });
-        }
+        increaseBtn.addEventListener('click', () => {
+            let currentValue = parseInt(quantityInput.value);
+            if (currentValue < product.stock) {
+                quantityInput.value = currentValue + 1;
+                quantityInput.dispatchEvent(new Event('input'));
+            }
+        });
+
+        decreaseBtn.addEventListener('click', () => {
+            let currentValue = parseInt(quantityInput.value);
+            if (currentValue > 1) {
+                quantityInput.value = currentValue - 1;
+                quantityInput.dispatchEvent(new Event('input'));
+            }
+        });
     }
 }
 
 function setupDynamicPricing(product, formatCurrency) {
-    const quantityInput = document.getElementById('quantity-input');
+    const quantityInput = document.getElementById('quantity');
     if (!quantityInput) return;
 
-    const basePrice = 20000;
+    const basePrice = product.precio;
     const priceTiers = [
         { min: 200, price: 13000 },
         { min: 100, price: 14000 },
         { min: 50, price: 15000 },
         { min: 25, price: 16000 },
         { min: 13, price: 17000 },
-        { min: 1, price: 20000 }
+        { min: 1, price: basePrice }
     ];
 
     const unitPriceEl = document.getElementById('unit-price');
@@ -172,8 +202,8 @@ function setupDynamicPricing(product, formatCurrency) {
             { tier: priceTiers.find(t => t.min === 200), label: "por 200+ unds" },
         ].filter(item => item.tier);
 
-        const row1 = tiersForDisplay.slice(0, 4);
-        const row2 = tiersForDisplay.slice(4);
+        const row1 = tiersForDisplay.slice(0, 3);
+        const row2 = tiersForDisplay.slice(3);
 
         const generateHtml = (tiers) => tiers.map(item => `
             <div class="tiered-price-item">
@@ -184,7 +214,7 @@ function setupDynamicPricing(product, formatCurrency) {
 
         tieredPricesDisplayEl.innerHTML = `
             <div class="tiered-prices-row">${generateHtml(row1)}</div>
-            <div class="tiered-prices-row centered-row">${generateHtml(row2)}</div>
+            <div class="tiered-prices-row">${generateHtml(row2)}</div>
         `;
     }
 
@@ -200,13 +230,13 @@ function setupDynamicPricing(product, formatCurrency) {
         const totalPrice = unitPrice * quantity;
 
         if (unitPriceEl) unitPriceEl.textContent = formatCurrency(unitPrice);
-        if (totalPriceEl) totalPriceEl.textContent = formatCurrency(totalPrice);
+        if (totalPriceEl) totalPriceEl.textContent = `Total: ${formatCurrency(totalPrice)}`;
         if (quantityInput) quantityInput.dataset.currentPrice = unitPrice;
 
         if (discountMessageEl) {
-            if (quantity > 12) {
+            if (unitPrice < basePrice) {
                 const totalDiscount = (basePrice - unitPrice) * quantity;
-                discountMessageEl.textContent = `Descuento de ${formatCurrency(totalDiscount)} por ${quantity} unidades`;
+                discountMessageEl.textContent = `¡Ahorras ${formatCurrency(totalDiscount)}!`;
                 discountMessageEl.style.display = 'block';
             } else {
                 discountMessageEl.textContent = '';
@@ -217,84 +247,67 @@ function setupDynamicPricing(product, formatCurrency) {
 
     quantityInput.addEventListener('input', () => updatePrices(parseInt(quantityInput.value, 10)));
     updatePrices(parseInt(quantityInput.value, 10));
-
-    const addToCartBtn = document.getElementById('add-to-cart-main');
-    if(addToCartBtn) {
-        addToCartBtn.addEventListener('click', () => {
-            if (typeof agregarAlCarrito !== 'undefined') {
-                const selectedQuantity = parseInt(quantityInput.value, 10);
-                const currentPrice = parseFloat(quantityInput.dataset.currentPrice) || product.precio;
-                agregarAlCarrito({ ...product, precio: currentPrice, cantidad: selectedQuantity });
-            }
-        });
-    }
 }
 
-function setupImageGallery(images) {
-    const mainImage = document.getElementById('main-product-image');
-    const thumbnailsContainer = document.getElementById('thumbnails');
-    const allThumbnails = thumbnailsContainer.querySelectorAll('.thumbnail-item');
-    const prevBtn = document.getElementById('slider-prev');
-    const nextBtn = document.getElementById('slider-next');
-    
-    let currentIndex = 0;
+function setupImageGallery(images, container) {
+    if (!container) return;
 
-    function updateMainImage(index) {
-        currentIndex = index;
-        const newSrc = getImageUrl(images[index]);
-        mainImage.src = newSrc;
-        allThumbnails.forEach(thumb => thumb.classList.remove('active'));
-        thumbnailsContainer.querySelector(`[data-index="${index}"]`).classList.add('active');
+    // Si no hay imágenes, muestra un placeholder
+    if (!images || images.length === 0) {
+        container.innerHTML = `<img src="https://via.placeholder.com/500x500.png?text=Imagen+no+disponible" alt="Imagen no disponible" style="width: 100%; border-radius: 12px;">`;
+        return;
     }
 
-    thumbnailsContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('thumbnail-item')) {
-            updateMainImage(parseInt(e.target.dataset.index, 10));
-        }
+    // Genera la estructura HTML de Swiper
+    container.innerHTML = `
+        <!-- Slider Principal -->
+        <div style="--swiper-navigation-color: #000; --swiper-pagination-color: #000" class="swiper gallery-top">
+            <div class="swiper-wrapper">
+                ${images.map(img => `
+                    <div class="swiper-slide">
+                        <img src="${getImageUrl(img)}" alt="Imagen del producto">
+                    </div>
+                `).join('')}
+            </div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+
+        <!-- Miniaturas -->
+        <div class="swiper gallery-thumbs">
+            <div class="swiper-wrapper">
+                ${images.map(img => `
+                    <div class="swiper-slide">
+                        <img src="${getImageUrl(img)}" alt="Miniatura del producto">
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    // Inicializa Swiper
+    const galleryThumbs = new Swiper(container.querySelector('.gallery-thumbs'), {
+        spaceBetween: 10,
+        slidesPerView: 5,
+        freeMode: true,
+        watchSlidesProgress: true,
+        centerInsufficientSlides: true,
     });
 
-    prevBtn.addEventListener('click', () => {
-        const newIndex = (currentIndex - 1 + images.length) % images.length;
-        updateMainImage(newIndex);
+    const galleryTop = new Swiper(container.querySelector('.gallery-top'), {
+        spaceBetween: 10,
+        navigation: {
+            nextEl: container.querySelector('.swiper-button-next'),
+            prevEl: container.querySelector('.swiper-button-prev'),
+        },
+        thumbs: {
+            swiper: galleryThumbs,
+        },
     });
 
-    nextBtn.addEventListener('click', () => {
-        const newIndex = (currentIndex + 1) % images.length;
-        updateMainImage(newIndex);
-    });
-
-    // --- New In-place Zoom & Modal Trigger ---
-    const mainImageContainer = mainImage.parentElement;
-    const zoomFactor = 1.75;
-
-    mainImageContainer.addEventListener('mousemove', (e) => {
-        if (window.innerWidth < 992) return;
-        const rect = mainImageContainer.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const xPercent = (x / rect.width) * 100;
-        const yPercent = (y / rect.height) * 100;
-
-        mainImage.style.transformOrigin = `${xPercent}% ${yPercent}%`;
-    });
-
-    mainImageContainer.addEventListener('mouseenter', () => {
-        if (window.innerWidth < 992) return;
-        mainImage.style.transform = `scale(${zoomFactor})`;
-    });
-
-    mainImageContainer.addEventListener('mouseleave', () => {
-        mainImage.style.transform = 'scale(1)';
-        mainImage.style.transformOrigin = 'center center';
-    });
-
-    mainImageContainer.addEventListener('click', (e) => {
-        // Prevent modal from opening when clicking nav buttons
-        if (e.target.classList.contains('gallery-nav-btn')) {
-            return;
-        }
-        openImageModal(images, currentIndex);
+    // Abrir modal al hacer clic
+    galleryTop.on('click', function () {
+        openImageModal(images, this.realIndex);
     });
 }
 

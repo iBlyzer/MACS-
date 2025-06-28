@@ -1,3 +1,41 @@
+/* Estilos para el botón de añadir a la cesta */
+.add-to-cart-btn {
+    background-color: #dc3545; /* Rojo */
+    color: #fff;
+    border: none;
+    padding: 10px 15px; /* Más pequeño que el original */
+    font-size: 0.9em; /* Texto más pequeño */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.add-to-cart-btn:hover {
+    background-color: #c82333; /* Rojo más oscuro al pasar el ratón */
+}
+
+/* Estilos para el contenedor de acciones */
+.actions-wrapper {
+    display: flex;
+    align-items: center; /* Centra verticalmente los elementos */
+    gap: 10px; /* Espacio entre elementos */
+    margin-top: 20px;
+    flex-wrap: wrap; /* Permite que los elementos pasen a la siguiente línea si no hay espacio */
+}
+
+.actions-wrapper .quantity-control {
+    flex-shrink: 0; /* Evita que el control de cantidad se encoja */
+}
+
+.actions-wrapper .personalize-btn {
+    flex-shrink: 0; /* Evita que el botón se encoja */
+    text-align: center;
+}
+
+.actions-wrapper .add-to-cart-btn {
+    flex-shrink: 0; /* Evita que el botón de añadir a la cesta se encoja */
+}
+
+
 /* Estilos específicos para la página de detalle del producto */
 
 /* Estilos para el contenedor de subcategoría y stock */
@@ -143,7 +181,7 @@
     font-size: 1em;
     color: #333;
     margin: 0 0 10px 0;
-    text-align: left;
+    line-height: 1.2;
 }
 
 .descripcion-text {
@@ -154,98 +192,27 @@
     text-align: left;
 }
 
-/* Contenedor de acciones: selector de cantidad y botón de añadir */
-/* Contenedor de acciones: selector de cantidad y botón de añadir */
-
-.product-add-to-cart {
+.detalle-info .ref {
+    margin-bottom: 15px;
     display: flex;
-    align-items: flex-end; /* Alinear en la parte inferior */
-    gap: 15px;
-    width: 100%;
-}
-
-/* Estilos para el nuevo selector de cantidad */
-.quantity-wrapper {
-    display: flex;
-    margin-top: -30px;
     flex-direction: column;
+    align-items: flex-start;
 }
 
-.quantity-title {
-    font-weight: 700;
-    margin-bottom: 8px;
-    font-size: 0.9em;
-    color: #111;
-    text-transform: uppercase;
-}
-
-.quantity-selector {
-    display: flex;
-    border: 2px solid #111;
-    border-radius: 6px;
-    overflow: hidden;
-    width: -moz-fit-content;
-    width: fit-content;
-}
-
-.quantity-btn {
-    background-color: #f7f7f7;
-    border: none;
-    padding: 8px 12px;
-    cursor: pointer;
-    font-size: 1.4em;
-    font-weight: 300;
-    color: #666;
-    transition: background-color 0.2s;
-    line-height: 1;
-}
-
-.quantity-btn:hover {
-    background-color: #e9e9e9;
-}
-
-#quantity-input {
-    width: 45px;
-    text-align: center;
-    border: none;
-    border-left: 1px solid #e0e0e0;
-    border-right: 1px solid #e0e0e0;
-    font-size: 1.1em;
-    font-weight: 500;
-    background-color: #fff;
-    -moz-appearance: textfield;
-    appearance: textfield;
-}
-
-#quantity-input::-webkit-outer-spin-button,
-#quantity-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-/* Estilos mejorados para el botón de añadir a la cesta */
-
-#add-to-cart-btn {
-    text-align: center;
-    flex-grow: 1; /* Ocupa el espacio restante */
-    background-color: #1a1a1a;
-    color: #fff;
-    text-transform: uppercase;
-    border: none;
-    padding: 12px 20px;
+.detalle-info .ref .ref-number,
+.detalle-info .ref .unpersonalized-text {
+    font-size: 1.2em;
     font-weight: bold;
-    font-size: 1em;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
-    height: 48px; /* Misma altura que el botón de personalizar */
-    box-sizing: border-box;
-    white-space: nowrap; /* Evita que el texto se parta */
+    color: #333;
 }
 
-#add-to-cart-btn:active {
-    transform: scale(0.98);
+.detalle-info .ref .unpersonalized-text {
+    margin-top: 5px;
+    font-weight: normal;
+    color: #555;
 }
+
+/* El bloque de estilos antiguo para los controles de acción (líneas 195-286) ha sido eliminado para evitar conflictos. */
 
 .macs-stock-row {
   display: flex;
@@ -263,7 +230,7 @@
   font-weight: bold;
   border-radius: 20px;
   padding: 4px 18px;
-  font-size: 0.95em
+  font-size: 0.95em;
 }
 
 .price-box {
@@ -360,12 +327,94 @@
     max-width: 500px;
     width: 100%; /* Dejar que flex-basis controle el ancho */
   border-radius: 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
-  /* Se elimina el margin-top para que flex-start haga su trabajo */
+}
+
+/* ============================================= */
+/* === ESTILOS PARA ALINEACIÓN DE CONTROLES === */
+/* ============================================= */
+
+/* 1. Contenedor principal para los controles */
+.controls-container {
+    display: flex;
+    flex-wrap: nowrap !important; /* CRÍTICO: No permite que los elementos se apilen */
+    align-items: center; /* Centra verticalmente todos los elementos */
+    gap: 12px; /* Espacio uniforme entre elementos */
+    margin-top: -5px;
+}
+
+/* 2. Estética del selector de cantidad */
+.quantity-selector {
+    display: flex;
+    height: 48px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0; /* No permitir que se encoja */
+}
+
+.quantity-selector button {
+    background-color: #f5f5f5;
+    border: none;
+    width: 40px;
+    cursor: pointer;
+    font-size: 1.5em;
+    color: #555;
+    transition: background-color 0.2s;
+}
+.quantity-selector button:hover { background-color: #e8e8e8; }
+
+.quantity-selector input {
+    width: 50px;
+    text-align: center;
+    border: none;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #333;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+.quantity-selector input::-webkit-outer-spin-button, .quantity-selector input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* 3. Estilos comunes y alineación de botones */
+.controls-container .add-to-cart-btn,
+.controls-container .personalize-btn {
+    height: 48px;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.9em;
+    cursor: pointer;
+    white-space: nowrap; /* Evita que el texto se parta */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* No permitir que se encojan */
+    transition: background-color 0.3s;
+}
+
+/* 4. Estilos específicos por botón */
+.controls-container .add-to-cart-btn {
+    background-color: #1a1a1a;
+    color: #fff;
+    border: none;
+}
+.controls-container .add-to-cart-btn:hover { background-color: #333; }
+
+.controls-container .personalize-btn {
+    background-color: #25D366;
+    color: white;
+    text-decoration: none;
+}
+
+.controls-container .personalize-btn:hover { 
+    background-color: #1EBE57; 
+}
+
+.controls-container .personalize-btn i {
+    margin-left: 10px;
+    font-size: 1.2em;
 }
 
 .detalle-info {
@@ -794,9 +843,9 @@
 
 /* Botón de agregar al carrito */
 .detalle-info .add-to-cart-btn {
-  width: 100%;
+  width: 200px;
   padding: 15px;
-  font-size: 1.1em;
+  font-size: 1em;
   background-color: #000;
   color: #fff;
   border: 1px solid #000;
@@ -940,7 +989,7 @@
 
 /* Botón de personalizar */
 .personalize-btn {
-    width: 100%;
+    width: 200px;
     background-color: #25D366;
     color: white;
     border: none;
