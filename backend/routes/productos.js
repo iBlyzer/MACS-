@@ -304,7 +304,7 @@ router.get('/recomendados', async (req, res) => {
   try {
     // Seleccionamos todos los campos necesarios y filtramos por activos
     const query = `
-      SELECT p.id, p.nombre, p.marca, p.precio, p.activo, ${imageFields.map(f => `p.${f}`).join(', ')}
+      SELECT p.id, p.nombre, p.marca, p.precio, p.stock, p.activo, ${imageFields.map(f => `p.${f}`).join(', ')}
       FROM productos p
       WHERE p.categoria_id = ? AND p.id != ? AND p.activo = TRUE
       ORDER BY RAND()

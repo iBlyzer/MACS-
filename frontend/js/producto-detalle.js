@@ -467,29 +467,29 @@ function openImageModal(product, startIndex) {
 }
 
 async function cargarRecomendados(categoriaId, excludeId) {
+    const recomendadosSection = document.getElementById('recomendados');
     const sliderContainer = document.querySelector('#recomendados-slider');
     const swiperWrapper = sliderContainer ? sliderContainer.querySelector('.swiper-wrapper') : null;
-    const recomendadosSection = document.getElementById('recomendados');
 
-    if (!sliderContainer || !swiperWrapper) {
+    // Ocultar la sección por defecto y si falta algún elemento esencial.
+    if (!recomendadosSection || !sliderContainer || !swiperWrapper) {
         if (recomendadosSection) recomendadosSection.style.display = 'none';
+        console.error('Elementos DOM necesarios para la sección de recomendados no fueron encontrados.');
         return;
     }
-
-    const productsMap = new Map();
+    recomendadosSection.style.display = 'none';
 
     try {
         const response = await fetch(`http://localhost:3001/api/productos/recomendados?categoriaId=${categoriaId}&excludeId=${excludeId}&limit=8`);
-        if (!response.ok) throw new Error('No se pudieron cargar las recomendaciones.');
+        if (!response.ok) {
+            throw new Error('La respuesta del servidor no fue exitosa.');
+        }
         
         const recommendedProducts = await response.json();
 
-        if (recommendedProducts.length < 4) {
-            if (recomendadosSection) recomendadosSection.style.display = 'none';
-            return;
-        }
-
+        // Limpiar el contenedor antes de agregar nuevos elementos.
         swiperWrapper.innerHTML = '';
+        const productsMap = new Map();
         let productsAdded = 0;
 
         recommendedProducts.forEach(product => {
@@ -505,32 +505,35 @@ async function cargarRecomendados(categoriaId, excludeId) {
                 const stockHTML = `<div class="stock-info-slider"><span class="stock-indicator-slider in-stock-slider">EN STOCK (${product.stock})</span></div>`;
                 const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(product.precio);
 
-                const slideHTML = `
-                    <div class="swiper-slide">
-                        <div class="product-card">
-                            <a href="producto-detalle.html?id=${productId}" class="product-card__link">
-                                <div class="product-card__image-container">
-                                    <img src="${imagenUrl}" alt="${product.nombre}" class="product-card__image">
-                                    <div class="product-card__overlay"><i class="fas fa-eye"></i></div>
-                                </div>
-                                <div class="product-card__info">
-                                    ${marcaHTML}
-                                    ${stockHTML}
-                                    <p class="product-card__name">${product.nombre}</p>
-                                    <p class="product-card__price">${precioFormateado}</p>
-                                </div>
-                            </a>
-                            <button class="product-card__add-to-cart-btn" data-product-id="${productId}">AGREGAR AL CARRITO</button>
-                        </div>
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                slide.innerHTML = `
+                    <div class="product-card">
+                        <a href="producto-detalle.html?id=${productId}" class="product-card__link">
+                            <div class="product-card__image-container">
+                                <img src="${imagenUrl}" alt="${product.nombre}" class="product-card__image">
+                                <div class="product-card__overlay"><i class="fas fa-eye"></i></div>
+                            </div>
+                            <div class="product-card__info">
+                                ${marcaHTML}
+                                ${stockHTML}
+                                <p class="product-card__name">${product.nombre}</p>
+                                <p class="product-card__price">${precioFormateado}</p>
+                            </div>
+                        </a>
+                        <button class="product-card__add-to-cart-btn" data-product-id="${productId}">AGREGAR AL CARRITO</button>
                     </div>`;
-                swiperWrapper.innerHTML += slideHTML;
+                swiperWrapper.appendChild(slide);
             }
         });
 
-        if (productsAdded === 0) {
-            if (recomendadosSection) recomendadosSection.style.display = 'none';
-            return;
+        // Solo mostrar la sección si hay suficientes productos para el carrusel.
+        if (productsAdded < 4) {
+            return; // La sección ya está oculta por defecto.
         }
+
+        // Si todo está bien, mostrar la sección e inicializar Swiper.
+        recomendadosSection.style.display = 'block';
 
         new Swiper(sliderContainer, {
             slidesPerView: 1,
@@ -546,28 +549,23 @@ async function cargarRecomendados(categoriaId, excludeId) {
             }
         });
 
-    } catch (error) {
-        console.error('Error al cargar productos recomendados:', error);
-        if (recomendadosSection) {
-            recomendadosSection.style.display = 'none';
-        }
-    }
+        // Delegación de eventos para los botones de agregar al carrito.
+        sliderContainer.addEventListener('click', (event) => {
+            if (event.target.matches('.product-card__add-to-cart-btn')) {
+                const productId = event.target.getAttribute('data-product-id');
+                const product = productsMap.get(productId);
 
-    sliderContainer.addEventListener('click', (event) => {
-        if (event.target.matches('.product-card__add-to-cart-btn')) {
-            const productId = event.target.getAttribute('data-product-id');
-            const product = productsMap.get(productId);
-
-            if (product) {
-                if (typeof agregarAlCarrito === 'function') {
+                if (product && typeof agregarAlCarrito === 'function') {
                     agregarAlCarrito(product);
                 } else {
-                    console.error('La función agregarAlCarrito no está definida.');
+                    console.error('Error al intentar agregar el producto recomendado al carrito.');
                 }
-            } else {
-                console.error('Producto recomendado no encontrado en el mapa:', productId);
             }
-        }
-    });
-}
+        });
 
+    } catch (error) {
+        console.error('Error al cargar productos recomendados:', error);
+        // Asegurarse de que la sección esté oculta si hay un error.
+        recomendadosSection.style.display = 'none';
+    }
+}
