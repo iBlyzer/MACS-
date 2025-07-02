@@ -72,8 +72,21 @@
                             <label for="precio">Precio:</label>
                             <input type="number" id="precio" name="precio" step="0.01" required>
                         </div>
-                        <div class="form-group">
-                            <label for="stock">Stock:</label>
+                        <div class="form-group-inline">
+                            <input type="checkbox" id="tiene_tallas" name="tiene_tallas" style="width: auto; margin-right: 10px;">
+                            <label for="tiene_tallas">¿El producto tiene tallas específicas?</label>
+                        </div>
+
+                        <div id="tallas-section" style="display: none; border: 1px solid #eee; padding: 10px; border-radius: 5px;">
+                            <label>Tallas y Stock:</label>
+                            <div id="tallas-list">
+                                <!-- Las tallas se añadirán aquí dinámicamente -->
+                            </div>
+                            <button type="button" id="add-talla-btn" class="btn-secondary" style="margin-top: 10px;">Añadir Talla</button>
+                        </div>
+                        
+                        <div id="stock-general-section" class="form-group">
+                            <label for="stock">Stock General:</label>
                             <input type="number" id="stock" name="stock" required>
                         </div>
                         <div class="form-group">
@@ -98,6 +111,9 @@
                         </div>
                     </div>
                     <div class="form-column">
+                        <div class="form-group">
+                            <h5>Seleccionar Imágenes</h5>
+                        </div>
                         <div id="image-previews-container"></div>
                         <div class="image-count-container">
                             <span id="image-count">0/6</span> imágenes cargadas

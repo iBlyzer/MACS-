@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Productos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .image-preview {
+            width: 100px;
+            height: 100px;
+            border: 1px solid #ddd;
+            background-size: cover;
+            background-position: center;
+            display: inline-block;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Gestión de Productos</h2>
+        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#productModal" id="addProductBtn">Añadir Producto</button>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Marca</th>
+                    <th>Precio</th>
+                    <th>Stock Total</th>
+                    <th>Activo</th>
+                    <th>Dest.</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="productsTableBody">
+                <!-- Los productos se cargarán aquí -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal para Crear/Editar Producto -->
+    <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productModalLabel">Añadir Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="productForm" enctype="multipart/form-data">
+                        <input type="hidden" id="productId" name="id">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nombre" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="marca" class="form-label">Marca</label>
+                                <input type="text" class="form-control" id="marca" name="marca">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                             <div class="col-md-4 mb-3">
+                                <label for="precio" class="form-label">Precio</label>
+                                <input type="number" class="form-control" id="precio" name="precio" step="0.01" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="categoria" class="form-label">Categoría</label>
+                                <select class="form-select" id="categoria" name="categoria_id" required></select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="subcategoria" class="form-label">Subcategoría</label>
+                                <select class="form-select" id="subcategoria" name="subcategoria_id"></select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="tiene_tallas" name="tiene_tallas" value="true">
+                            <label class="form-check-label" for="tiene_tallas">
+                                ¿El producto tiene tallas específicas?
+                            </label>
+                        </div>
+
+                        <div id="stock-general-section" class="mb-3">
+                            <label for="stock" class="form-label">Stock General</label>
+                            <input type="number" class="form-control" id="stock" name="stock" required>
+                        </div>
+
+                        <div id="tallas-section" class="mb-3" style="display: none;">
+                            <label class="form-label">Tallas y Stock</label>
+                            <div id="tallas-container">
+                                <!-- Las tallas se añadirán aquí dinámicamente -->
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm mt-2" id="addTallaBtn">Añadir Talla</button>
+                        </div>
+
+                        <div class="row">
+                             <div class="col-md-6 mb-3">
+                                <label for="activo" class="form-label">Activo</label>
+                                <select class="form-select" id="activo" name="activo">
+                                    <option value="true">Sí</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="destacado" class="form-label">Destacado</label>
+                                <select class="form-select" id="destacado" name="destacado">
+                                    <option value="true">Sí</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <h6>Imágenes</h6>
+                            <div class="row" id="image-fields-container">
+                                <!-- Los campos de imagen se agregarán aquí dinámicamente -->
+                            </div>
+                            <div id="image-previews-container" class="mt-2"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Guardar Producto</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

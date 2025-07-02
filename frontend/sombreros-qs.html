@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Macs - Cesta de Compras</title>
+  <title>Sombreros QS - Macs Legacy</title>
   <link rel="icon" href="http://localhost:3000/assets/macs-agencia.png?v=2" type="image/png">
   <link rel="stylesheet" href="css/styles.css" />
-  <link rel="stylesheet" href="css/cesta.css" />
+  <link rel="stylesheet" href="css/productos.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
@@ -67,9 +67,6 @@
         </button>
     </header>
 
-
-
-  <!-- Botón flotante de WhatsApp y Widget -->
   <div class="whatsapp-container" id="whatsappContainer">
     <div class="whatsapp-widget" id="whatsappWidget">
         <div class="widget-header">
@@ -96,7 +93,6 @@
     </button>
   </div>
 
-  <!-- Floating Nav Button & Modal -->
   <button class="floating-btn" id="floatingNavButton">
     <span class="icon-bars"></span>
   </button>
@@ -116,38 +112,19 @@
     </ul>
   </div>
 
-  <main class="cesta-container">
-    <div id="cesta-vacia">
-        <h2>TODOS LOS ARTÍCULOS (0)</h2>
-        <div class="cesta-vacia-contenido">
-            <div class="icono-cesta-vacia">&#128722;</div>
-            <p>TU BOLSA ESTÁ VACÍO</p>
-            <a href="productos-macs.html" class="boton-comprar">COMPRAR AHORA</a>
-        </div>
-    </div>
-
-    <div id="cesta-con-items" style="display: none;">
-        <!-- Los artículos de la cesta se insertarán aquí dinámicamente -->
-    </div>
-
-    <div class="resumen-pedido">
-        <h3>Resumen Del Pedido</h3>
-        <div class="resumen-linea">
-            <span>Subtotal:</span>
-            <span id="subtotal-cesta">$0</span>
-        </div>
-        <div class="resumen-linea descuento-linea">
-            <span>Descuento por volumen:</span>
-            <span id="descuento-cesta">-$0</span>
-        </div>
-        <div class="total-pedido">
-            <span>Total:</span>
-            <span id="precio-total">$0</span>
-        </div>
-        <button id="pagar-ahora" class="boton-pagar" disabled>Pagar ahora</button>
-    </div>
-</main>
-
+  <main class="productos-pagina">
+    <section id="productos-qs" data-categoria="Sombreros" data-subcategoria="QS">
+      <h2>Sombreros QS</h2>
+            <div class="search-container" style="text-align: center; margin-bottom: 20px;">
+        <input type="text" id="search-input" placeholder="Buscar en esta categoría..." style="width: 80%; max-width: 400px; padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc;">
+      </div>
+      <div id="productos-container" class="productos-grid">
+      </div>
+      <div id="loader" class="loader-container" style="display: none;">
+        <div class="loader-icon"></div>
+      </div>
+    </section>
+  </main>
 
   <footer class="footer-container">
     <div class="footer-main">
@@ -178,8 +155,7 @@
 
   <script src="js/nav.js"></script>
   <script src="js/cart.js"></script>
-  <script src="js/pricing.js"></script>
-  <script src="js/cesta.js"></script>
+  <script src="js/productos.js"></script>
   <script src="js/animations.js"></script>
 </body>
 </html>

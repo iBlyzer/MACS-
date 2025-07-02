@@ -10,8 +10,8 @@ function createProductLinkElement(product) {
 
     const imagenUrl = product.imagen_3_4 || product.imagen_icono || product.imagen_url;
     const imagenUrlCompleta = imagenUrl
-        ? `http://localhost:3001${imagenUrl}`
-        : 'https://via.placeholder.com/300x300.png?text=Imagen no disponible';
+        ? `http://localhost:3000${imagenUrl}`
+        : '/assets/logo.png';
 
     const stock = parseInt(product.stock, 10) || 0;
     const stockText = `EN STOCK (${stock})`;
@@ -25,7 +25,7 @@ function createProductLinkElement(product) {
     card.innerHTML = `
         <a href="producto-detalle.html?id=${product.id}" class="product-card__link">
             <div class="product-card__image-container">
-                <img src="${imagenUrlCompleta}" alt="${product.nombre}" class="product-card__image" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300.png?text=Imagen no disponible';">
+                <img src="${imagenUrlCompleta}" alt="${product.nombre}" class="product-card__image" onerror="this.onerror=null;this.src='/assets/logo.png';">
                 <div class="product-card__overlay"><i class="fas fa-eye"></i></div>
             </div>
             <div class="product-card__info">
@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  const API_URL = 'http://localhost:3001/api/productos';
+  const API_URL = 'http://localhost:3000/api/productos';
   let allProductsInCategory = [];
   let currentlyDisplayedProducts = [];
   let productsLoaded = 0;
@@ -71,20 +71,27 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!productPageContainer) return;
 
     const categorySection = document.querySelector('main.productos-pagina > section');
-    let brandName = '';
     let categoryFilter = '';
+    let subcategoryFilter = '';
+    let brandName = ''; // For backward compatibility with Gorras pages
 
     if (categorySection) {
-        if (categorySection.id) {
-            brandName = categorySection.id.replace('productos-', '');
-        }
+        // Get primary category filter
         if (categorySection.dataset.categoria) {
             categoryFilter = categorySection.dataset.categoria.toLowerCase();
         }
+        // Get sub-category filter (new method)
+        if (categorySection.dataset.subcategoria) {
+            subcategoryFilter = categorySection.dataset.subcategoria.toLowerCase();
+        }
+        // Get brand from ID (old method for Gorras)
+        if (categorySection.id && !subcategoryFilter) {
+             brandName = categorySection.id.replace('productos-', '');
+        }
     }
 
-    if (!brandName || !categoryFilter) {
-      console.error("No se pudo determinar la marca o categoría de la página.");
+    if (!categoryFilter) {
+      console.error("No se pudo determinar la categoría de la página.");
       productPageContainer.innerHTML = "<p>Error: Configuración de página incompleta.</p>";
       return;
     }
@@ -95,17 +102,26 @@ document.addEventListener("DOMContentLoaded", () => {
       const allProducts = await response.json();
 
       allProductsInCategory = allProducts.filter(p => {
-        // La propiedad correcta es 'categoria_nombre', no 'categoria'.
-        if (!p.marca || !p.categoria_nombre) return false;
+        const categoriaLowerCase = (p.categoria_nombre || '').toLowerCase();
         
-        const marcaLowerCase = p.marca.toLowerCase();
-        const categoriaLowerCase = p.categoria_nombre.toLowerCase();
-        
-        const brandMatch = brandName.includes(marcaLowerCase) || marcaLowerCase.includes(brandName);
-        // Hacemos el filtro de categoría más flexible (ej. 'gorras' coincide con 'gorra')
-        const categoryMatch = categoryFilter.includes(categoriaLowerCase) || categoriaLowerCase.includes(categoryFilter);
+        // 1. Must match the main category
+        if (categoriaLowerCase !== categoryFilter) {
+            return false;
+        }
 
-        return brandMatch && categoryMatch;
+        // 2. Apply sub-filter
+        if (subcategoryFilter) {
+            // New method: filter by subcategory
+            const subcategoriaLowerCase = (p.subcategoria_nombre || '').toLowerCase();
+            return subcategoriaLowerCase === subcategoryFilter;
+        } else if (brandName) {
+            // Old method: filter by brand (for Gorras)
+            const marcaLowerCase = (p.marca || '').toLowerCase();
+            return marcaLowerCase === brandName;
+        }
+        
+        // Fallback for pages with only a category (if any)
+        return true;
       });
       currentlyDisplayedProducts = [...allProductsInCategory];
 

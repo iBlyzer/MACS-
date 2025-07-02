@@ -16,9 +16,9 @@ function getImageUrl(imagePath) {
     }
     // Evita duplicar el slash si la ruta ya lo incluye
     if (imagePath.startsWith('/')) {
-        return `http://localhost:3001${imagePath}`;
+        return `http://localhost:3000${imagePath}`;
     }
-    return `http://localhost:3001/${imagePath}`;
+    return `http://localhost:3000/${imagePath}`;
 }
 
 /**

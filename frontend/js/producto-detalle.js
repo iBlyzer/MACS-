@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    const response = await fetch(`http://localhost:3001/api/productos/${productoId}`);
+    const response = await fetch(`http://localhost:3000/api/productos/${productoId}`);
     if (!response.ok) {
       throw new Error('Producto no encontrado');
     }
@@ -26,22 +26,37 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function getImageUrl(imagePath) {
     if (!imagePath || typeof imagePath !== 'string' || imagePath.trim() === '') {
-        return 'https://via.placeholder.com/400x400.png?text=Imagen';
+        return '/assets/logo.png';
     }
-    return `http://localhost:3001${imagePath}`;
+    return `http://localhost:3000${imagePath}`;
 }
 
 function renderizarProductoPrincipal(product) {
     const detalleContainer = document.getElementById('detalle-producto-container');
     if (!detalleContainer) return;
 
-    detalleContainer.innerHTML = ''; // Limpiar contenido anterior
-
     const formatCurrency = (value) => new Intl.NumberFormat('es-CO', {
         style: 'currency', currency: 'COP', minimumFractionDigits: 0
     }).format(value);
 
-    // --- Crear columnas principales ---
+    // --- Estado de tallas y stock ---
+    const hasTallas = Array.isArray(product.tallas) && product.tallas.length > 0;
+    const tallasDisponibles = hasTallas ? product.tallas.filter(t => (parseInt(t.stock, 10) || 0) > 0) : [];
+    const stockTotal = hasTallas 
+        ? product.tallas.reduce((total, talla) => total + (parseInt(talla.stock, 10) || 0), 0)
+        : (parseInt(product.stock, 10) || 0);
+
+    let selectedTalla = null;
+    let currentStock = stockTotal;
+
+    if (hasTallas && tallasDisponibles.length > 0) {
+        selectedTalla = tallasDisponibles[0];
+        currentStock = parseInt(selectedTalla.stock, 10) || 0;
+    }
+
+    detalleContainer.innerHTML = ''; // Limpiar
+
+    // --- Columnas principales ---
     const galleryColumn = document.createElement('div');
     galleryColumn.className = 'product-gallery';
     const infoColumn = document.createElement('div');
@@ -49,14 +64,14 @@ function renderizarProductoPrincipal(product) {
     detalleContainer.appendChild(galleryColumn);
     detalleContainer.appendChild(infoColumn);
 
-    // --- Llenar la columna de Información ---
+    // --- Contenido de la columna de información ---
     const brandStockContainer = document.createElement('div');
     brandStockContainer.className = 'brand-stock-container';
     brandStockContainer.innerHTML = `
         <p class="product-brand">${product.marca || 'Macs'}</p>
         <div class="stock-info">
-            <span class="stock-indicator ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}">
-                ${product.stock > 0 ? `EN STOCK (${product.stock})` : 'AGOTADO'}
+            <span id="stock-indicator" class="stock-indicator ${stockTotal > 0 ? 'in-stock' : 'out-of-stock'}">
+                ${stockTotal > 0 ? 'EN STOCK' : 'AGOTADO'}
             </span>
         </div>
     `;
@@ -66,7 +81,13 @@ function renderizarProductoPrincipal(product) {
 
     const productRef = document.createElement('p');
     productRef.className = 'ref';
-    productRef.innerHTML = `<span class="ref-number">REF: ${product.numero_referencia || 'N/A'}</span><span class="unpersonalized-text">¡Gorra sin personalizar!</span>`;
+    let tipoProducto = 'Producto';
+    if (product.nombre.toLowerCase().includes('gorra')) {
+        tipoProducto = 'Gorra';
+    } else if (product.nombre.toLowerCase().includes('sombrero')) {
+        tipoProducto = 'Sombrero';
+    }
+    productRef.innerHTML = `<span class="ref-number">REF: ${product.numero_referencia || 'N/A'}</span><span class="unpersonalized-text">¡${tipoProducto} sin personalizar!</span>`;
 
     const priceBoxContainer = document.createElement('div');
     priceBoxContainer.className = 'price-box-container';
@@ -81,30 +102,9 @@ function renderizarProductoPrincipal(product) {
 
     const sizesContainer = document.createElement('div');
     sizesContainer.className = 'sizes-container';
-    sizesContainer.innerHTML = `
-        <h3 class="sizes-title">TALLA</h3>
-        <div class="size-options">
-            <button class="size-option selected" disabled>OS</button>
-        </div>
-    `;
 
     const controlsContainer = document.createElement('div');
     controlsContainer.className = 'controls-container';
-    const personalizeBtnHTML = `<a href="https://wa.me/573019998933?text=Hola,%20estoy%20interesado%20en%20personalizar%20el%20producto:%20${encodeURIComponent(product.nombre)}%20(REF:%20${product.numero_referencia})" target="_blank" class="personalize-btn">Personalizar ahora <i class="fa-brands fa-whatsapp"></i></a>`;
-
-    if (product.stock > 0) {
-        controlsContainer.innerHTML = `
-            <div class="quantity-selector">
-                <button id="decrease-quantity">-</button>
-                <input type="number" id="quantity" value="1" min="1" max="${product.stock}">
-                <button id="increase-quantity">+</button>
-            </div>
-            ${personalizeBtnHTML}
-            <button id="add-to-cart-btn" class="add-to-cart-btn">AÑADIR A LA CESTA</button>
-        `;
-    } else {
-        controlsContainer.innerHTML = personalizeBtnHTML;
-    }
 
     const descriptionContainer = document.createElement('div');
     descriptionContainer.className = 'descripcion-container';
@@ -113,34 +113,24 @@ function renderizarProductoPrincipal(product) {
         <p class="descripcion-text">${product.descripcion}</p>
     `;
 
-    infoColumn.appendChild(brandStockContainer);
-    infoColumn.appendChild(productName);
-    infoColumn.appendChild(productRef);
-    infoColumn.appendChild(priceBoxContainer);
-    infoColumn.appendChild(controlsContainer);
-    infoColumn.appendChild(sizesContainer);
-    infoColumn.appendChild(descriptionContainer);
+    infoColumn.append(brandStockContainer, productName, productRef, priceBoxContainer, sizesContainer, controlsContainer, descriptionContainer);
 
-    // --- Lógica de precios y cantidad (Original) ---
-    const quantityInput = document.getElementById('quantity');
+    // --- Lógica de precios y cantidad ---
     const unitPriceEl = document.getElementById('unit-price');
     const totalPriceEl = document.getElementById('total-price');
-
-    const basePrice = product.precio;
-    const priceTiers = [
-        { min: 200, price: 13000 },
-        { min: 100, price: 13800 },
-        { min: 50, price: 14500 },
-        { min: 25, price: 16000 },
-        { min: 13, price: 16800 },
-        { min: 1, price: basePrice }
-    ];
-
-    const tieredPricesDisplayEl = document.getElementById('tiered-prices-display');
     const discountMessageEl = document.getElementById('discount-message');
+    const stockIndicatorEl = document.getElementById('stock-indicator');
+    const tieredPricesDisplayEl = document.getElementById('tiered-prices-display');
 
+    const basePrice = parseFloat(product.precio);
+    const priceTiers = [
+        { min: 200, price: 13000 }, { min: 100, price: 13800 },
+        { min: 50, price: 14500 }, { min: 25, price: 16000 },
+        { min: 13, price: 16800 }, { min: 1, price: basePrice }
+    ];
+    
     if (tieredPricesDisplayEl) {
-        const tiersForDisplay = priceTiers.filter(t => t.min > 1).sort((a, b) => a.min - b.min);
+        const tiersForDisplay = priceTiers.filter(t => t.min > 1 && t.price < basePrice).sort((a, b) => a.min - b.min);
         tieredPricesDisplayEl.innerHTML = tiersForDisplay.map(tier => 
             `<div class="tiered-price-item">
                 <span class="tiered-condition">${tier.min} o más unidades</span>
@@ -150,11 +140,12 @@ function renderizarProductoPrincipal(product) {
     }
 
     function updatePrices(quantity) {
+        const stock = currentStock;
         if (!quantity || quantity < 1) quantity = 1;
-        if (quantity > product.stock) {
-            quantity = product.stock;
-            if(quantityInput) quantityInput.value = product.stock;
-        }
+        if (quantity > stock) quantity = stock;
+        
+        const quantityInput = document.getElementById('quantity');
+        if (quantityInput) quantityInput.value = quantity;
 
         const tier = priceTiers.find(t => quantity >= t.min);
         const unitPrice = tier ? tier.price : basePrice;
@@ -162,12 +153,10 @@ function renderizarProductoPrincipal(product) {
 
         if (unitPriceEl) unitPriceEl.textContent = formatCurrency(unitPrice);
         if (totalPriceEl) totalPriceEl.textContent = `Total: ${formatCurrency(totalPrice)}`;
-        if (quantityInput) quantityInput.dataset.currentPrice = unitPrice;
 
         if (discountMessageEl) {
             const currentTierIndex = priceTiers.findIndex(t => quantity >= t.min);
             const nextTier = (currentTierIndex > 0) ? priceTiers[currentTierIndex - 1] : null;
-
             if (nextTier && quantity < nextTier.min) {
                 const itemsNeeded = nextTier.min - quantity;
                 discountMessageEl.innerHTML = `¡Añade <b>${itemsNeeded}</b> más y paga <b>${formatCurrency(nextTier.price)}</b> por unidad!`;
@@ -178,61 +167,116 @@ function renderizarProductoPrincipal(product) {
         }
     }
 
-    function setupQuantityButtons() {
-        const decreaseBtn = document.getElementById('decrease-quantity');
-        const increaseBtn = document.getElementById('increase-quantity');
+    function setupControls() {
+        const personalizeBtnHTML = `<a href="https://wa.me/573019998933?text=Hola,%20estoy%20interesado%20en%20personalizar%20el%20producto:%20${encodeURIComponent(product.nombre)}%20(REF:%20${product.numero_referencia})" target="_blank" class="personalize-btn">Personalizar ahora <i class="fa-brands fa-whatsapp"></i></a>`;
+        if (stockTotal > 0) {
+            controlsContainer.innerHTML = `
+                <div class="quantity-selector">
+                    <button id="decrease-quantity">-</button>
+                    <input type="number" id="quantity" value="1" min="1" max="${currentStock}">
+                    <button id="increase-quantity">+</button>
+                </div>
+                ${personalizeBtnHTML}
+                <button id="add-to-cart-btn" class="add-to-cart-btn">AÑADIR A LA CESTA</button>
+            `;
 
-        if (!quantityInput || !decreaseBtn || !increaseBtn) return;
+            const quantityInput = document.getElementById('quantity');
+            const decreaseBtn = document.getElementById('decrease-quantity');
+            const increaseBtn = document.getElementById('increase-quantity');
+            const addToCartBtn = document.getElementById('add-to-cart-btn');
 
-        increaseBtn.addEventListener('click', () => {
-            let currentValue = parseInt(quantityInput.value, 10);
-            if (currentValue < product.stock) {
-                quantityInput.value = currentValue + 1;
-                updatePrices(quantityInput.value);
-            }
-        });
+            increaseBtn.addEventListener('click', () => {
+                let val = parseInt(quantityInput.value);
+                if (val < currentStock) quantityInput.value = val + 1;
+                updatePrices(parseInt(quantityInput.value));
+            });
 
-        decreaseBtn.addEventListener('click', () => {
-            let currentValue = parseInt(quantityInput.value, 10);
-            if (currentValue > 1) {
-                quantityInput.value = currentValue - 1;
-                updatePrices(quantityInput.value);
-            }
-        });
+            decreaseBtn.addEventListener('click', () => {
+                let val = parseInt(quantityInput.value);
+                if (val > 1) quantityInput.value = val - 1;
+                updatePrices(parseInt(quantityInput.value));
+            });
 
-        quantityInput.addEventListener('input', () => {
-            let value = parseInt(quantityInput.value, 10);
-            if (isNaN(value) || value < 1) { value = 1; }
-            if (value > product.stock) { value = product.stock; }
-            quantityInput.value = value;
-            updatePrices(value);
-        });
+            quantityInput.addEventListener('input', () => {
+                if (parseInt(quantityInput.value) > currentStock) quantityInput.value = currentStock;
+                if (parseInt(quantityInput.value) < 1) quantityInput.value = 1;
+                updatePrices(parseInt(quantityInput.value));
+            });
+
+            addToCartBtn.addEventListener('click', () => {
+                if (hasTallas && !selectedTalla) {
+                    alert('Por favor, seleccione una talla.');
+                    return;
+                }
+
+                const baseId = product.id || product._id;
+                // Crear un ID único para el item en la cesta que incluye la talla
+                const cartItemId = selectedTalla ? `${baseId}-${selectedTalla.talla}` : baseId;
+
+                const productToAdd = {
+                    ...product,
+                    cartItemId: cartItemId, // ID único para la cesta
+                    id: baseId, // ID original del producto
+                    cantidad: parseInt(quantityInput.value),
+                    talla: selectedTalla ? selectedTalla.talla : null
+                };
+
+                if (typeof agregarAlCarrito === 'function') {
+                    agregarAlCarrito(productToAdd);
+                }
+            });
+
+        } else {
+            controlsContainer.innerHTML = personalizeBtnHTML;
+        }
     }
 
-// --- Configurar funcionalidad ---
-setupImageGallery(product, galleryColumn);
-if (product.stock > 0) {
-setupQuantityButtons();
-updatePrices(1); // Initial call
+    function setupTallas() {
+        if (hasTallas && tallasDisponibles.length > 0) {
+            const sizeOptionsHTML = tallasDisponibles.map(talla =>
+                `<button class="size-option" data-talla='${JSON.stringify(talla)}'>${talla.talla}</button>`
+            ).join('');
+            sizesContainer.innerHTML = `<h3 class="sizes-title">TALLA</h3><div class="size-options">${sizeOptionsHTML}</div>`;
 
-const addToCartBtn = document.getElementById('add-to-cart-btn');
-if (addToCartBtn) {
-addToCartBtn.addEventListener('click', () => {
-const quantityInput = document.getElementById('quantity');
-const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+            const sizeOptionsContainer = sizesContainer.querySelector('.size-options');
+            sizeOptionsContainer.addEventListener('click', e => {
+                if (e.target.classList.contains('size-option')) {
+                    sizeOptionsContainer.querySelectorAll('.size-option').forEach(btn => btn.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    
+                    selectedTalla = JSON.parse(e.target.dataset.talla);
+                    currentStock = parseInt(selectedTalla.stock, 10) || 0;
+                    
+                    const quantityInput = document.getElementById('quantity');
+                    quantityInput.max = currentStock;
+                    if (parseInt(quantityInput.value) > currentStock) quantityInput.value = currentStock;
+                    
+                    if(stockIndicatorEl) stockIndicatorEl.textContent = `EN STOCK (${currentStock})`;
+                    updatePrices(parseInt(quantityInput.value));
+                }
+            });
 
-// Clonamos el producto para no modificar el objeto original
-const productToAdd = { ...product };
-productToAdd.cantidad = quantity;
+            // Seleccionar la primera talla por defecto
+            const firstButton = sizeOptionsContainer.querySelector('.size-option');
+            if (firstButton) {
+                firstButton.click();
+            }
+        } else {
+            sizesContainer.style.display = 'none';
+            if(stockIndicatorEl && stockTotal > 0) stockIndicatorEl.textContent = `EN STOCK (${stockTotal})`;
+        }
+    }
 
-if (typeof agregarAlCarrito === 'function') {
-agregarAlCarrito(productToAdd);
-} else {
-console.error('La función agregarAlCarrito no está definida.');
-}
-});
-}
-}
+    // --- Inicialización ---
+    setupImageGallery(product, galleryColumn);
+    setupControls();
+    setupTallas();
+    updatePrices(1);
+    
+    if (stockTotal === 0) {
+        if(totalPriceEl) totalPriceEl.style.display = 'none';
+        if(discountMessageEl) discountMessageEl.style.display = 'none';
+    }
 }
 
 function setupDynamicPricing(product, formatCurrency) {
@@ -288,14 +332,14 @@ const tieredPricesDisplayEl = document.getElementById('tiered-prices-display');
 }
 
 function setupImageGallery(product, container) {
-    const images = (product.Imagenes && Array.isArray(product.Imagenes))
-        ? product.Imagenes.map(img => img.ruta_imagen).filter(Boolean)
+    const images = (product.imagenes && Array.isArray(product.imagenes))
+        ? product.imagenes.filter(img => img && img.ruta_imagen)
         : [];
 
     if (!container) return;
 
     if (images.length === 0) {
-        container.innerHTML = `<img src="https://via.placeholder.com/500x500.png?text=Imagen+no+disponible" alt="Imagen no disponible" style="width: 100%; border-radius: 12px;">`;
+        container.innerHTML = `<img src="/assets/logo.png" alt="Imagen no disponible" style="width: 100%; border-radius: 12px;">`;
         return;
     }
 
@@ -305,7 +349,7 @@ function setupImageGallery(product, container) {
                 ${images.map(img => `
                     <div class="swiper-slide">
                         <div class="zoom-container">
-                            <img src="${getImageUrl(img)}" alt="Imagen del producto">
+                            <img src="${getImageUrl(img.ruta_imagen)}" alt="${img.label}">
                         </div>
                     </div>
                 `).join('')}
@@ -316,8 +360,9 @@ function setupImageGallery(product, container) {
         <div class="swiper gallery-thumbs">
             <div class="swiper-wrapper">
                 ${images.map(img => `
-                    <div class="swiper-slide">
-                        <img src="${getImageUrl(img)}" alt="Miniatura del producto">
+                    <div class="swiper-slide" title="${img.label}">
+                        <img src="${getImageUrl(img.ruta_imagen)}" alt="Miniatura: ${img.label}">
+                        <span class="thumb-label">${img.label}</span>
                     </div>
                 `).join('')}
             </div>
@@ -365,8 +410,8 @@ function setupImageGallery(product, container) {
 }
 
 function openImageModal(product, startIndex) {
-    const images = (product.Imagenes && Array.isArray(product.Imagenes))
-        ? product.Imagenes.map(img => img.ruta_imagen).filter(Boolean)
+    const images = (product.imagenes && Array.isArray(product.imagenes))
+        ? product.imagenes.filter(img => img && img.ruta_imagen)
         : [];
     
     if (images.length === 0) return;
@@ -381,7 +426,7 @@ function openImageModal(product, startIndex) {
                     ${images.map(img => `
                         <div class="swiper-slide">
                             <div class="swiper-zoom-container">
-                                <img src="${getImageUrl(img)}" alt="Imagen del producto">
+                                <img src="${getImageUrl(img.ruta_imagen)}" alt="${img.label}">
                             </div>
                         </div>
                     `).join('')}
@@ -395,8 +440,8 @@ function openImageModal(product, startIndex) {
                 <div class="swiper modal-gallery-thumbs">
                     <div class="swiper-wrapper">
                         ${images.map(img => `
-                            <div class="swiper-slide">
-                                <img src="${getImageUrl(img)}" alt="Miniatura del producto">
+                            <div class="swiper-slide" title="${img.label}">
+                                <img src="${getImageUrl(img.ruta_imagen)}" alt="Miniatura: ${img.label}">
                             </div>
                         `).join('')}
                     </div>
@@ -480,7 +525,7 @@ async function cargarRecomendados(categoriaId, excludeId) {
     recomendadosSection.style.display = 'none';
 
     try {
-        const response = await fetch(`http://localhost:3001/api/productos/recomendados?categoriaId=${categoriaId}&excludeId=${excludeId}&limit=8`);
+        const response = await fetch(`http://localhost:3000/api/productos/recomendados?categoriaId=${categoriaId}&excludeId=${excludeId}&limit=8`);
         if (!response.ok) {
             throw new Error('La respuesta del servidor no fue exitosa.');
         }
@@ -498,7 +543,7 @@ async function cargarRecomendados(categoriaId, excludeId) {
                 const productId = product._id || product.id;
                 productsMap.set(productId.toString(), product);
 
-                const imagenUrl = product.imagen_3_4 ? getImageUrl(product.imagen_3_4) : (product.imagen_icono ? getImageUrl(product.imagen_icono) : 'img/default-product.png');
+                const imagenUrl = getImageUrl(product.imagen_principal || product.imagen_3_4 || product.imagen_frontal || product.imagen_icono);
                 const marca = product.marca || 'Macs';
                 const marcaClass = marca.toLowerCase() === 'macs' ? 'rgb-text' : '';
                 const marcaHTML = `<p class="product-card__brand ${marcaClass}">${marca}</p>`;

@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const detalleContainer = document.getElementById('detalle-producto-container');
     const relatedContainer = document.getElementById('related-products-container');
-    const API_URL = 'http://localhost:3001/api/productos';
+    const API_URL = 'http://localhost:3000/api/productos';
 
     let allProducts = [];
 
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         detalleContainer.innerHTML = ''; // Limpiar el mensaje de "Cargando..."
 
         const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(product.precio);
-        const imagenUrl = product.imagen_principal ? `http://localhost:3001${product.imagen_principal}` : 'https://via.placeholder.com/500x500.png?text=Imagen+no+disponible';
+        const imagenUrl = product.imagen_principal ? `http://localhost:3000${product.imagen_principal}` : '/assets/logo.png';
 
         // Asumimos 4 imágenes para la galería, usando la principal como placeholder
         const galleryImages = Array(4).fill(imagenUrl);
@@ -103,11 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const divProducto = document.createElement("div");
         divProducto.className = "producto";
         const precioFormateado = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(product.precio);
-        const imagenUrl = product.imagen_principal ? `http://localhost:3001${product.imagen_principal}` : 'https://via.placeholder.com/300x300.png?text=Imagen+no+disponible';
+        const imagenUrl = product.imagen_principal ? `http://localhost:3000${product.imagen_principal}` : '/assets/logo.png';
 
         divProducto.innerHTML = `
             <a href="producto-detalle.html?id=${product.id}">
-                <img src="${imagenUrl}" alt="${product.nombre}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300.png?text=Imagen+no+disponible';">
+                <img src="${imagenUrl}" alt="${product.nombre}" onerror="this.onerror=null;this.src='/assets/logo.png';">
                 <div class="overlay-text">Ver Producto</div>
             </a>
             <p class="marca">${product.marca || 'Macs'}</p>

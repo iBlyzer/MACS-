@@ -7,7 +7,7 @@ const fs = require('fs');
 
 // --- Configuración Inicial ---
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
 // --- Middlewares Esenciales ---
 app.use(cors());
@@ -24,7 +24,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/productos', require('./routes/productos'));
 app.use('/api/categorias', require('./routes/categorias'));
-app.use('/api/subs', require('./routes/subcategorias'));
+app.use('/api/subcategorias', require('./routes/subcategorias'));
 app.use('/api/slider', require('./routes/slider'));
 app.use('/api/slider-manager', require('./routes/slider-manager'));
 app.use('/api/new-slider', require('./routes/new-slider'));
@@ -40,18 +40,16 @@ app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 
 // --- Manejador para rutas API no encontradas ---
-// Captura todas las solicitudes a /api/* que no coincidieron con una ruta.
-// --- Manejador para SPA (Single Page Application) ---
-// Para cualquier otra ruta que no sea de la API, sirve el index.html principal.
-// Esto permite que el enrutamiento del lado del cliente en el frontend funcione.
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+// Captura todas las solicitudes a /api/* que no coincidieron con una ruta anterior.
+app.use('/api/*', (req, res, next) => {
+    res.status(404).json({ message: `La ruta API '${req.method} ${req.originalUrl}' no fue encontrada en el servidor.` });
 });
 
-// --- Manejador para rutas API no encontradas ---
-// Captura todas las solicitudes a /api/* que no coincidieron con una ruta.
-app.use('/api', (req, res, next) => {
-  res.status(404).json({ message: `La ruta API '${req.method} ${req.originalUrl}' no fue encontrada en el servidor.` });
+// --- Manejador para SPA (Single Page Application) ---
+// Para cualquier otra ruta que no sea de la API ni un archivo estático, sirve el index.html.
+// Esto es crucial para que el enrutamiento del lado del cliente (React, Vue, Angular) funcione.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
 // --- Manejador de Errores Global ---

@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function initializeMainSlider() {
         try {
             // Usamos el endpoint correcto que devuelve la información completa
-            const response = await fetch('http://localhost:3001/api/slider-manager/images');
+            const response = await fetch('http://localhost:3000/api/slider-manager/images');
             if (!response.ok) {
                 throw new Error('La respuesta de la red no fue correcta');
             }
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 4. LLAMADAS A LAS FUNCIONES DE INICIALIZACIÓN
     initializeMainSlider();
-    initializeProductSlider('destacados-slider', 'http://localhost:3001/api/productos/destacados');
-    initializeProductSlider('macs-slider', 'http://localhost:3001/api/productos/categoria/Macs');
-    initializeProductSlider('importadas-slider', 'http://localhost:3001/api/productos/categoria/Importada');
+    initializeProductSlider('destacados-slider', 'http://localhost:3000/api/productos/destacados');
+    initializeProductSlider('macs-slider', 'http://localhost:3000/api/productos/categoria/Macs');
+    initializeProductSlider('importadas-slider', 'http://localhost:3000/api/productos/categoria/Importada');
 });

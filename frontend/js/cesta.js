@@ -37,28 +37,62 @@ document.addEventListener('DOMContentLoaded', () => {
                 const itemElement = document.createElement('div');
                 itemElement.classList.add('cesta-item');
                 const precioFormateado = formatCurrency(item.precio);
-                const imagenUrl = item.imagen_3_4 ? `http://localhost:3001${item.imagen_3_4}` : 'https://via.placeholder.com/100x100.png?text=Imagen';
+                const imagenUrl = '/assets/logo.png';
+                const tallaInfo = item.talla ? `<p class="item-talla" style="font-size: 0.9em; color: #555;">Talla: ${item.talla}</p>` : '';
 
                 itemElement.innerHTML = `
                     <a href="producto-detalle.html?id=${item.id}" class="cesta-item-link">
-                        <img src="${imagenUrl}" alt="${item.nombre}">
+                        <img src="${imagenUrl}" alt="${item.nombre}" data-product-id="${item.id}">
                         <div class="item-info">
                             <p class="item-marca">${item.marca || 'Macs'}</p>
                             <p class="item-nombre">${item.nombre}</p>
+                            ${tallaInfo}
                             <p class="item-precio">${precioFormateado}</p>
                         </div>
                     </a>
                     <div class="item-cantidad">
-                        <button class="btn-cantidad" data-id="${item.id}" data-accion="decrementar">-</button>
-                        <input type="number" class="item-quantity-input" value="${item.cantidad}" data-id="${item.id}" min="1" max="${item.stock || 99}">
-                        <button class="btn-cantidad" data-id="${item.id}" data-accion="incrementar">+</button>
+                        <button class="btn-cantidad" data-id="${item.cartItemId}" data-accion="decrementar">-</button>
+                        <input type="number" class="item-quantity-input" value="${item.cantidad}" data-id="${item.cartItemId}" min="1" max="${item.stock || 99}">
+                        <button class="btn-cantidad" data-id="${item.cartItemId}" data-accion="incrementar">+</button>
                     </div>
-                    <button class="btn-eliminar" data-id="${item.id}">Eliminar</button>
+                    <button class="btn-eliminar" data-id="${item.cartItemId}">Eliminar</button>
                 `;
                 cestaConItemsDiv.appendChild(itemElement);
             });
+
+            actualizarImagenesCesta();
         }
         calcularTotal();
+    }
+
+    async function actualizarImagenesCesta() {
+        const ids = cesta.map(item => item.id).filter(Boolean);
+        if (ids.length === 0) return;
+
+        try {
+            const response = await fetch('http://localhost:3000/api/productos/get-images', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids })
+            });
+
+            if (!response.ok) throw new Error('Error en la respuesta del servidor al obtener imágenes.');
+            
+            const imagesMap = await response.json();
+
+            for (const id in imagesMap) {
+                const imgElement = document.querySelector(`.cesta-item img[data-product-id="${id}"]`);
+                if (imgElement) {
+                    if (imagesMap[id]) {
+                        imgElement.src = imagesMap[id];
+                    } else {
+                        imgElement.src = '/assets/logo.png';
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('No se pudieron actualizar las imágenes de la cesta:', error);
+        }
     }
 
     function calcularTotal() {
@@ -93,8 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function actualizarCantidad(productId, accion) {
-        const itemIndex = cesta.findIndex(item => item.id == productId);
+    function actualizarCantidad(cartItemId, accion) {
+        const itemIndex = cesta.findIndex(item => item.cartItemId == cartItemId);
         if (itemIndex === -1) return;
 
         const stockDisponible = cesta[itemIndex].stock || 99;
@@ -116,8 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarCesta();
     }
 
-    function actualizarCantidadManualmente(productId, nuevaCantidad) {
-        const itemIndex = cesta.findIndex(item => item.id == productId);
+    function actualizarCantidadManualmente(cartItemId, nuevaCantidad) {
+        const itemIndex = cesta.findIndex(item => item.cartItemId == cartItemId);
         if (itemIndex === -1) return;
 
         const stockDisponible = cesta[itemIndex].stock || 99;
@@ -135,8 +169,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarCesta();
     }
 
-    function eliminarItem(productId) {
-        cesta = cesta.filter(item => item.id != productId);
+    function eliminarItem(cartItemId) {
+        cesta = cesta.filter(item => item.cartItemId != cartItemId);
         localStorage.setItem('cesta', JSON.stringify(cesta));
         renderizarCesta();
     }
@@ -170,7 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let mensaje = `¡Hola! Quisiera hacer el siguiente pedido:\n\n*N° de Referencia: ${numeroReferencia}*\n\n`;
 
         cesta.forEach(item => {
-            mensaje += `*Producto:* ${item.nombre} *Ref:* ${item.numero_referencia} *Cantidad:* ${item.cantidad} *Precio Unitario:* ${formatCurrency(item.precio)}`;
+            const refText = item.numero_referencia ? `*Ref:* ${item.numero_referencia} ` : '';
+            const tallaText = item.talla ? `*Talla:* ${item.talla} ` : '';
+            mensaje += `*Producto:* ${item.nombre} ${refText}${tallaText}*Cantidad:* ${item.cantidad} *Precio Unitario:* ${formatCurrency(item.precio)}\n`;
         });
 
         const totalItems = cesta.reduce((acc, item) => acc + item.cantidad, 0);

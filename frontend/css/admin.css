@@ -173,59 +173,73 @@ body {
     border-radius: 4px;
 }
 
-.status {
-    padding: 5px 12px;
+/* === Indicador de Estado (Activo/Inactivo) === */
+.status-pill {
+    padding: 6px 12px;
     border-radius: 15px;
     color: white;
     font-weight: bold;
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
+    display: inline-block;
+    width: 80px;
+    text-align: center;
 }
 
-.status-activo {
-    background-color: #2ecc71;
+.status-pill.activo {
+    background-color: #2ecc71; /* Verde */
 }
 
-.status-inactivo {
-    background-color: #e74c3c;
+.status-pill.inactivo {
+    background-color: #e74c3c; /* Rojo */
 }
+
 
 /* === Botones de Acción en Tabla === */
-.tabla-admin td.acciones {
-    white-space: nowrap;
+.tabla-admin .acciones-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-start;
 }
 
-.tabla-admin td.acciones button {
+.tabla-admin .btn-accion {
     border: none;
-    padding: 8px 12px;
+    padding: 6px 12px;
     border-radius: 4px;
     cursor: pointer;
-    margin: 2px;
+    margin: 0;
     font-weight: bold;
     color: white;
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
-    transition: opacity 0.3s;
+    transition: opacity 0.2s;
+    width: 110px; /* Ancho fijo para alineación */
+    text-align: center;
 }
 
-.tabla-admin td.acciones button:hover {
-    opacity: 0.8;
+.tabla-admin .btn-accion:hover {
+    opacity: 0.85;
 }
 
-.btn-editar {
-    background-color: #f1c40f;
+.btn-edit {
+    background-color: #f1c40f; /* Amarillo */
 }
 
-.btn-eliminar {
-    background-color: #e74c3c;
+.btn-delete {
+    background-color: #e74c3c; /* Rojo */
 }
 
-.btn-activar {
-    background-color: #2ecc71;
+.btn-toggle-status {
+    background-color: #3498db; /* Azul por defecto */
 }
 
-.btn-desactivar {
-    background-color: #95a5a6;
+.btn-toggle-status.activar {
+    background-color: #27ae60; /* Verde oscuro */
+}
+
+.btn-toggle-status.desactivar {
+    background-color: #3498db; /* Azul */
 }
 
 /* === Estilos del Modal === */
@@ -359,4 +373,89 @@ body {
     margin-left: 15px;
     font-style: italic;
     color: #777;
+}
+
+/* === Estilos Refactorizados para Carga de Imágenes === */
+#image-previews-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.image-preview-card {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    position: relative;
+    background-color: #f9f9f9;
+    transition: all 0.3s ease;
+}
+
+.image-preview-card:hover {
+    border-color: #3498db;
+    background-color: #f1f7fc;
+}
+
+.image-preview-card .image-placeholder {
+    width: 100%;
+    height: 120px;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+}
+
+.image-preview-card .image-placeholder img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-preview-card .upload-icon {
+    font-size: 48px;
+    color: #adb5bd;
+    font-weight: 300;
+}
+
+.image-preview-card .image-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.image-preview-card .remove-image-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #e74c3c;
+    color: white;
+    border: 2px solid white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    font-weight: bold;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease;
+}
+
+.image-preview-card .remove-image-btn:hover {
+    transform: scale(1.1);
+    background-color: #c0392b;
 }
