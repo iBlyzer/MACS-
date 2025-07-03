@@ -1451,15 +1451,87 @@
 }
 
 @media (max-width: 992px) {
+    /* --- Layout Principal en Móvil --- */
     .detalle-producto-main {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+        overflow-x: hidden; /* EVITA EL DESBORDAMIENTO HORIZONTAL */
     }
+
     .detalle-info {
-        grid-column: 1 / 2;
-        grid-row: auto;
+        padding: 15px;
+        text-align: center;
+        width: 100%;
+        box-sizing: border-box;
     }
+
+    /* --- Ajuste de Título para Evitar Overflow (Agresivo) --- */
+    .detalle-info h1 {
+        font-size: 1.5rem; /* Reducir un poco más la fuente */
+        line-height: 1.25;
+        word-break: break-all; /* Forzar el corte de palabra para evitar overflow */
+        max-width: 100%;
+    }
+
+    /* --- Precios por Volumen (SOLUCIÓN DEFINITIVA) --- */
+    .detalle-info #tiered-prices-display {
+        display: grid !important; /* Forzar display grid */
+        grid-template-columns: 1fr 1fr !important; /* Forzar 2 columnas */
+        gap: 8px;
+        max-width: 320px; /* Ancho máximo para centrar */
+        margin: 15px auto; /* Centrar la cuadrícula */
+    }
+
+    /* Centrar el último elemento si es impar (ej. el 5to) */
+    .detalle-info #tiered-prices-display .tiered-price-item:last-child:nth-child(odd) {
+        grid-column: 1 / -1; /* Ocupar toda la fila */
+    }
+
+    /* --- Controles (SOLUCIÓN DEFINITIVA) --- */
+    .detalle-info .controls-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 15px;
+    }
+
+    .detalle-info .quantity-selector {
+        flex: 1 1 120px; /* Permitir encoger pero con base de 120px */
+        max-width: 130px;
+        height: 42px;
+    }
+
+    .detalle-info .personalize-btn,
+    .detalle-info .add-to-cart-btn {
+        flex: 1 1 180px; /* Base más ancha para botones principales */
+        padding: 10px;
+        font-size: 0.9rem;
+        height: 42px;
+        line-height: normal;
+    }
+    
+    /* --- Ocultar Zoom en Móvil --- */
     .img-zoom-result {
         display: none !important;
+    }
+}
+
+/* Estilos adicionales para pantallas muy estrechas */
+@media (max-width: 380px) {
+    .detalle-info .controls-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .detalle-info .quantity-selector,
+    .detalle-info .personalize-btn,
+    .detalle-info .add-to-cart-btn {
+        width: 100%;
+        max-width: 280px; /* Ancho máximo para centrar */
+        margin-left: auto;
+        margin-right: auto;
+        flex-basis: auto; /* Resetear base */
     }
 }
 

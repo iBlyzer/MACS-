@@ -1005,6 +1005,18 @@ color: #f0c040;
 }
 
 /* --- WhatsApp Widget --- */
+
+/* Ajuste para el botón de WhatsApp en móviles */
+@media (max-width: 480px) {
+    .floating-whatsapp-btn {
+        right: 10px; /* Aún menos espacio */
+        bottom: 10px;
+        width: 50px; /* Aún más pequeño */
+        height: 50px;
+        font-size: 28px; /* Reducir el icono también */
+    }
+}
+
 .whatsapp-container {
 position: fixed;
 bottom: 25px;
@@ -1185,6 +1197,15 @@ overflow: hidden; /* To contain the icons */
 .ver-mas-container {
     text-align: center; /* Centra el botón */
     padding: 20px 0; /* Añade espacio vertical */
+}
+
+/* SOLUCIÓN GLOBAL ANTI-OVERFLOW PARA MÓVIL */
+@media (max-width: 992px) {
+  html,
+  body {
+    width: 100%;
+    overflow-x: hidden !important;
+  }
 }
 
 /* Estilos para el botón 'Ver más' */

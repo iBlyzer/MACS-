@@ -1,34 +1,38 @@
 const bcrypt = require('bcryptjs');
 const db = require('../config/db');
 
-const passwordToHash = 'admin123';
-const usernameToUpdate = 'admin';
+const username = 'macscaps.admin';
+const password = 'McC@ps!2025#xZ9p';
 
-async function updateAdminPassword() {
+async function createOrUpdateAdmin() {
   try {
-    // Generar el hash de la nueva contraseña
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(passwordToHash, salt);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Actualizar la contraseña en la base de datos
-    const [result] = await db.query(
-      'UPDATE usuarios SET password = ? WHERE username = ?',
-      [hashedPassword, usernameToUpdate]
-    );
+    const [rows] = await db.query('SELECT id FROM usuarios WHERE username = ?', [username]);
 
-    if (result.affectedRows > 0) {
-      console.log(`\x1b[32m✔ Contraseña del usuario '${usernameToUpdate}' actualizada correctamente en la base de datos.\x1b[0m`);
-      console.log('Ya puedes iniciar sesión con las nuevas credenciales.');
+    if (rows.length > 0) {
+      // Usuario existe, actualizar contraseña
+      await db.query(
+        'UPDATE usuarios SET password = ? WHERE username = ?',
+        [hashedPassword, username]
+      );
+      console.log(`\x1b[32m✔ Contraseña del usuario '${username}' actualizada correctamente.\x1b[0m`);
     } else {
-      console.log(`\x1b[33m⚠ No se encontró al usuario '${usernameToUpdate}'. No se realizó ninguna actualización.\x1b[0m`);
+      // Usuario no existe, crear nuevo usuario
+      await db.query(
+        'INSERT INTO usuarios (username, password, nombre_completo, rol) VALUES (?, ?, ?, ?)',
+        [username, hashedPassword, 'Administrador', 'admin']
+      );
+      console.log(`\x1b[32m✔ Usuario '${username}' creado correctamente.\x1b[0m`);
     }
+    console.log('Proceso completado. Ya puedes iniciar sesión.');
 
   } catch (error) {
-    console.error('\x1b[31m✖ Error al actualizar la contraseña:\x1b[0m', error);
+    console.error('\x1b[31m✖ Error al crear o actualizar el usuario:\x1b[0m', error);
   } finally {
-    // Cerrar la conexión a la base de datos
     db.end();
   }
 }
 
-updateAdminPassword();
+createOrUpdateAdmin();
