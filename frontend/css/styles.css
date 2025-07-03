@@ -1180,6 +1180,40 @@ overflow: hidden; /* To contain the icons */
     }
 }
 
+
+/* Estilos para el contenedor del botón 'Ver más' */
+.ver-mas-container {
+    text-align: center; /* Centra el botón */
+    padding: 20px 0; /* Añade espacio vertical */
+}
+
+/* Estilos para el botón 'Ver más' */
+.btn-ver-mas {
+    display: inline-block;
+    background-color: #333; /* Color de fondo oscuro */
+    color: #fff; /* Texto blanco */
+    padding: 12px 25px; /* Relleno interno */
+    border-radius: 5px; /* Bordes redondeados */
+    text-decoration: none; /* Sin subrayado */
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    border: 1px solid #333;
+}
+
+.btn-ver-mas:hover {
+    background-color: #555; /* Color al pasar el ratón */
+}
+
+/* Ajustes para dispositivos móviles */
+@media (max-width: 768px) {
+    .btn-ver-mas {
+        padding: 10px 20px; /* Relleno más pequeño en móviles */
+        font-size: 0.9rem; /* Tamaño de fuente ligeramente más pequeño */
+        width: auto; /* Ancho automático para que no ocupe toda la pantalla */
+        max-width: 80%; /* Ancho máximo para evitar que sea demasiado grande */
+    }
+}
+
 /* --- Footer --- */
 .footer-container {
     color: #333; /* Dark text for white background */

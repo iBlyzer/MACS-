@@ -394,4 +394,49 @@
     font-size: 18px;
 }
 
+/* === Product Card Actions & Size Selector (v5) === */
+
+.product-card .product-card__actions {
+    display: flex;
+    flex-direction: column; /* Stack vertically */
+    gap: 10px; /* Vertical space between items */
+    padding: 15px; /* Consistent padding */
+    margin-top: auto;
+}
+
+.product-card .product-card__sizes,
+.product-card .product-card__add-to-cart-btn {
+   /* width: 100%; /* Make both elements full-width */
+    margin-top: -100px;
+}
+
+.product-card .product-card__select-talla {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    font-size: 0.9em;
+    font-weight: 500;
+    text-align: center;
+    text-align-last: center; /* For centering the selected option */
+    -moz-text-align-last: center; /* Firefox */
+}
+
+.product-card .product-card__add-to-cart-btn {
+    background-color: #1a1a1a;
+    color: #fff;
+    border: none;
+    padding: 12px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease;
+}
+
+.product-card .product-card__add-to-cart-btn:hover {
+    background-color: #333;
+}
 

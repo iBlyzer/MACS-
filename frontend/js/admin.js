@@ -25,6 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnAgregarTalla = document.getElementById('add-talla-btn');
     const tallasList = document.getElementById('tallas-list');
 
+    // Selectors for main page filters
+    const filtroNombreInput = document.getElementById('filtro-nombre');
+    const filtroCategoriaSelect = document.getElementById('filtro-categoria');
+    const filtroSubcategoriaSelect = document.getElementById('filtro-subcategoria');
+
     // --- STATE VARIABLES ---
     let imagesToDelete = [];
     let imageFiles = {}; // Stores files to be uploaded, e.g., { imagen_frontal: File, ... }
@@ -76,12 +81,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DATA LOADING ---
     async function cargarProductos() {
         try {
-            // Use the admin-specific endpoint to get all products (active and inactive)
-            const productos = await fetchWithAuth(`${API_URL}/productos/get-all`);
+            const nombre = filtroNombreInput ? filtroNombreInput.value : '';
+            const categoriaId = filtroCategoriaSelect ? filtroCategoriaSelect.value : '';
+            const subcategoriaId = filtroSubcategoriaSelect ? filtroSubcategoriaSelect.value : '';
+
+            const params = new URLSearchParams();
+            if (nombre) params.append('nombre', nombre);
+            if (categoriaId) params.append('categoria_id', categoriaId);
+            if (subcategoriaId) params.append('subcategoria_id', subcategoriaId);
+            
+            const url = `${API_URL}/productos/get-all?${params.toString()}`;
+            const productos = await fetchWithAuth(url);
             renderizarTabla(productos);
         } catch (error) {
             console.error('Error al cargar productos:', error);
-            // alert('No se pudieron cargar los productos.');
+            if(tablaProductosContainer) tablaProductosContainer.innerHTML = '<p>Error al cargar productos.</p>';
         }
     }
 
@@ -113,6 +127,45 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (error) {
             console.error('Error al cargar subcategorías:', error);
+        }
+    }
+
+    // For main page filters
+    async function cargarCategoriasParaFiltro() {
+        if (!filtroCategoriaSelect) return;
+        try {
+            const categorias = await fetchWithAuth(`${API_URL}/categorias`);
+            filtroCategoriaSelect.innerHTML = '<option value="">Todas las categorías</option>';
+            categorias.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = cat.nombre;
+                filtroCategoriaSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar categorías para filtro:', error);
+        }
+    }
+
+    // For main page filters
+    async function cargarSubcategoriasParaFiltro(categoriaId) {
+        if (!filtroSubcategoriaSelect) return;
+        filtroSubcategoriaSelect.innerHTML = '<option value="">Todas las subcategorías</option>';
+        if (!categoriaId) {
+            filtroSubcategoriaSelect.disabled = true;
+            return;
+        }
+        filtroSubcategoriaSelect.disabled = false;
+        try {
+            const subcategorias = await fetchWithAuth(`${API_URL}/subcategorias/categoria/${categoriaId}`);
+            subcategorias.forEach(sub => {
+                const option = document.createElement('option');
+                option.value = sub.id;
+                option.textContent = sub.nombre;
+                filtroSubcategoriaSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar subcategorías para filtro:', error);
         }
     }
 
@@ -242,27 +295,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- DATA PERSISTENCE ---
     async function guardarProducto(event) {
+        console.log('Paso 1: guardarProducto iniciado.');
         event.preventDefault();
+
         const id = document.getElementById('producto-id').value;
         const method = id ? 'PUT' : 'POST';
         const url = id ? `${API_URL}/productos/update/${id}` : `${API_URL}/productos/create`;
+        console.log('Paso 2: URL y método definidos.');
 
-        const formData = new FormData(productoForm);
+        const plainFormData = new FormData(productoForm);
+        const formData = new FormData();
 
-        // Explicitly set checkbox values, as unchecked boxes are not sent by default
+        // Copiar todos los campos de texto y select del formulario original
+        for (const [key, value] of plainFormData.entries()) {
+            if (typeof value !== 'object') { // Excluir campos de archivo
+                formData.append(key, value);
+            }
+        }
+
+        // Añadir los valores de los checkboxes explícitamente
         formData.set('activo', document.getElementById('activo').checked);
         formData.set('destacado', document.getElementById('destacado').checked);
         formData.set('tiene_tallas', document.getElementById('tiene_tallas').checked);
 
+        // Añadir solo los archivos que el usuario ha seleccionado
         for (const fieldName in imageFiles) {
-            if (Object.prototype.hasOwnProperty.call(imageFiles, fieldName)) {
+            if (Object.prototype.hasOwnProperty.call(imageFiles, fieldName) && imageFiles[fieldName]) {
                 formData.append(fieldName, imageFiles[fieldName]);
             }
         }
 
-        if (imagesToDelete.length > 0) {
-            formData.append('imagenes_a_eliminar', JSON.stringify(imagesToDelete));
-        }
+        // Marcar imágenes para eliminación
+        imagesToDelete.forEach(fieldName => {
+            formData.append(`remove_${fieldName}`, 'true');
+        });
 
         if (tieneTallasCheckbox.checked) {
             formData.delete('stock'); // No enviar stock general si hay tallas
@@ -313,19 +379,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- TALLAS & CATEGORY MANAGEMENT ---
     function setupEventListeners() {
-        if (!productoCategoriaSelect || !tieneTallasCheckbox || !btnAgregarTalla) return;
+        // Main page filters
+        if (filtroNombreInput) {
+            let debounceTimer;
+            filtroNombreInput.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(cargarProductos, 300);
+            });
+        }
+        if (filtroCategoriaSelect) {
+            filtroCategoriaSelect.addEventListener('change', () => {
+                cargarSubcategoriasParaFiltro(filtroCategoriaSelect.value).then(() => {
+                    cargarProductos();
+                });
+            });
+        }
+        if (filtroSubcategoriaSelect) {
+            filtroSubcategoriaSelect.addEventListener('change', cargarProductos);
+        }
 
-        // Listener for category changes to handle 'Gorras' logic
-        productoCategoriaSelect.addEventListener('change', () => handleCategoryChange());
+        // Main page buttons
+        if (btnAgregarProducto) {
+            btnAgregarProducto.addEventListener('click', abrirModalParaCrear);
+        }
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('token');
+                window.location.href = '/admin/login.html';
+            });
+        }
 
-        // Listener for the 'tiene_tallas' checkbox
-        tieneTallasCheckbox.addEventListener('change', (e) => {
-            if (e.target.disabled) return; // Ignore if disabled (for Gorras)
-            updateTallasVisibility(e.target.checked);
-        });
+        // Product table actions (event delegation)
+        if (tablaProductosContainer) {
+            tablaProductosContainer.addEventListener('click', (e) => {
+                const target = e.target.closest('button.btn-accion');
+                if (!target) return;
 
-        // Listener for the 'Add Talla' button
-        btnAgregarTalla.addEventListener('click', () => agregarInputTalla());
+                const id = target.dataset.id;
+                if (target.classList.contains('btn-edit')) {
+                    abrirModalParaEditar(id);
+                } else if (target.classList.contains('btn-delete')) {
+                    eliminarProducto(id);
+                } else if (target.classList.contains('btn-toggle-status')) {
+                    const nuevoEstado = target.dataset.status === 'true';
+                    toggleEstadoProducto(id, nuevoEstado);
+                }
+            });
+        }
+
+        // Modal events
+        if (closeButton) closeButton.addEventListener('click', closeModal);
+        if (modal) window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        if (productoForm) productoForm.addEventListener('submit', guardarProducto);
+        
+        // Modal form fields
+        if (productoCategoriaSelect) {
+            productoCategoriaSelect.addEventListener('change', () => {
+                cargarSubcategorias(productoCategoriaSelect.value);
+                handleCategoryChange();
+            });
+        }
+        if (tieneTallasCheckbox) {
+            tieneTallasCheckbox.addEventListener('change', (e) => {
+                if (e.target.disabled) return;
+                updateTallasVisibility(e.target.checked);
+            });
+        }
+        if (btnAgregarTalla) {
+            btnAgregarTalla.addEventListener('click', () => agregarInputTalla());
+        }
+        if (tallasList) {
+            tallasList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('btn-remove-talla')) {
+                    e.target.closest('.talla-item').remove();
+                }
+            });
+        }
     }
 
     function handleCategoryChange() {
@@ -386,6 +516,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
         const loadedImages = container.querySelectorAll('.image-placeholder img[src]:not([src=""])').length;
         const countSpan = document.getElementById('image-count');
+
+    // --- INITIALIZATION ---
+    function init() {
+        setupEventListeners();
+        cargarProductos();
+        cargarCategorias(); // For modal
+        cargarCategoriasParaFiltro();
+        cargarSubcategoriasParaFiltro(); // Initial call to set it to disabled
+    }
+
+    init();
         if (countSpan) {
             countSpan.textContent = `${loadedImages}/6`;
         }
@@ -437,39 +578,55 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(card);
 
             placeholder.addEventListener('click', () => fileInput.click());
+
             deleteBtn.addEventListener('click', () => {
+                // Si existía una imagen del servidor, la marcamos para borrar.
                 if (existingImage) {
-                    if (!imagesToDelete.includes(existingImage.id)) {
-                        imagesToDelete.push(existingImage.id);
+                    // El backend espera el nombre del campo para borrar.
+                    if (!imagesToDelete.includes(field.name)) {
+                        imagesToDelete.push(field.name);
                     }
                 }
+                // Si había un archivo nuevo esperando para subirse, lo eliminamos.
                 delete imageFiles[field.name];
+
+                // Reiniciamos la UI del campo.
                 img.src = '';
                 placeholder.innerHTML = '<span class="upload-icon">+</span>';
+                placeholder.classList.remove('has-image');
                 deleteBtn.style.display = 'none';
-                updateImageCounter(); // Update count on delete
+                updateImageCounter();
             });
-            fileInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
                 if (file) {
+                    // Guardamos el archivo con el nombre de campo correcto. ¡Esta es la corrección clave!
                     imageFiles[field.name] = file;
+
+                    // Si esta imagen estaba marcada para borrarse, quitamos la marca.
+                    const index = imagesToDelete.indexOf(field.name);
+                    if (index > -1) {
+                        imagesToDelete.splice(index, 1);
+                    }
+
+                    // Mostramos la previsualización.
                     const reader = new FileReader();
-                    reader.onload = (e) => {
-                        img.src = e.target.result;
-                        placeholder.innerHTML = '';
+                    reader.onload = (event) => {
+                        img.src = event.target.result;
+                        placeholder.innerHTML = ''; // Limpiar el ícono '+'
                         placeholder.appendChild(img);
+                        placeholder.classList.add('has-image');
                         deleteBtn.style.display = 'block';
-                        if (existingImage && !imagesToDelete.includes(existingImage.id)) {
-                            imagesToDelete.push(existingImage.id);
-                        }
-                        updateImageCounter(); // Update count on new image
                     };
                     reader.readAsDataURL(file);
                 }
+                updateImageCounter();
             });
-        });
-        updateImageCounter(); // Update count on initial render
-    }
+        }); // <-- CIERRE DEL BUCLE forEach
+
+        updateImageCounter(); // Llamada inicial para contar imágenes existentes
+    } // <-- CIERRE DE LA FUNCIÓN renderImageUploader
 
     // --- INITIALIZATION & EVENT LISTENERS ---
     btnAgregarProducto.addEventListener('click', abrirModalParaCrear);

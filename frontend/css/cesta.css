@@ -32,8 +32,9 @@
 /* Estilo para cada artículo en la cesta
 -------------------------------------------------------------------------- */
 .cesta-item {
-    display: flex;
-    align-items: flex-start; /* Alinear al inicio para mejor distribución vertical */
+    display: grid;
+    grid-template-columns: 120px 1fr auto; /* Columna para imagen, detalles y controles */
+    align-items: flex-start;
     gap: 1.5rem;
     padding: 1.5rem 0;
     border-bottom: 1px solid #e0e0e0;
@@ -43,28 +44,28 @@
     border-bottom: none;
 }
 
-.cesta-item img {
+.cesta-item-imagen {
     width: 120px;
     height: 120px;
     object-fit: cover;
-    border-radius: 8px; /* Bordes más redondeados */
+    border-radius: 8px;
     border: 1px solid #eee;
 }
 
-.cesta-item-link {
-    display: flex;
-    align-items: flex-start;
-    text-decoration: none;
-    color: inherit;
-    gap: 1.5rem;
-    flex-grow: 1;
-}
-
-.item-info {
+.item-detalles {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    flex-grow: 1;
+    align-self: stretch;
+}
+
+.item-nombre-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.item-nombre-link:hover .item-nombre {
+    text-decoration: underline;
 }
 
 .item-marca {
@@ -78,12 +79,26 @@
     font-size: 1.1rem;
     font-weight: 600;
     color: #333;
+    margin: 0.2rem 0;
 }
 
 .item-precio {
-    font-size: 1rem;
+    font-size: 1.1rem;
     color: #111;
     font-weight: 500;
+    margin-top: auto;
+}
+
+.item-talla-selector {
+    margin: 0.5rem 0 !important;
+}
+
+.talla-select {
+    padding: 5px 8px !important;
+    border-radius: 6px !important;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    font-size: 0.9rem;
 }
 
 /* Controles de Cantidad y Eliminación
@@ -92,8 +107,9 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    justify-content: space-between;
     gap: 1rem;
-    margin-left: auto; /* Empuja los controles a la derecha */
+    align-self: stretch;
 }
 
 .item-cantidad {
@@ -101,7 +117,7 @@
     align-items: center;
     border: 1px solid #ccc;
     border-radius: 8px;
-    overflow: hidden; /* Para que los bordes redondeados afecten a los botones */
+    overflow: hidden;
 }
 
 .btn-cantidad {
@@ -135,7 +151,6 @@
     outline: none;
 }
 
-/* Ocultar flechas (spinners) en input de número */
 .item-quantity-input::-webkit-outer-spin-button,
 .item-quantity-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -151,6 +166,7 @@
     text-decoration: underline;
     padding: 0;
     transition: color 0.2s;
+    margin-top: auto;
 }
 
 .btn-eliminar:hover {

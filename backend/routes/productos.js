@@ -79,16 +79,18 @@ router.get('/', async (req, res) => {
   try {
     const { categoria, categoriaId, marca, subcategoria, limit } = req.query;
 
-        let query = `
+    let query = `
       SELECT 
         p.id, p.nombre, p.marca, p.precio, p.descripcion, p.numero_referencia, 
         p.categoria_id, p.subcategoria_id, p.activo, p.destacado, p.tiene_tallas,
-        (SELECT SUM(pt.stock) FROM producto_tallas pt WHERE pt.producto_id = p.id) as stock,
+
         p.fecha_creacion, c.nombre as categoria_nombre, s.nombre as subcategoria_nombre,
+        pt.talla, pt.stock AS stock_talla,
         ${imageFields.map(f => `p.${f}`).join(', ')}
       FROM productos p
       JOIN categorias c ON p.categoria_id = c.id
       LEFT JOIN subcategorias s ON p.subcategoria_id = s.id
+      LEFT JOIN producto_tallas pt ON p.id = pt.producto_id
     `;
     
     const conditions = ['p.activo = TRUE'];
@@ -115,28 +117,51 @@ router.get('/', async (req, res) => {
       query += ' WHERE ' + conditions.join(' AND ');
     }
 
-    query += ' ORDER BY p.fecha_creacion DESC';
-
-    if (limit) {
-      query += ' LIMIT ?';
-      params.push(parseInt(limit, 10));
-    }
+    query += ' ORDER BY p.id, p.fecha_creacion DESC';
 
     const [rows] = await db.query(query, params);
 
-    const formattedRows = rows.map(product => {
-      const formattedProduct = { ...product };
-      imageFields.forEach(field => {
-        if (product[field]) {
-          formattedProduct[field] = formatImagePath(product[field]);
+    const productsMap = new Map();
+
+    rows.forEach(row => {
+        let product = productsMap.get(row.id);
+
+        if (!product) {
+            product = { ...row };
+            delete product.talla;
+            delete product.stock_talla;
+            product.tallas = [];
+
+            imageFields.forEach(field => {
+                if (product[field]) {
+                    product[field] = formatImagePath(product[field]);
+                }
+            });
+            
+            productsMap.set(row.id, product);
         }
-      });
-      return formattedProduct;
+
+        if (row.talla) {
+            product.tallas.push({ talla: row.talla, stock: row.stock_talla });
+        }
+    });
+    
+    productsMap.forEach(product => {
+        // El stock se calcula siempre a partir de la suma de las tallas disponibles.
+        // Si un producto no tiene entradas en producto_tallas, su stock será 0.
+        product.stock = product.tallas.reduce((acc, t) => acc + (t.stock || 0), 0);
     });
 
-    res.json(formattedRows);
+    let finalProducts = Array.from(productsMap.values());
+
+    if (limit) {
+        finalProducts = finalProducts.slice(0, parseInt(limit, 10));
+    }
+
+    res.json(finalProducts);
+
   } catch (error) {
-    console.error('Error al obtener productos:', error);
+    logger.error('Error al obtener productos:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
@@ -145,7 +170,7 @@ router.get('/', async (req, res) => {
 router.get('/get-all', auth, async (req, res) => {
   console.log('Request received for /api/productos/get-all with query:', req.query);
   try {
-    const { search, categoria, subcategoriaId } = req.query;
+    const { nombre, categoria_id, subcategoria_id } = req.query;
 
     const columns = [
       'p.id', 'p.nombre', 'p.marca', 'p.precio', 'p.descripcion', 'p.numero_referencia',
@@ -159,17 +184,17 @@ router.get('/get-all', auth, async (req, res) => {
     const params = [];
     let conditions = [];
 
-    if (search) {
+    if (nombre) {
       conditions.push('p.nombre LIKE ?');
-      params.push(`%${search}%`);
+      params.push(`%${nombre}%`);
     }
-    if (categoria) {
+    if (categoria_id) {
       conditions.push('p.categoria_id = ?');
-      params.push(categoria);
+      params.push(categoria_id);
     }
-    if (subcategoriaId) {
+    if (subcategoria_id) {
       conditions.push('p.subcategoria_id = ?');
-      params.push(subcategoriaId);
+      params.push(subcategoria_id);
     }
 
     if (conditions.length > 0) {
@@ -345,18 +370,15 @@ router.get('/top-stock', async (req, res) => {
 });
 
 
-
-// GET /api/productos/categoria/:nombre - Obtener productos por nombre de categoría
 router.get('/categoria/:nombre', async (req, res) => {
   try {
     const { nombre } = req.params;
-    let query;
-    const params = [];
-    
-    // Lógica condicional para los sliders específicos
+    let query = '';
+    let params = [];
+
     if (nombre.toLowerCase() === 'macs') {
       query = `
-        SELECT p.id, p.nombre, p.marca, p.precio, (SELECT SUM(pt.stock) FROM producto_tallas pt WHERE pt.producto_id = p.id) as stock, c.nombre as categoria_nombre, p.imagen_3_4 as imagen_principal
+        SELECT p.id, p.nombre, p.marca, p.precio, p.tiene_tallas, (SELECT SUM(pt.stock) FROM producto_tallas pt WHERE pt.producto_id = p.id) as stock, c.nombre as categoria_nombre, p.imagen_3_4 as imagen_principal
         FROM productos p
         JOIN categorias c ON p.categoria_id = c.id
         WHERE p.marca = ? AND LOWER(c.nombre) NOT IN (?, ?) AND p.activo = TRUE
@@ -365,7 +387,7 @@ router.get('/categoria/:nombre', async (req, res) => {
       params.push('MACS', 'sombreros', 'importada');
     } else if (nombre.toLowerCase() === 'importada') {
       query = `
-        SELECT p.id, p.nombre, p.marca, p.precio, (SELECT SUM(pt.stock) FROM producto_tallas pt WHERE pt.producto_id = p.id) as stock, c.nombre as categoria_nombre, p.imagen_3_4 as imagen_principal
+        SELECT p.id, p.nombre, p.marca, p.precio, p.tiene_tallas, (SELECT SUM(pt.stock) FROM producto_tallas pt WHERE pt.producto_id = p.id) as stock, c.nombre as categoria_nombre, p.imagen_3_4 as imagen_principal
         FROM productos p
         JOIN categorias c ON p.categoria_id = c.id
         WHERE p.marca = ? AND LOWER(c.nombre) NOT IN (?, ?) AND p.activo = TRUE
@@ -373,17 +395,39 @@ router.get('/categoria/:nombre', async (req, res) => {
         LIMIT 10`;
       params.push('IMPORTADA', 'sombreros', 'macs');
     } else {
-      // Comportamiento por defecto para otras categorías
       query = `
-        SELECT p.id, p.nombre, p.marca, p.precio, (SELECT SUM(pt.stock) FROM producto_tallas pt WHERE pt.producto_id = p.id) as stock, c.nombre as categoria_nombre, p.imagen_3_4 as imagen_principal
+        SELECT p.id, p.nombre, p.marca, p.precio, p.tiene_tallas, (SELECT SUM(pt.stock) FROM producto_tallas pt WHERE pt.producto_id = p.id) as stock, c.nombre as categoria_nombre, p.imagen_3_4 as imagen_principal
         FROM productos p
         JOIN categorias c ON p.categoria_id = c.id
-        WHERE LOWER(c.nombre) = ? AND p.activo = TRUE
-        ORDER BY p.fecha_creacion DESC`;
+        JOIN subcategorias s ON p.subcategoria_id = s.id
+        WHERE LOWER(s.nombre) = ? AND p.activo = TRUE
+        ORDER BY p.fecha_creacion DESC
+        LIMIT 10`;
       params.push(nombre.toLowerCase());
     }
 
     const [rows] = await db.query(query, params);
+
+    const productIdsConTallas = rows.filter(p => p.tiene_tallas).map(p => p.id);
+
+    if (productIdsConTallas.length > 0) {
+      const [tallasRows] = await db.query(
+        `SELECT producto_id, talla, stock FROM producto_tallas WHERE producto_id IN (?) AND stock > 0 ORDER BY id`,
+        [productIdsConTallas]
+      );
+
+      const tallasMap = tallasRows.reduce((acc, talla) => {
+        if (!acc[talla.producto_id]) acc[talla.producto_id] = [];
+        acc[talla.producto_id].push(talla);
+        return acc;
+      }, {});
+
+      rows.forEach(product => {
+        if (product.tiene_tallas) {
+          product.tallas = tallasMap[product.id] || [];
+        }
+      });
+    }
 
     const formattedRows = rows.map(product => ({
       ...product,
@@ -396,6 +440,8 @@ router.get('/categoria/:nombre', async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
+
+
 
 // GET productos recomendados
 router.get('/recomendados', async (req, res) => {
@@ -739,13 +785,12 @@ router.get('/:id', async (req, res) => {
     const tallasQuery = 'SELECT id, talla, stock FROM producto_tallas WHERE producto_id = ? ORDER BY talla';
     const [tallas] = await db.query(tallasQuery, [id]);
 
-    // 3. Transformar las columnas de imágenes de la tabla productos en un array 'Imagenes'
+    // 3. Formatear las imágenes para que el frontend pueda identificarlas por su 'id' de campo
     const imagenes = [];
     imageFields.forEach(field => {
-      // Excluir 'imagen_3_4' de la galería
-      if (field !== 'imagen_3_4' && producto[field]) {
+      if (producto[field]) {
         imagenes.push({
-          id_imagen: null, // No tenemos un ID de imagen individual en esta estructura
+          id: field, // Usar el nombre del campo como ID
           ruta_imagen: formatImagePath(producto[field])
         });
       }
@@ -837,7 +882,7 @@ router.get('/random', async (req, res) => {
   }
 });
 
-// Endpoint para obtener imágenes de múltiples productos por ID
+// Endpoint para obtener imágenes de múltiples productos por ID, usado en la cesta
 router.post('/get-images', async (req, res) => {
   const { ids } = req.body;
 
@@ -865,8 +910,6 @@ router.post('/get-images', async (req, res) => {
   }
 });
 
-
-
 // PUT /api/productos/:id/toggle-status - Cambiar el estado de activo/inactivo de un producto
 router.put('/:id/toggle-status', auth, async (req, res) => {
   const { id } = req.params;
@@ -891,6 +934,62 @@ router.put('/:id/toggle-status', auth, async (req, res) => {
     logger.error(`Error al cambiar el estado del producto ${id}:`, error);
     res.status(500).json({ message: 'Error interno del servidor.' });
   }
+});
+
+
+// POST /api/productos/details-by-ids - Obtener detalles de múltiples productos por sus IDs
+router.post('/details-by-ids', async (req, res) => {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: 'Se requiere un array de IDs de productos.' });
+    }
+
+    // Filtrar y validar que los IDs son números para prevenir inyección SQL
+    const validIds = ids.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+
+    if (validIds.length === 0) {
+        return res.status(400).json({ message: 'No se proporcionaron IDs válidos.' });
+    }
+
+    try {
+        const query = `
+            SELECT 
+                p.*,
+                pt.talla, 
+                pt.stock AS stock_talla
+            FROM productos p
+            LEFT JOIN producto_tallas pt ON p.id = pt.producto_id
+            WHERE p.id IN (?)
+        `;
+        const [rows] = await db.query(query, [validIds]);
+
+        const productsMap = new Map();
+
+        rows.forEach(row => {
+            if (!productsMap.has(row.id)) {
+                // Formatear las rutas de las imágenes al agregar el producto por primera vez
+                const productWithFormattedImages = { ...row, tallas: [] };
+                imageFields.forEach(field => {
+                    if (row[field]) {
+                        productWithFormattedImages[field] = formatImagePath(row[field]);
+                    }
+                });
+                productsMap.set(row.id, productWithFormattedImages);
+            }
+            
+            const product = productsMap.get(row.id);
+            if (row.talla) {
+                product.tallas.push({ talla: row.talla, stock: row.stock_talla });
+            }
+        });
+
+        res.json(Array.from(productsMap.values()));
+
+    } catch (error) {
+        logger.error('Error al obtener detalles de productos por IDs:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
 });
 
 module.exports = router;
