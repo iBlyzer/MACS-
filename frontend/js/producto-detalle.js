@@ -26,8 +26,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function getImageUrl(imagePath) {
     if (!imagePath || typeof imagePath !== 'string' || imagePath.trim() === '') {
-        return '/assets/logo.png';
+        return 'http://localhost:3000/assets/macs-agencia.png';
     }
+
+    // Handle legacy data that might just be a filename
+    if (!imagePath.includes('/')) {
+        return `http://localhost:3000/uploads/${imagePath}`;
+    }
+
+    // For paths that are already correct (e.g., /uploads/image.png)
     return `http://localhost:3000${imagePath}`;
 }
 
@@ -369,44 +376,46 @@ function setupImageGallery(product, container) {
         </div>
     `;
 
-    const galleryThumbs = new Swiper(container.querySelector('.gallery-thumbs'), {
-        spaceBetween: 10,
-        slidesPerView: 5,
-        freeMode: true,
-        watchSlidesProgress: true,
-        centerInsufficientSlides: true,
-    });
-
-    const galleryTop = new Swiper(container.querySelector('.gallery-top'), {
-        spaceBetween: 10,
-        navigation: {
-            nextEl: container.querySelector('.swiper-button-next'),
-            prevEl: container.querySelector('.swiper-button-prev'),
-        },
-        thumbs: {
-            swiper: galleryThumbs,
-        },
-    });
-
-    galleryTop.on('click', function () {
-        openImageModal(product, this.realIndex);
-    });
-
-    const zoomContainers = container.querySelectorAll('.zoom-container');
-    zoomContainers.forEach(zoomContainer => {
-        const img = zoomContainer.querySelector('img');
-        zoomContainer.addEventListener('mousemove', (e) => {
-            const rect = zoomContainer.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const xPercent = (x / rect.width) * 100;
-            const yPercent = (y / rect.height) * 100;
-            img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+    setTimeout(() => {
+        const galleryThumbs = new Swiper(container.querySelector('.gallery-thumbs'), {
+            spaceBetween: 10,
+            slidesPerView: 5,
+            freeMode: true,
+            watchSlidesProgress: true,
+            centerInsufficientSlides: true,
         });
-        zoomContainer.addEventListener('mouseleave', () => {
-            img.style.transformOrigin = 'center center';
+
+        const galleryTop = new Swiper(container.querySelector('.gallery-top'), {
+            spaceBetween: 10,
+            navigation: {
+                nextEl: container.querySelector('.swiper-button-next'),
+                prevEl: container.querySelector('.swiper-button-prev'),
+            },
+            thumbs: {
+                swiper: galleryThumbs,
+            },
         });
-    });
+
+        galleryTop.on('click', function () {
+            openImageModal(product, this.realIndex);
+        });
+
+        const zoomContainers = container.querySelectorAll('.zoom-container');
+        zoomContainers.forEach(zoomContainer => {
+            const img = zoomContainer.querySelector('img');
+            zoomContainer.addEventListener('mousemove', (e) => {
+                const rect = zoomContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const xPercent = (x / rect.width) * 100;
+                const yPercent = (y / rect.height) * 100;
+                img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+            });
+            zoomContainer.addEventListener('mouseleave', () => {
+                img.style.transformOrigin = 'center center';
+            });
+        });
+    }, 100); // A small delay to ensure DOM is ready for Swiper
 }
 
 function openImageModal(product, startIndex) {

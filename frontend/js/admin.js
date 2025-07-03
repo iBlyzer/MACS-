@@ -388,10 +388,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         if (filtroCategoriaSelect) {
-            filtroCategoriaSelect.addEventListener('change', () => {
-                cargarSubcategoriasParaFiltro(filtroCategoriaSelect.value).then(() => {
-                    cargarProductos();
-                });
+            filtroCategoriaSelect.addEventListener('change', async () => {
+                await cargarSubcategoriasParaFiltro(filtroCategoriaSelect.value);
+                cargarProductos();
             });
         }
         if (filtroSubcategoriaSelect) {
@@ -516,17 +515,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
         const loadedImages = container.querySelectorAll('.image-placeholder img[src]:not([src=""])').length;
         const countSpan = document.getElementById('image-count');
-
-    // --- INITIALIZATION ---
-    function init() {
-        setupEventListeners();
-        cargarProductos();
-        cargarCategorias(); // For modal
-        cargarCategoriasParaFiltro();
-        cargarSubcategoriasParaFiltro(); // Initial call to set it to disabled
-    }
-
-    init();
         if (countSpan) {
             countSpan.textContent = `${loadedImages}/6`;
         }
@@ -580,17 +568,13 @@ document.addEventListener('DOMContentLoaded', () => {
             placeholder.addEventListener('click', () => fileInput.click());
 
             deleteBtn.addEventListener('click', () => {
-                // Si existía una imagen del servidor, la marcamos para borrar.
                 if (existingImage) {
-                    // El backend espera el nombre del campo para borrar.
                     if (!imagesToDelete.includes(field.name)) {
                         imagesToDelete.push(field.name);
                     }
                 }
-                // Si había un archivo nuevo esperando para subirse, lo eliminamos.
                 delete imageFiles[field.name];
 
-                // Reiniciamos la UI del campo.
                 img.src = '';
                 placeholder.innerHTML = '<span class="upload-icon">+</span>';
                 placeholder.classList.remove('has-image');
@@ -601,20 +585,17 @@ document.addEventListener('DOMContentLoaded', () => {
             fileInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    // Guardamos el archivo con el nombre de campo correcto. ¡Esta es la corrección clave!
                     imageFiles[field.name] = file;
 
-                    // Si esta imagen estaba marcada para borrarse, quitamos la marca.
                     const index = imagesToDelete.indexOf(field.name);
                     if (index > -1) {
                         imagesToDelete.splice(index, 1);
                     }
 
-                    // Mostramos la previsualización.
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         img.src = event.target.result;
-                        placeholder.innerHTML = ''; // Limpiar el ícono '+'
+                        placeholder.innerHTML = '';
                         placeholder.appendChild(img);
                         placeholder.classList.add('has-image');
                         deleteBtn.style.display = 'block';
@@ -623,35 +604,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 updateImageCounter();
             });
-        }); // <-- CIERRE DEL BUCLE forEach
+        });
 
-        updateImageCounter(); // Llamada inicial para contar imágenes existentes
-    } // <-- CIERRE DE LA FUNCIÓN renderImageUploader
+        updateImageCounter();
+    }
 
-    // --- INITIALIZATION & EVENT LISTENERS ---
-    btnAgregarProducto.addEventListener('click', abrirModalParaCrear);
-    closeButton.addEventListener('click', closeModal);
-    window.addEventListener('click', (event) => {
-        if (event.target === modal) closeModal();
-    });
-    productoForm.addEventListener('submit', guardarProducto);
-    productoCategoriaSelect.addEventListener('change', (e) => cargarSubcategorias(e.target.value));
-    tablaProductosContainer.addEventListener('click', (event) => {
-        const target = event.target;
-        if (target.classList.contains('btn-edit')) {
-            abrirModalParaEditar(target.dataset.id);
-        }
-        if (target.classList.contains('btn-delete')) {
-            eliminarProducto(target.dataset.id);
-        }
-        if (target.classList.contains('btn-toggle-status')) {
-            const id = target.dataset.id;
-            const nuevoEstado = target.dataset.status === 'true';
-            toggleEstadoProducto(id, nuevoEstado);
-        }
-    });
+    // --- INITIALIZATION ---
+    function init() {
+        setupEventListeners();
+        cargarProductos();
+        cargarCategorias(); // For modal
+        cargarCategoriasParaFiltro();
+        cargarSubcategoriasParaFiltro(); // Initial call to set it to disabled
+    }
 
-    setupEventListeners();
-    cargarProductos();
-    cargarCategorias();
+    init();
 });

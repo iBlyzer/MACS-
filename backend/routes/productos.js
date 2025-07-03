@@ -188,11 +188,12 @@ router.get('/get-all', auth, async (req, res) => {
       conditions.push('p.nombre LIKE ?');
       params.push(`%${nombre}%`);
     }
-    if (categoria_id) {
+    // Check for non-empty string values before adding to query
+    if (categoria_id && categoria_id !== '') {
       conditions.push('p.categoria_id = ?');
       params.push(categoria_id);
     }
-    if (subcategoria_id) {
+    if (subcategoria_id && subcategoria_id !== '') {
       conditions.push('p.subcategoria_id = ?');
       params.push(subcategoria_id);
     }
