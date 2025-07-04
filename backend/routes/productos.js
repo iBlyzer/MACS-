@@ -372,8 +372,8 @@ router.get('/top-stock', async (req, res) => {
 
 
 router.get('/categoria/:nombre', async (req, res) => {
+  const { nombre } = req.params;
   try {
-    const { nombre } = req.params;
     let query = '';
     let params = [];
 
