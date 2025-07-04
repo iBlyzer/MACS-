@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         try {
-            const response = await fetch('http://localhost:3000/api/productos/details-by-ids', {
+            const response = await fetch(`${API_BASE_URL}/api/productos/details-by-ids`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ids })
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const precioFormateado = formatCurrency(item.precio);
                 const productDetails = productsDetailsMap.get(item.id.toString());
                 const imagenUrl = productDetails && productDetails.imagen_3_4
-                    ? `http://localhost:3000${productDetails.imagen_3_4}`
+                    ? `${API_BASE_URL}${productDetails.imagen_3_4}`
                     : '/assets/logo.png';
 
                 let tallaInfo = '';

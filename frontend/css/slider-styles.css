@@ -406,7 +406,7 @@
 
 .product-card .product-card__sizes,
 .product-card .product-card__add-to-cart-btn {
-   /* width: 100%; /* Make both elements full-width */
+   /*    width: 100%; /* Make both elements full-width */
     margin-top: -100px;
 }
 

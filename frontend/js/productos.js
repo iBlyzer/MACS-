@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  const API_URL = 'http://localhost:3000/api/productos';
+  const API_URL = `${API_BASE_URL}/api/productos`;
   let allProductsInCategory = [];
   let currentlyDisplayedProducts = [];
   let productsLoaded = 0;

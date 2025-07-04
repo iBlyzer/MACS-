@@ -13,7 +13,7 @@ function createProductLinkElement(product) {
     }).format(product.precio);
 
     const imagenUrl = product.imagen_principal || product.imagen_3_4;
-    const imagenUrlCompleta = imagenUrl ? `http://localhost:3000${imagenUrl}` : '/assets/logo.png';
+    const imagenUrlCompleta = imagenUrl ? `${API_BASE_URL}${imagenUrl}` : '/assets/logo.png';
 
     const stock = product.tallas && product.tallas.length > 0
         ? product.tallas.reduce((acc, t) => acc + (t.stock || 0), 0)
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 1. INICIALIZAR SLIDER PRINCIPAL
     async function initializeMainSlider() {
         try {
-            const response = await fetch('http://localhost:3000/api/slider-manager/images');
+            const response = await fetch(`${API_BASE_URL}/api/slider-manager/images`);
             if (!response.ok) throw new Error('La respuesta de la red no fue correcta');
             
             const slidesData = await response.json();
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (slidesData && slidesData.length > 0) {
                 swiperWrapper.innerHTML = slidesData.map(slide => {
                     const { url, title, buttonText } = slide;
-                    const imageUrl = url.startsWith('http') ? url : `http://localhost:3000${url}`;
+                    const imageUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
                     const encodedImageUrl = encodeURI(imageUrl);
                     return `
                     <div class="swiper-slide" style="background-image: url('${encodedImageUrl}')">
@@ -207,10 +207,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 4. LLAMADAS A LAS FUNCIONES DE INICIALIZACIÓN
     initializeMainSlider();
-    initializeProductSlider('destacados-slider', 'http://localhost:3000/api/productos/destacados');
-    initializeProductSlider('macs-slider', 'http://localhost:3000/api/productos/categoria/Macs');
-    initializeProductSlider('importadas-slider', 'http://localhost:3000/api/productos/categoria/Importada');
-    initializeProductSlider('alone-slider', 'http://localhost:3000/api/productos/categoria/Alone');
-    initializeProductSlider('safari-slider', 'http://localhost:3000/api/productos/categoria/Safari');
-    initializeProductSlider('qs-slider', 'http://localhost:3000/api/productos/categoria/QS');
+    initializeProductSlider('destacados-slider', `${API_BASE_URL}/api/productos/destacados`);
+    initializeProductSlider('macs-slider', `${API_BASE_URL}/api/productos/categoria/Macs`);
+    initializeProductSlider('importadas-slider', `${API_BASE_URL}/api/productos/categoria/Importada`);
+    initializeProductSlider('alone-slider', `${API_BASE_URL}/api/productos/categoria/Alone`);
+    initializeProductSlider('safari-slider', `${API_BASE_URL}/api/productos/categoria/Safari`);
+    initializeProductSlider('qs-slider', `${API_BASE_URL}/api/productos/categoria/QS`);
 });
