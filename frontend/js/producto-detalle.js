@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    const response = await fetch(`http://localhost:3000/api/productos/${productoId}`);
+    const response = await fetch(`${API_BASE_URL}/api/productos/${productoId}`);
     if (!response.ok) {
       throw new Error('Producto no encontrado');
     }
@@ -25,17 +25,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function getImageUrl(imagePath) {
+    const placeholder = 'https://via.placeholder.com/400x400.png?text=Sin+Imagen';
     if (!imagePath || typeof imagePath !== 'string' || imagePath.trim() === '') {
-        return 'http://localhost:3000/assets/macs-agencia.png';
+        return placeholder;
     }
 
-    // Handle legacy data that might just be a filename
+    // Si ya es una URL completa (de Cloudinary), la devolvemos tal cual.
+    if (imagePath.startsWith('http')) {
+        return imagePath;
+    }
+
+    // --- Lógica para datos antiguos (legacy) ---
+    // Si es solo un nombre de archivo, construimos la ruta local.
     if (!imagePath.includes('/')) {
-        return `http://localhost:3000/uploads/${imagePath}`;
+        return `${API_BASE_URL}/uploads/${imagePath}`;
     }
 
-    // For paths that are already correct (e.g., /uploads/image.png)
-    return `http://localhost:3000${imagePath}`;
+    // Si es una ruta relativa (ej: /uploads/imagen.png), la completamos.
+    return `${API_BASE_URL}${imagePath}`;
 }
 
 function renderizarProductoPrincipal(product) {
@@ -534,7 +541,7 @@ async function cargarRecomendados(categoriaId, excludeId) {
     recomendadosSection.style.display = 'none';
 
     try {
-        const response = await fetch(`http://localhost:3000/api/productos/recomendados?categoriaId=${categoriaId}&excludeId=${excludeId}&limit=8`);
+        const response = await fetch(`${API_BASE_URL}/api/productos/recomendados?categoriaId=${categoriaId}&excludeId=${excludeId}&limit=8`);
         if (!response.ok) {
             throw new Error('La respuesta del servidor no fue exitosa.');
         }
