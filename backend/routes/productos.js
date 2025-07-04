@@ -6,6 +6,37 @@ const logger = require('../config/logger');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs'); // Import fs para operaciones de archivo
+const sharp = require('sharp');
+const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier');
+
+// Configurar Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true
+});
+
+// Helper para subir un buffer a Cloudinary
+const uploadToCloudinary = (buffer) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { 
+        folder: 'productos', // Opcional: para organizar en una carpeta en Cloudinary
+        format: 'webp' // Asegurarnos de que se guarde como WebP
+      },
+      (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      }
+    );
+    streamifier.createReadStream(buffer).pipe(uploadStream);
+  });
+};
 
 // --- Ruta de depuración para obtener todas las categorías ---
 router.get('/get-all-categories-for-debugging', async (req, res) => {
@@ -36,28 +67,21 @@ const getImageLabel = (fieldName) => {
   return labels[fieldName] || 'Vista'; // Default label
 };
 
-const formatImagePath = (filename) => {
-  if (!filename || typeof filename !== 'string') return null;
-  // Extraer solo el nombre del archivo, sin importar si viene con ruta
-  const baseFilename = filename.split('/').pop().split('\\').pop();
+// La función formatImagePath ya no es necesaria, porque Cloudinary nos da la URL completa.
+// La dejamos por si se usa en alguna otra parte, pero debería ser eliminada eventualmente.
+const formatImagePath = (url) => {
+  // Si ya es una URL completa de Cloudinary, la devolvemos tal cual.
+  if (url && url.startsWith('http')) {
+    return url;
+  }
+  if (!url || typeof url !== 'string') return null;
+  const baseFilename = url.split('/').pop().split('\\').pop();
   if (!baseFilename) return null;
   return `/uploads/${baseFilename}`;
 };
 
-// Configuración de Multer para la subida de archivos
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const dir = 'uploads/';
-    if (!fs.existsSync(dir)){
-        fs.mkdirSync(dir, { recursive: true });
-    }
-    cb(null, dir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Configuración de Multer para la subida de archivos en memoria
+const storage = multer.memoryStorage();
 
 // Define los nombres de los campos de imagen que se esperan del formulario
 const imageFields = [
@@ -73,6 +97,44 @@ const imageFields = [
 const upload = multer({ storage: storage }).fields(
     imageFields.map(field => ({ name: field, maxCount: 1 }))
 );
+
+// Middleware para procesar y subir imágenes a Cloudinary
+const processAndUploadImages = async (req, res, next) => {
+  if (!req.files || Object.keys(req.files).length === 0) {
+    return next();
+  }
+
+  try {
+    // Un objeto para guardar las URLs seguras de Cloudinary
+    req.cloudinary_urls = {}; 
+
+    const uploadPromises = [];
+
+    for (const field in req.files) {
+      for (const file of req.files[field]) {
+        const processingPromise = sharp(file.buffer)
+          .webp({ quality: 80 })
+          .toBuffer()
+          .then(buffer => uploadToCloudinary(buffer))
+          .then(result => {
+            // Guardamos la URL segura en nuestro objeto
+            if (!req.cloudinary_urls[field]) {
+              req.cloudinary_urls[field] = [];
+            }
+            req.cloudinary_urls[field].push(result.secure_url);
+          });
+        
+        uploadPromises.push(processingPromise);
+      }
+    }
+
+    await Promise.all(uploadPromises);
+    next();
+  } catch (error) {
+    logger.error('Error processing and uploading images:', error);
+    next(error);
+  }
+};
 
 // GET /api/productos - Obtener todos los productos con filtros avanzados
 router.get('/', async (req, res) => {
@@ -489,7 +551,7 @@ router.get('/recomendados', async (req, res) => {
 });
 
 // POST /api/productos/create - Crear un nuevo producto
-router.post('/create', [auth, upload], async (req, res) => {
+router.post('/create', [auth, upload, processAndUploadImages], async (req, res) => {
   const { 
     nombre, marca, precio, descripcion, numero_referencia, 
     categoria_id, subcategoria_id, activo, destacado, tiene_tallas, tallas, stock
@@ -517,7 +579,8 @@ router.post('/create', [auth, upload], async (req, res) => {
 
     const images = {};
     imageFields.forEach(field => {
-      images[field] = req.files[field] ? formatImagePath(req.files[field][0].filename) : null;
+      // Usamos las URLs de Cloudinary que guardamos en el middleware
+      images[field] = req.cloudinary_urls && req.cloudinary_urls[field] ? req.cloudinary_urls[field][0] : null;
     });
     
     const productoActivo = activo === 'true';
@@ -586,7 +649,7 @@ router.post('/create', [auth, upload], async (req, res) => {
 });
 
 // PUT /api/productos/update/:id - Actualizar un producto
-router.put('/update/:id', [auth, upload], async (req, res) => {
+router.put('/update/:id', [auth, upload, processAndUploadImages], async (req, res) => {
   const { id } = req.params;
   const { 
     nombre, marca, precio, descripcion, numero_referencia, 
@@ -622,21 +685,18 @@ router.put('/update/:id', [auth, upload], async (req, res) => {
 
     const images = {};
     imageFields.forEach(field => {
-      const file = req.files && req.files[field] ? req.files[field][0] : null;
+            // La URL de la nueva imagen viene de Cloudinary
+      const newImageUrl = req.cloudinary_urls && req.cloudinary_urls[field] ? req.cloudinary_urls[field][0] : null;
       const wasRemoved = req.body[`remove_${field}`] === 'true';
 
-      if (wasRemoved) {
-        if (currentProduct[field]) {
-          const oldImagePath = path.join(__dirname, '..', 'uploads', path.basename(currentProduct[field]));
-          if (fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
-        }
+            if (wasRemoved) {
+        // Opcional: podrías querer borrar la imagen de Cloudinary también
+        // Por ahora, solo la quitamos de la base de datos
         images[field] = null;
-      } else if (file) {
-        images[field] = formatImagePath(file.filename);
-        if (currentProduct[field]) {
-          const oldImagePath = path.join(__dirname, '..', 'uploads', path.basename(currentProduct[field]));
-          if (fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
-        }
+      } else if (newImageUrl) {
+        // Si se subió una nueva imagen, usamos su URL
+        images[field] = newImageUrl;
+        // Opcional: Borrar la imagen antigua de Cloudinary
       } else {
         images[field] = currentProduct[field];
       }
@@ -716,14 +776,9 @@ router.delete('/delete/:id', auth, async (req, res) => {
     }
     const product = rows[0];
 
-    imageFields.forEach(field => {
-      if (product[field]) {
-        const fullPath = path.join(__dirname, '..', 'uploads', path.basename(product[field]));
-        if (fs.existsSync(fullPath)) {
-          fs.unlinkSync(fullPath);
-        }
-      }
-    });
+        // Ya no necesitamos borrar archivos locales, pero podríamos querer
+    // borrar las imágenes de Cloudinary aquí para limpiar la cuenta.
+    // Por ahora, lo dejamos así para simplicidad.
 
     // La FK en 'producto_tallas' con ON DELETE CASCADE se encargará de limpiar las tallas.
     await db.query('DELETE FROM productos WHERE id = ?', [id]);
