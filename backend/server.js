@@ -31,22 +31,26 @@ app.use('/api/new-slider', require('./routes/new-slider'));
 
 // Ruta conflictiva eliminada. La lógica correcta está en routes/slider.js
 
-// --- Servir archivos estáticos ---
-// Estas carpetas contienen archivos generados o subidos por el backend (ej. imágenes de productos).
+// --- Servir archivos estáticos del Backend ---
+// Carpetas para archivos generados o subidos (ej. imágenes de productos).
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
+// --- Servir archivos estáticos del Frontend ---
+// Sirve la aplicación de frontend (HTML, CSS, JS).
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
+
 // --- Manejador para rutas API no encontradas ---
-// Captura todas las solicitudes a /api/* que no coincidieron con una ruta anterior.
+// Captura las solicitudes a /api/* que no coincidieron con una ruta anterior.
 app.use('/api/*', (req, res, next) => {
     res.status(404).json({ message: `La ruta API '${req.method} ${req.originalUrl}' no fue encontrada en el servidor.` });
 });
 
-// --- Manejador de rutas no encontradas ---
-// Para cualquier otra ruta que no sea de la API, devuelve un 404.
-// Esto reemplaza el antiguo manejador SPA, ya que el backend es solo una API.
+// --- Manejador SPA (Single Page Application) ---
+// Para cualquier otra solicitud GET que no sea de API y no sea un archivo estático,
+// se devuelve el index.html principal. Esto permite que el enrutamiento del lado del cliente tome el control.
 app.get('*', (req, res) => {
-  res.status(404).json({ message: `La ruta '${req.method} ${req.originalUrl}' no es una ruta de API válida.` });
+  res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
 });
 
 // --- Manejador de Errores Global ---
