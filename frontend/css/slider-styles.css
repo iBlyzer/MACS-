@@ -128,19 +128,28 @@
 /* === Product Sliders Swiper Styles === */
 
 .productos-section .swiper-container {
-  padding: 10px 0;
-  box-sizing: border-box;
-  position: relative;
-  overflow: hidden;
+    width: 100%;
+    padding-top: 20px;
+    padding-bottom: 60px; /* More space for pagination */
+    overflow: visible; /* Important for coverflow effect */
 }
 
 .productos-section .swiper-slide {
-  display: flex;
-  justify-content: center;
-  align-items: stretch; /* Estira los items para que tengan la misma altura */
-  box-sizing: border-box;
-  padding: 15px 10px; /* Añade padding vertical para que la sombra no se corte */
-  height: auto;
+    background-position: center;
+    background-size: cover;
+    width: 300px; /* Adjust as needed */
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    /* Add a subtle shadow for depth */
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.15));
+    transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+}
+
+/* Dim non-active slides to focus the center one */
+.productos-section .swiper-slide:not(.swiper-slide-active) {
+    opacity: 0.4;
 }
 
 .productos-section .product-card {
@@ -285,56 +294,26 @@
     background-color: #333;
 }
 
-.productos-section .swiper-pagination-progressbar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: rgba(0, 0, 0, 0.1);
+/* === Product Sliders Pagination === */
+.productos-section .swiper-pagination {
+    position: absolute;
+    bottom: 10px; /* Position it lower */
+    width: 100%;
+    left: 0;
 }
 
-.productos-section .swiper-pagination-progressbar .swiper-pagination-progressbar-fill {
-  background: #007aff;
-  height: 100%;
-  transform-origin: left;
-  transition: transform 0.3s ease;
+.productos-section .swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+    background-color: #ccc;
+    opacity: 1;
+    transition: background-color 0.3s, transform 0.3s;
+    margin: 0 5px;
 }
 
-.productos-section .swiper-pagination-bullets {
-  display: none;
-}
-
-.productos-section .custom-pagination-container {
-  position: absolute;
-  bottom: -25px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 20;
-}
-
-.productos-section .custom-pagination-indicator {
-  background-color: #007aff;
-  color: white;
-  padding: 5px 15px;
-  border-radius: 20px;
-  font-size: 14px;
-  position: relative;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-.productos-section .custom-pagination-indicator::before {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 8px solid #007aff;
+.productos-section .swiper-pagination-bullet-active {
+    background-color: #1a1a1a;
+    transform: scale(1.2);
 }
 
 .productos-section .swiper-button-next,
@@ -343,40 +322,27 @@
     padding: 10px;
     position: absolute;
     top: 50%;
+    transform: translateY(-50%); /* Center vertically */
     z-index: 10;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.2s;
-    opacity: 0; /* Oculto por defecto */
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
+    transition: background-color 0.2s, opacity 0.3s;
+    opacity: 1; /* Always visible */
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #1a1a1a;
     border-radius: 50%;
     width: 45px;
     height: 45px;
-}
-
-.productos-section:hover .swiper-button-next,
-.productos-section:hover .swiper-button-prev {
-    opacity: 1; /* Visible en hover */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 .productos-section .swiper-button-prev {
-    left: 10px;
-    transform: translateY(-50%) translateX(-150%); /* Empieza fuera de la pantalla */
-}
-
-.productos-section:hover .swiper-button-prev {
-    transform: translateY(-50%) translateX(0); /* Se desliza hacia adentro */
+    left: calc(50% - 400px); /* Adjust positioning based on design */
 }
 
 .productos-section .swiper-button-next {
-    right: 10px;
-    transform: translateY(-50%) translateX(150%); /* Empieza fuera de la pantalla */
-}
-
-.productos-section:hover .swiper-button-next {
-    transform: translateY(-50%) translateX(0); /* Se desliza hacia adentro */
+    right: calc(50% - 400px); /* Adjust positioning based on design */
 }
 
 .productos-section .swiper-button-next:hover,

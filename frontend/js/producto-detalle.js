@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const producto = await response.json();
 
     renderizarProductoPrincipal(producto);
+
     await cargarRecomendados(producto.categoria_id, producto.id);
 
   } catch (error) {
@@ -45,304 +46,340 @@ function getImageUrl(imagePath) {
     return `${API_BASE_URL}${imagePath}`;
 }
 
+const GUIA_DE_TALLAS = {
+
+    'sombreros': {
+        titulo: 'Guía de Tallas para Sombreros',
+        headers: ['Talla', 'Circunferencia'],
+        medidas: [
+            { talla: 'S', medida: '55-56 cm' },
+            { talla: 'M', medida: '57-58 cm' },
+            { talla: 'L', medida: '59-60 cm' },
+            { talla: 'XL', medida: '61-62 cm' },
+        ],
+        nota: 'Mide la circunferencia de tu cabeza para encontrar la talla correcta.'
+    }
+    // Agrega aquí otras guías para 'camisetas', 'anillos', etc.
+};
+
 function renderizarProductoPrincipal(product) {
     const detalleContainer = document.getElementById('detalle-producto-container');
     if (!detalleContainer) return;
 
-    const formatCurrency = (value) => new Intl.NumberFormat('es-CO', {
-        style: 'currency', currency: 'COP', minimumFractionDigits: 0
-    }).format(value);
-
     // --- Estado de tallas y stock ---
     const hasTallas = Array.isArray(product.tallas) && product.tallas.length > 0;
-    const tallasDisponibles = hasTallas ? product.tallas.filter(t => (parseInt(t.stock, 10) || 0) > 0) : [];
-    const stockTotal = hasTallas 
+    const tallasDisponibles = hasTallas ? product.tallas.filter(t => parseInt(t.stock, 10) > 0) : [];
+    const stockTotal = hasTallas
         ? product.tallas.reduce((total, talla) => total + (parseInt(talla.stock, 10) || 0), 0)
         : (parseInt(product.stock, 10) || 0);
 
     let selectedTalla = null;
     let currentStock = stockTotal;
 
-    if (hasTallas && tallasDisponibles.length > 0) {
-        selectedTalla = tallasDisponibles[0];
-        currentStock = parseInt(selectedTalla.stock, 10) || 0;
-    }
-
-    detalleContainer.innerHTML = ''; // Limpiar
-
-    // --- Columnas principales ---
+    // --- Limpiar y construir estructura base ---
+    detalleContainer.innerHTML = '';
     const galleryColumn = document.createElement('div');
     galleryColumn.className = 'product-gallery';
     const infoColumn = document.createElement('div');
     infoColumn.className = 'detalle-info';
-    detalleContainer.appendChild(galleryColumn);
-    detalleContainer.appendChild(infoColumn);
+    detalleContainer.append(galleryColumn, infoColumn);
 
-    // --- Contenido de la columna de información ---
-    const brandStockContainer = document.createElement('div');
-    brandStockContainer.className = 'brand-stock-container';
-    brandStockContainer.innerHTML = `
-        <p class="product-brand">${product.marca || 'Macs'}</p>
-        <div class="stock-info">
-            <span id="stock-indicator" class="stock-indicator ${stockTotal > 0 ? 'in-stock' : 'out-of-stock'}">
-                ${stockTotal > 0 ? 'EN STOCK' : 'AGOTADO'}
-            </span>
-        </div>
-    `;
+    // --- Contenedores de la columna de información ---
+    const stockDisplayContainer = document.createElement('div');
+    stockDisplayContainer.className = 'stock-display-container';
 
     const productName = document.createElement('h1');
     productName.textContent = product.nombre;
 
     const productRef = document.createElement('p');
-    productRef.className = 'ref';
-    let tipoProducto = 'Producto';
-    if (product.nombre.toLowerCase().includes('gorra')) {
-        tipoProducto = 'Gorra';
-    } else if (product.nombre.toLowerCase().includes('sombrero')) {
-        tipoProducto = 'Sombrero';
-    }
-    productRef.innerHTML = `<span class="ref-number">REF: ${product.numero_referencia || 'N/A'}</span><span class="unpersonalized-text">¡${tipoProducto} sin personalizar!</span>`;
-
-    const priceBoxContainer = document.createElement('div');
-    priceBoxContainer.className = 'price-box-container';
-    priceBoxContainer.innerHTML = `
-        <div class="main-prices">
-            <span id="unit-price" class="price-offer"></span>
-            <span id="total-price" class="price-normal"></span>
-        </div>
-        <div id="discount-message" class="discount-message"></div>
-        <div id="tiered-prices-display" class="tiered-prices"></div>
-    `;
+    productRef.className = 'product-reference';
+    productRef.textContent = `REF: ${product.numero_referencia || 'N/A'}`;
 
     const sizesContainer = document.createElement('div');
     sizesContainer.className = 'sizes-container';
 
     const controlsContainer = document.createElement('div');
-    controlsContainer.className = 'controls-container';
+    controlsContainer.className = 'controls-container product-actions';
 
-    const descriptionContainer = document.createElement('div');
-    descriptionContainer.className = 'descripcion-container';
-    descriptionContainer.innerHTML = `
-        <h3 class="descripcion-title">Descripción</h3>
-        <p class="descripcion-text">${product.descripcion}</p>
+    const accordionContainer = document.createElement('div');
+    accordionContainer.className = 'product-info-accordion';
+    accordionContainer.innerHTML = `
+        <div class="accordion-item">
+            <button class="accordion-header">
+                <span>Descripción</span>
+                <span class="accordion-icon"></span>
+            </button>
+            <div class="accordion-content">
+                <p>${product.descripcion || 'No hay descripción disponible.'}</p>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button class="accordion-header">
+                <span>Detalles</span>
+                <span class="accordion-icon"></span>
+            </button>
+            <div class="accordion-content">
+                <ul>
+                    <li><strong>Marca:</strong> ${product.marca || 'N/A'}</li>
+                    <li><strong>Categoría:</strong> ${product.categoria || 'N/A'}</li>
+                    <li><strong>Material:</strong> ${product.material || 'N/A'}</li>
+                    <li><strong>Origen:</strong> ${product.origen || 'Colombia'}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button class="accordion-header">
+                <span>Cuidados</span>
+                <span class="accordion-icon"></span>
+            </button>
+            <div class="accordion-content">
+                <ul>
+                    <li>No lavar a máquina.</li>
+                    <li>Limpiar con un paño húmedo.</li>
+                    <li>No usar blanqueador.</li>
+                    <li>Secar a la sombra.</li>
+                </ul>
+            </div>
+        </div>
     `;
 
-    infoColumn.append(brandStockContainer, productName, productRef, priceBoxContainer, sizesContainer, controlsContainer, descriptionContainer);
+    // --- Añadir todos los contenedores a la columna de info ---
+    infoColumn.append(stockDisplayContainer, productName, productRef, sizesContainer, controlsContainer, accordionContainer);
 
-    // --- Lógica de precios y cantidad ---
-    const unitPriceEl = document.getElementById('unit-price');
-    const totalPriceEl = document.getElementById('total-price');
-    const discountMessageEl = document.getElementById('discount-message');
-    const stockIndicatorEl = document.getElementById('stock-indicator');
-    const tieredPricesDisplayEl = document.getElementById('tiered-prices-display');
+    // --- Lógica de la Marca con Efectos ---
+    if (product.marca) {
+        const productBrand = document.createElement('div');
+        productBrand.className = 'product-brand';
+        productBrand.textContent = product.marca;
+        const marcaLowerCase = product.marca.toLowerCase();
 
-    const basePrice = parseFloat(product.precio);
-    const priceTiers = [
-        { min: 200, price: 13000 }, { min: 100, price: 13800 },
-        { min: 50, price: 14500 }, { min: 25, price: 16000 },
-        { min: 13, price: 16800 }, { min: 1, price: basePrice }
-    ];
-    
-    if (tieredPricesDisplayEl) {
-        const tiersForDisplay = priceTiers.filter(t => t.min > 1 && t.price < basePrice).sort((a, b) => a.min - b.min);
-        tieredPricesDisplayEl.innerHTML = tiersForDisplay.map(tier => 
-            `<div class="tiered-price-item">
-                <span class="tiered-condition">${tier.min} o más unidades</span>
-                <span class="tiered-price">${formatCurrency(tier.price)} c/u</span>
-            </div>`
-        ).join('');
+        if (marcaLowerCase.includes('macs')) {
+            productBrand.classList.add('brand-macs');
+        } else if (marcaLowerCase.includes('importada')) {
+            productBrand.classList.add('brand-importada');
+        }
+        
+        // Insertar la marca justo después del stock y antes del nombre del producto
+        stockDisplayContainer.insertAdjacentElement('afterend', productBrand);
     }
 
-    function updatePrices(quantity) {
-        const stock = currentStock;
-        if (!quantity || quantity < 1) quantity = 1;
-        if (quantity > stock) quantity = stock;
-        
-        const quantityInput = document.getElementById('quantity');
-        if (quantityInput) quantityInput.value = quantity;
+    // --- Funciones auxiliares para rellenar contenido y configurar eventos ---
 
-        const tier = priceTiers.find(t => quantity >= t.min);
-        const unitPrice = tier ? tier.price : basePrice;
-        const totalPrice = unitPrice * quantity;
+    function setupAccordion() {
+        const accordionItems = accordionContainer.querySelectorAll('.accordion-item');
+        accordionItems.forEach((item, index) => {
+            const header = item.querySelector('.accordion-header');
+            const content = item.querySelector('.accordion-content');
 
-        if (unitPriceEl) unitPriceEl.textContent = formatCurrency(unitPrice);
-        if (totalPriceEl) totalPriceEl.textContent = `Total: ${formatCurrency(totalPrice)}`;
-
-        if (discountMessageEl) {
-            const currentTierIndex = priceTiers.findIndex(t => quantity >= t.min);
-            const nextTier = (currentTierIndex > 0) ? priceTiers[currentTierIndex - 1] : null;
-            if (nextTier && quantity < nextTier.min) {
-                const itemsNeeded = nextTier.min - quantity;
-                discountMessageEl.innerHTML = `¡Añade <b>${itemsNeeded}</b> más y paga <b>${formatCurrency(nextTier.price)}</b> por unidad!`;
-                discountMessageEl.style.display = 'block';
-            } else {
-                discountMessageEl.style.display = 'none';
+            if (index === 0) {
+                item.classList.add('active');
+                content.style.maxHeight = content.scrollHeight + 'px';
             }
-        }
+
+            header.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                accordionItems.forEach(i => {
+                    i.classList.remove('active');
+                    i.querySelector('.accordion-content').style.maxHeight = '0px';
+                });
+                if (!isActive) {
+                    item.classList.add('active');
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                }
+            });
+        });
+    }
+
+    function updateStockDisplay(stock) {
+        const stockStatus = stock > 0 ? 'in-stock' : 'out-of-stock';
+        const stockLabel = stock > 0 ? 'En Stock' : 'Agotado';
+        const stockQuantityText = stock > 0 ? `${stock} disponibles` : '';
+        stockDisplayContainer.innerHTML = `
+            <span class="stock-badge ${stockStatus}">${stockLabel}</span>
+            ${stock > 0 ? `<span class="stock-quantity-available">${stockQuantityText}</span>` : ''}
+        `;
     }
 
     function setupControls() {
-        const personalizeBtnHTML = `<a href="https://wa.me/573019998933?text=Hola,%20estoy%20interesado%20en%20personalizar%20el%20producto:%20${encodeURIComponent(product.nombre)}%20(REF:%20${product.numero_referencia})" target="_blank" class="personalize-btn">Personalizar ahora <i class="fa-brands fa-whatsapp"></i></a>`;
-        if (stockTotal > 0) {
-            controlsContainer.innerHTML = `
-                <div class="quantity-selector">
-                    <button id="decrease-quantity">-</button>
-                    <input type="number" id="quantity" value="1" min="1" max="${currentStock}">
-                    <button id="increase-quantity">+</button>
+        const esPersonalizable = product.nombre.toLowerCase().includes('personaliza');
+        const mainButtonText = esPersonalizable ? 'Personalizar' : 'Añadir al carrito';
+        const mainButtonId = esPersonalizable ? 'personalizar-btn' : 'add-to-cart-btn';
+
+        const productActionsContainer = document.querySelector('.product-actions');
+        productActionsContainer.innerHTML = `
+            <div class="product-purchase-actions">
+                <div class="quantity-selector-container">
+                    <label for="quantity-input" class="quantity-label">Cantidad</label>
+                    <div class="quantity-selector">
+                        <button class="quantity-btn" id="decrease-quantity">-</button>
+                        <input type="number" id="quantity-input" value="1" min="1">
+                        <button class="quantity-btn" id="increase-quantity">+</button>
+                    </div>
                 </div>
-                ${personalizeBtnHTML}
-                <button id="add-to-cart-btn" class="add-to-cart-btn">AÑADIR A LA CESTA</button>
-            `;
+                <div class="main-actions-container">
+                    <button id="${mainButtonId}" class="btn-main-action">
+                        <span class="btn-content">
+                            <span class="btn-text">${mainButtonText.toUpperCase()}</span>
+                            <span class="btn-arrow">&rarr;</span>
+                        </span>
+                        <span class="btn-loader"></span>
+                        <span class="btn-success-icon"><i class="fas fa-check"></i></span>
+                    </button>
+                    <button class="btn-wishlist">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        `;
 
-            const quantityInput = document.getElementById('quantity');
-            const decreaseBtn = document.getElementById('decrease-quantity');
-            const increaseBtn = document.getElementById('increase-quantity');
-            const addToCartBtn = document.getElementById('add-to-cart-btn');
+        const quantityInput = document.getElementById('quantity-input');
+        const decreaseBtn = document.getElementById('decrease-quantity');
+        const increaseBtn = document.getElementById('increase-quantity');
 
-            increaseBtn.addEventListener('click', () => {
-                let val = parseInt(quantityInput.value);
-                if (val < currentStock) quantityInput.value = val + 1;
-                updatePrices(parseInt(quantityInput.value));
-            });
+        quantityInput.max = currentStock;
 
-            decreaseBtn.addEventListener('click', () => {
-                let val = parseInt(quantityInput.value);
-                if (val > 1) quantityInput.value = val - 1;
-                updatePrices(parseInt(quantityInput.value));
-            });
+        increaseBtn.addEventListener('click', () => {
+            let val = parseInt(quantityInput.value);
+            if (val < currentStock) quantityInput.value = val + 1;
+        });
 
-            quantityInput.addEventListener('input', () => {
-                if (parseInt(quantityInput.value) > currentStock) quantityInput.value = currentStock;
-                if (parseInt(quantityInput.value) < 1) quantityInput.value = 1;
-                updatePrices(parseInt(quantityInput.value));
-            });
+        decreaseBtn.addEventListener('click', () => {
+            let val = parseInt(quantityInput.value);
+            if (val > 1) quantityInput.value = val - 1;
+        });
 
-            addToCartBtn.addEventListener('click', () => {
-                if (hasTallas && !selectedTalla) {
-                    alert('Por favor, seleccione una talla.');
+        quantityInput.addEventListener('input', () => {
+            if (parseInt(quantityInput.value) > currentStock) quantityInput.value = currentStock;
+            if (parseInt(quantityInput.value) < 1) quantityInput.value = 1;
+        });
+
+        const actionsContainer = document.querySelector('.product-purchase-actions');
+    
+
+        if (actionsContainer) {
+            actionsContainer.addEventListener('click', (e) => {
+        
+                const targetButton = e.target.closest('.btn-main-action');
+
+                if (!targetButton) {
                     return;
                 }
 
-                const baseId = product.id || product._id;
-                // Crear un ID único para el item en la cesta que incluye la talla
-                const cartItemId = selectedTalla ? `${baseId}-${selectedTalla.talla}` : baseId;
-
-                const productToAdd = {
-                    ...product,
-                    cartItemId: cartItemId, // ID único para la cesta
-                    id: baseId, // ID original del producto
-                    cantidad: parseInt(quantityInput.value),
-                    talla: selectedTalla ? selectedTalla.talla : null
-                };
-
-                if (typeof agregarAlCarrito === 'function') {
-                    agregarAlCarrito(productToAdd);
+                if (targetButton.id === 'personalizar-btn') {
+                    const whatsappLink = `https://wa.me/573019998933?text=Hola,%20estoy%20interesado%20en%20personalizar%20el%20producto:%20${encodeURIComponent(product.nombre)}%20(REF:%20${product.numero_referencia})`;
+                    window.open(whatsappLink, '_blank');
+                } else if (targetButton.id === 'add-to-cart-btn') {
+    
+                    if (hasTallas && !selectedTalla) {
+                        alert('Por favor, seleccione una talla.');
+                        return;
+                    }
+                    const baseId = product.id || product._id;
+                    const cartItemId = selectedTalla ? `${baseId}-${selectedTalla.talla}` : baseId;
+                    const productToAdd = { ...product, cartItemId, id: baseId, cantidad: parseInt(quantityInput.value), talla: selectedTalla ? selectedTalla.talla : null };
+                    
+                    if (typeof agregarAlCarrito === 'function') {
+        
+                        agregarAlCarrito(productToAdd, targetButton);
+                    } else {
+                        console.error('La función agregarAlCarrito no está disponible.');
+                        console.error('[DEBUG] La función agregarAlCarrito no está disponible.');
+                    }
                 }
             });
-
-        } else {
-            controlsContainer.innerHTML = personalizeBtnHTML;
         }
     }
 
-    function setupTallas() {
-        if (hasTallas && tallasDisponibles.length > 0) {
-            const sizeOptionsHTML = tallasDisponibles.map(talla =>
-                `<button class="size-option" data-talla='${JSON.stringify(talla)}'>${talla.talla}</button>`
-            ).join('');
-            sizesContainer.innerHTML = `<h3 class="sizes-title">TALLA</h3><div class="size-options">${sizeOptionsHTML}</div>`;
+    function setupTallasYGuia() {
+        if (!hasTallas || tallasDisponibles.length === 0) {
+            sizesContainer.innerHTML = '';
+            updateStockDisplay(stockTotal);
+            return;
+        }
 
-            const sizeOptionsContainer = sizesContainer.querySelector('.size-options');
-            sizeOptionsContainer.addEventListener('click', e => {
-                if (e.target.classList.contains('size-option')) {
-                    sizeOptionsContainer.querySelectorAll('.size-option').forEach(btn => btn.classList.remove('selected'));
-                    e.target.classList.add('selected');
-                    
-                    selectedTalla = JSON.parse(e.target.dataset.talla);
-                    currentStock = parseInt(selectedTalla.stock, 10) || 0;
-                    
-                    const quantityInput = document.getElementById('quantity');
-                    quantityInput.max = currentStock;
-                    if (parseInt(quantityInput.value) > currentStock) quantityInput.value = currentStock;
-                    
-                    if(stockIndicatorEl) stockIndicatorEl.textContent = `EN STOCK (${currentStock})`;
-                    updatePrices(parseInt(quantityInput.value));
+        const sizeButtonsHTML = tallasDisponibles.map(talla =>
+            `<button class="size-box" data-talla='${JSON.stringify(talla)}' ${talla.stock === 0 ? 'disabled' : ''}>${talla.talla}</button>`
+        ).join('');
+
+        sizesContainer.innerHTML = `
+            <div class="sizes-header">
+                <h3 class="section-title">Tallas</h3>
+                <a href="#" class="size-guide-link"> <i class="fa-solid fa-ruler-horizontal"></i> Guía de tallas</a>
+            </div>
+            <div class="size-grid">${sizeButtonsHTML}</div>
+        `;
+
+        const sizeGrid = sizesContainer.querySelector('.size-grid');
+        sizeGrid.addEventListener('click', e => {
+            if (e.target.classList.contains('size-box')) {
+                sizeGrid.querySelectorAll('.size-box').forEach(btn => btn.classList.remove('selected'));
+                e.target.classList.add('selected');
+                selectedTalla = JSON.parse(e.target.dataset.talla);
+                currentStock = parseInt(selectedTalla.stock, 10) || 0;
+                document.getElementById('quantity-input').max = currentStock;
+                if (parseInt(document.getElementById('quantity-input').value) > currentStock) {
+                    document.getElementById('quantity-input').value = currentStock > 0 ? 1 : 0;
                 }
-            });
-
-            // Seleccionar la primera talla por defecto
-            const firstButton = sizeOptionsContainer.querySelector('.size-option');
-            if (firstButton) {
-                firstButton.click();
+                updateStockDisplay(currentStock);
             }
+        });
+
+        const firstAvailableButton = sizeGrid.querySelector('.size-box:not(:disabled)');
+        if (firstAvailableButton) {
+            firstAvailableButton.click();
         } else {
-            sizesContainer.style.display = 'none';
-            if(stockIndicatorEl && stockTotal > 0) stockIndicatorEl.textContent = `EN STOCK (${stockTotal})`;
+            updateStockDisplay(0);
+        }
+
+        const sizeGuideLink = sizesContainer.querySelector('.size-guide-link');
+        const esSombrero = (product.nombre || '').toLowerCase().includes('sombrero');
+        if (esSombrero) {
+            sizeGuideLink.style.display = 'block';
+            sizeGuideLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                openSizeGuideModal('sombreros');
+            });
+        } else {
+            sizeGuideLink.style.display = 'none';
         }
     }
 
-    // --- Inicialización ---
+    function openSizeGuideModal(category) {
+        const guiaData = GUIA_DE_TALLAS[category];
+        if (!guiaData) return;
+
+        const modalOverlay = document.createElement('div');
+        modalOverlay.className = 'size-guide-modal-overlay';
+
+        const tableRows = guiaData.medidas.map(m => `<tr><td>${m.talla}</td><td>${m.medida}</td></tr>`).join('');
+
+        modalOverlay.innerHTML = `
+            <div class="size-guide-modal-content">
+                <button class="modal-close-btn">&times;</button>
+                <h2 class="modal-title">${guiaData.titulo}</h2>
+                <table class="size-guide-table"><thead><tr><th>${guiaData.headers[0]}</th><th>${guiaData.headers[1]}</th></tr></thead><tbody>${tableRows}</tbody></table>
+                <p class="modal-note">${guiaData.nota}</p>
+            </div>
+        `;
+
+        document.body.appendChild(modalOverlay);
+        document.body.style.overflow = 'hidden';
+
+        const closeModal = () => {
+            modalOverlay.remove();
+            document.body.style.overflow = '';
+        };
+
+        modalOverlay.querySelector('.modal-close-btn').addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', e => e.target === modalOverlay && closeModal());
+    }
+
+    // --- Inicialización de todos los componentes ---
+    updateStockDisplay(currentStock);
     setupImageGallery(product, galleryColumn);
     setupControls();
-    setupTallas();
-    updatePrices(1);
-    
-    if (stockTotal === 0) {
-        if(totalPriceEl) totalPriceEl.style.display = 'none';
-        if(discountMessageEl) discountMessageEl.style.display = 'none';
-    }
-}
-
-function setupDynamicPricing(product, formatCurrency) {
-const quantityInput = document.getElementById('quantity');
-if (!quantityInput) return;
-
-const basePrice = product.precio;
-const unitPriceEl = document.getElementById('unit-price');
-const totalPriceEl = document.getElementById('total-price');
-const discountMessageEl = document.getElementById('discount-message');
-const tieredPricesDisplayEl = document.getElementById('tiered-prices-display');
-
-    // Usar la lógica centralizada de pricing.js
-    const priceTiers = getPriceTiers();
-
-    if (tieredPricesDisplayEl) {
-        tieredPricesDisplayEl.innerHTML = priceTiers.map(tier => 
-            `<div class="tiered-price-item">
-                <span class="tiered-condition">${tier.min} o más unidades</span>
-                <span class="tiered-price">${formatCurrency(tier.price)} c/u</span>
-            </div>`
-        ).join('');
-    }
-
-    function updatePrice() {
-        const quantity = parseInt(quantityInput.value, 10) || 1;
-        
-        // Usar la función centralizada para obtener el precio
-        const unitPrice = getTieredUnitPrice(quantity) || basePrice;
-        const totalPrice = unitPrice * quantity;
-
-        if (unitPriceEl) unitPriceEl.textContent = formatCurrency(unitPrice);
-        if (totalPriceEl) totalPriceEl.textContent = formatCurrency(totalPrice);
-
-        if (discountMessageEl) {
-            const currentTier = priceTiers.find(t => quantity >= t.min);
-            const higherTiers = priceTiers.filter(t => t.min > (currentTier ? currentTier.min : 0));
-            const nextTier = higherTiers.length > 0 ? higherTiers[higherTiers.length - 1] : null;
-
-            if (nextTier && quantity < nextTier.min) {
-                const itemsNeeded = nextTier.min - quantity;
-                discountMessageEl.innerHTML = `¡Añade <b>${itemsNeeded}</b> más y paga <b>${formatCurrency(nextTier.price)}</b> por unidad!`;
-                discountMessageEl.style.display = 'block';
-            } else {
-                discountMessageEl.textContent = '';
-                discountMessageEl.style.display = 'none';
-            }
-        }
-    }
-
-    quantityInput.addEventListener('input', () => updatePrices(parseInt(quantityInput.value, 10)));
-    updatePrices(parseInt(quantityInput.value, 10));
+    setupTallasYGuia();
+    setupAccordion();
 }
 
 function setupImageGallery(product, container) {

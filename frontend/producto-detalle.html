@@ -12,8 +12,12 @@
   <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
   <link rel="stylesheet" href="css/producto-detalle.css?v=1.9" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="css/loader.css">
 </head>
 <body>
+  <div class="loader-wrapper">
+    <div class="loader"></div>
+  </div>
   <header>
         <div class="logo">
           <a href="index.html"><img src="../assets/macs-agencia.png" alt="Macs Legacy Logo" style="height: 40px;"></a>
@@ -162,11 +166,47 @@
   </footer>
 
   <script src="js/utils.js?v=1.0"></script>
-  <script src="js/nav.js"></script>
   <script src="js/cart.js"></script>
+  <script src="js/nav.js"></script>
   <script src="js/scripts.js"></script>
-  <script src="js/producto-detalle.js?v=1.1.2"></script>
+  <script src="js/producto-detalle.js?v=1.1.4"></script>
   <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
   <script src="js/animations.js"></script>
+  <script src="js/loader.js"></script>
+
+  <!-- Modal de Producto Añadido -->
+  <div id="added-to-cart-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <button class="close-modal-btn" id="close-modal-btn">&times;</button>
+      <div class="modal-header">
+        <h2>PRODUCTO AÑADIDO AL CARRITO</h2>
+      </div>
+      <div class="modal-body">
+        <div class="product-details">
+          <img id="modal-product-image" src="" alt="Producto">
+          <div class="product-info">
+            <h3 id="modal-product-name">Nombre del Producto</h3>
+            <p id="modal-product-price">$0.00</p>
+            <p id="modal-product-color">Color: White</p>
+            <p id="modal-product-size">Talla: M</p>
+            <p id="modal-product-quantity">Cantidad: 1</p>
+          </div>
+        </div>
+        <div class="cart-summary">
+          <h4>Tu carrito</h4>
+          <p><span id="modal-cart-count">1</span> artículo</p>
+          <p>Costo total de los productos: <span id="modal-cart-subtotal">$0.00</span></p>
+          <p>Costo de Envío: <span>Gratis</span></p>
+          <hr>
+          <p class="total"><strong>Total: <span id="modal-cart-total">$0.00</span></strong></p>
+          <p class="financing-info">(impuestos incluidos)<br>Financiación con Tarjeta de Crédito<br>Hasta 12 x $49.995,84 más interés bancario.</p>
+          <p class="member-promo">Regístrate para acceder a beneficios y descuentos exclusivos para miembros.</p>
+          <a href="#" class="btn-register">REGÍSTRATE GRATIS &rarr;</a>
+          <a href="cesta.html" class="btn-view-cart">VER CARRITO &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

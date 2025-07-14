@@ -283,6 +283,15 @@ body {
     position: relative;
 }
 
+/* Altura diferenciada para sombreros y gorras */
+.product-card--sombrero {
+    min-height: 520px; /* Altura mayor para sombreros para dar espacio al selector de talla */
+}
+
+.product-card--gorra {
+    min-height: 500px; /* Altura estándar para gorras y otros productos sin tallas */
+}
+
 .product-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0,0,0,0.1);
@@ -293,7 +302,6 @@ body {
     color: inherit;
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
 }
 
 .product-card__image-container {
@@ -338,12 +346,43 @@ body {
 
 .product-card__info {
     padding: 15px;
-    text-align: left;
+    text-align: center;
     display: flex;
     flex-direction: column;
+    align-items: center;
     flex-grow: 1;
-    /* Dejar espacio para los elementos posicionados absolutamente */
-    padding-bottom: 120px; 
+    justify-content: center;
+}
+
+.product-card__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 15px 15px;
+    align-items: stretch;
+    margin-top: auto; /* Empuja las acciones a la parte inferior */
+}
+
+.stock-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-top: 10px;
+}
+
+.stock-quantity {
+    font-size: 0.9em;
+    color: #666;
+    text-align: center;
+}
+
+.product-card__talla-select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    text-align: center;
 }
 
 .product-card__brand {
@@ -392,15 +431,52 @@ body {
 }
 
 .product-card__price {
-    font-size: 1.2em;
-    font-weight: 700;
-    color: #d90429;
-    margin: 0;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #c0392b;
+    margin-top: 10px;
+}
+
+.stock-container {
+    display: flex;
+    flex-direction: column; /* Apila los elementos verticalmente */
+    align-items: center; /* Centra los elementos */
+    margin-top: 8px;
+    width: 100%;
+}
+
+.stock-indicator {
+    width: 100%; /* Ocupa todo el ancho disponible */
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid transparent;
+    margin-bottom: 4px; /* Espacio entre el indicador y la cantidad */
+}
+
+.stock-indicator.in-stock {
+    background-color: #e8f5e9; /* Verde muy claro */
+    color: #2e7d32; /* Verde oscuro */
+    border-color: #a5d6a7;
+}
+
+.stock-indicator.out-of-stock {
+    background-color: #fce4ec; /* Rosa muy claro */
+    color: #c2185b; /* Rosa oscuro */
+    border-color: #f8bbd0;
+}
+
+.stock-quantity {
+    font-size: 1rem; /* Aumentado el tamaño */
+    color: #1a1a1a; /* Color más oscuro para mayor visibilidad */
+    font-weight: 700; /* Más grueso */
 }
 
 .product-card__talla-select {
     position: absolute;
-    bottom: 70px;
+    bottom: 60px; /* Subido */
     left: 15px;
     width: calc(100% - 30px);
     padding: 10px;
@@ -413,7 +489,7 @@ body {
 
 .product-card__add-to-cart-btn {
     position: absolute;
-    bottom: 15px;
+    bottom: 15px; /* Subido */
     left: 15px;
     width: calc(100% - 30px);
     background-color: #1a1a1a;

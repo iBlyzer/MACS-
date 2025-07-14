@@ -6,35 +6,87 @@ function createProductLinkElement(product) {
     const card = document.createElement("div");
     card.className = "product-card";
 
-    const precioFormateado = new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
-        minimumFractionDigits: 0
-    }).format(product.precio);
+    // Determinar si el producto es un sombrero para aplicar estilos y lógica específicos
+    const isSombrero = product.categoria_nombre && product.categoria_nombre.toLowerCase() === 'sombreros';
+
+    if (isSombrero) {
+        card.classList.add('product-card--sombrero');
+    } else {
+        card.classList.add('product-card--gorra');
+    }
+
+    // La lógica para mostrar las tallas solo se aplica si es un sombrero con tallas
+    const showTallas = isSombrero && product.tiene_tallas && product.tallas && product.tallas.length > 0;
+
+    if (showTallas) {
+        card.classList.add('has-tallas');
+    } else {
+        card.classList.add('no-tallas');
+    }
 
     const imagenUrl = product.imagen_principal || product.imagen_3_4;
-    const imagenUrlCompleta = imagenUrl ? `${API_BASE_URL}${imagenUrl}` : '/assets/logo.png';
+    const imagenUrlCompleta = imagenUrl && imagenUrl.startsWith('http') 
+        ? imagenUrl 
+        : (imagenUrl ? `${API_BASE_URL}${imagenUrl}` : '/assets/logo.png');
 
     const stock = product.tallas && product.tallas.length > 0
         ? product.tallas.reduce((acc, t) => acc + (t.stock || 0), 0)
         : (product.stock || 0);
 
-    const stockInfoHTML = stock > 0 ? `<div class="stock-indicator in-stock">EN STOCK</div>` : `<div class="stock-indicator out-of-stock">AGOTADO</div>`;
     const marca = product.marca || 'Macs';
     const marcaClass = marca.toLowerCase() === 'macs' ? 'rgb-text' : '';
     const marcaHTML = `<p class="product-card__brand ${marcaClass}">${marca}</p>`;
+    const nombreHTML = `<p class="product-card__name">${product.nombre}</p>`;
 
-    let tallaSelectorHTML = '';
-    if (product.tiene_tallas && product.tallas && product.tallas.length > 0) {
+    const buttonHTML = `
+        <button class="product-card__add-to-cart-btn" data-product-id="${product.id}" ${stock === 0 ? 'disabled' : ''}>
+            <span class="btn-content">
+                <span class="btn-text">${stock === 0 ? 'AGOTADO' : 'AGREGAR AL CARRITO'}</span>
+            </span>
+            <span class="btn-loader"></span>
+            <span class="btn-success-icon"><i class="fas fa-check"></i></span>
+        </button>`;
+
+    let infoBlockHTML = '';
+    let actionsBlockHTML = '';
+
+    if (showTallas) {
+        // CON TALLAS (para Sombreros): Muestra nombre, stock, selector, y botón.
+        const stockInfoHTML = `
+            <div class="stock-container">
+                ${stock > 0 ? 
+                    `<div class="stock-indicator in-stock">EN STOCK</div><div class="stock-quantity">(${stock} disponibles)</div>` :
+                    `<div class="stock-indicator out-of-stock">AGOTADO</div>`
+                }
+            </div>`;
+        infoBlockHTML = `${marcaHTML}${nombreHTML}${stockInfoHTML}`;
+
         const tallaOptions = product.tallas
             .map(t => `<option value="${t.talla}" ${t.stock === 0 ? 'disabled' : ''}>${t.talla}${t.stock === 0 ? ' (Agotado)' : ''}</option>`)
             .join('');
-        tallaSelectorHTML = `
+        const tallaSelectorHTML = `
             <select class="product-card__talla-select">
                 <option value="">Seleccionar talla</option>
                 ${tallaOptions}
             </select>
         `;
+
+        actionsBlockHTML = `
+            ${tallaSelectorHTML}
+            ${buttonHTML}
+        `;
+
+    } else {
+        // SIN TALLAS (para Gorras y otros): Muestra nombre, indicador de stock, y botón.
+        const stockInfoHTML = `
+            <div class="stock-container">
+                ${stock > 0 ? 
+                    `<div class="stock-indicator in-stock">EN STOCK</div><div class="stock-quantity">(${stock} disponibles)</div>` :
+                    `<div class="stock-indicator out-of-stock">AGOTADO</div>`
+                }
+            </div>`;
+        infoBlockHTML = `${marcaHTML}${nombreHTML}${stockInfoHTML}`;
+        actionsBlockHTML = buttonHTML;
     }
 
     card.innerHTML = `
@@ -44,20 +96,17 @@ function createProductLinkElement(product) {
                 <div class="product-card__overlay"><i class="fas fa-eye"></i></div>
             </div>
             <div class="product-card__info">
-                ${marcaHTML}
-                ${stockInfoHTML}
-                <p class="product-card__name">${product.nombre}</p>
-                <p class="product-card__price">${precioFormateado}</p>
+                ${infoBlockHTML}
             </div>
         </a>
-        ${tallaSelectorHTML}
-        <button class="product-card__add-to-cart-btn" data-product-id="${product.id}" ${stock === 0 ? 'disabled' : ''}>
-           ${stock === 0 ? 'AGOTADO' : 'AGREGAR AL CARRITO'}
-        </button>
+        <div class="product-card__actions">
+            ${actionsBlockHTML}
+        </div>
     `;
 
     const addToCartBtn = card.querySelector('.product-card__add-to-cart-btn');
-    addToCartBtn.addEventListener('click', () => {
+    addToCartBtn.addEventListener('click', (e) => {
+        e.preventDefault(); // Prevenir la navegación del enlace
         if (typeof agregarAlCarrito !== 'function') {
             console.error('La función agregarAlCarrito no está definida.');
             return;
@@ -65,7 +114,7 @@ function createProductLinkElement(product) {
 
         const productToAdd = { ...product, cantidad: 1 };
 
-        if (product.tiene_tallas && product.tallas && product.tallas.length > 0) {
+        if (showTallas) {
             const tallaSelect = card.querySelector('.product-card__talla-select');
             const selectedTalla = tallaSelect ? tallaSelect.value : null;
 
@@ -85,8 +134,17 @@ function createProductLinkElement(product) {
             productToAdd.cartItemId = String(product.id);
         }
         
-        agregarAlCarrito(productToAdd);
+        agregarAlCarrito(productToAdd, addToCartBtn);
     });
+
+    const productLink = card.querySelector('.product-card__link');
+    if (productLink) {
+        productLink.addEventListener('click', () => {
+            if (typeof agregarProductoVisto === 'function') {
+                agregarProductoVisto(product.id);
+            }
+        });
+    }
 
     return card;
 }
@@ -171,8 +229,27 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             new Swiper(`#${containerId}`, {
-                slidesPerView: 1,
+                effect: 'coverflow',
+                grabCursor: true,
+                centeredSlides: true,
+                loop: true,
+                slidesPerView: 1, // Start with 1 for mobile
                 spaceBetween: 20,
+                autoplay: {
+                    delay: 5000,
+                    disableOnInteraction: false,
+                },
+                coverflowEffect: {
+                    rotate: 40,
+                    stretch: 0,
+                    depth: 100,
+                    modifier: 1,
+                    slideShadows: false, // Shadows can be heavy, let's disable for now
+                },
+                pagination: {
+                    el: `#${containerId} .swiper-pagination`,
+                    clickable: true,
+                },
                 navigation: {
                     nextEl: `#${containerId} .swiper-button-next`,
                     prevEl: `#${containerId} .swiper-button-prev`,
@@ -180,7 +257,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 breakpoints: {
                     640: { slidesPerView: 2 },
                     768: { slidesPerView: 3 },
-                    1024: { slidesPerView: 4 },
+                    1024: { 
+                        slidesPerView: 4,
+                        spaceBetween: 30
+                    },
                 },
             });
 

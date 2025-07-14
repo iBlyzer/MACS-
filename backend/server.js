@@ -38,7 +38,20 @@ app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 // --- Servir archivos estáticos del Frontend ---
 // Sirve la aplicación de frontend (HTML, CSS, JS).
+// --- Servir archivos estáticos del Frontend ---
+// Sirve la aplicación de frontend (CSS, JS, imágenes) desde la raíz.
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
+
+// --- Rutas Específicas para Páginas HTML ---
+// Ruta para el panel de administración
+app.get('/admin/panel-admin', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'frontend', 'admin', 'panel-admin.html'));
+});
+
+// Ruta para la página de login del administrador
+app.get('/admin/login', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'frontend', 'admin', 'login.html'));
+});
 
 // --- Manejador para rutas API no encontradas ---
 // Captura las solicitudes a /api/* que no coincidieron con una ruta anterior.
@@ -46,12 +59,7 @@ app.use('/api/*', (req, res, next) => {
     res.status(404).json({ message: `La ruta API '${req.method} ${req.originalUrl}' no fue encontrada en el servidor.` });
 });
 
-// --- Manejador SPA (Single Page Application) ---
-// Para cualquier otra solicitud GET que no sea de API y no sea un archivo estático,
-// se devuelve el index.html principal. Esto permite que el enrutamiento del lado del cliente tome el control.
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
-});
+
 
 // --- Manejador de Errores Global ---
 app.use((err, req, res, next) => {

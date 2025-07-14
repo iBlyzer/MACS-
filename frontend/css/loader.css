@@ -1,0 +1,47 @@
+.loader-wrapper {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    /* Fondo negro sólido */
+    background-color: #000;
+    display: flex;
+    flex-direction: column; /* Apila el spinner y el texto verticalmente */
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    /* Transición suave para ocultarlo */
+    transition: opacity 0.75s, visibility 0.75s;
+}
+
+.loader {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 8px solid transparent;
+    /* Los dos arcos que giran */
+    border-top-color: #fff;
+    border-left-color: #fff;
+    animation: spin 1s linear infinite;
+}
+
+.loader-text {
+    margin-top: 20px;
+    color: #fff;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Clase para ocultar el loader */
+.loader-wrapper.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
