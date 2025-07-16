@@ -29,9 +29,7 @@ function createProductLinkElement(product) {
         ? imagenUrl 
         : (imagenUrl ? `${API_BASE_URL}${imagenUrl}` : '/assets/logo.png');
 
-    const stock = product.tallas && product.tallas.length > 0
-        ? product.tallas.reduce((acc, t) => acc + (t.stock || 0), 0)
-        : (product.stock || 0);
+    const stock = product.stock_total || 0;
 
     const marca = product.marca || 'Macs';
     const marcaClass = marca.toLowerCase() === 'macs' ? 'rgb-text' : '';
@@ -45,22 +43,20 @@ function createProductLinkElement(product) {
             </span>
             <span class="btn-loader"></span>
             <span class="btn-success-icon"><i class="fas fa-check"></i></span>
-        </button>`;
+        </button>
+    `;
 
-    let infoBlockHTML = '';
-    let actionsBlockHTML = '';
+    // Bloque de información (siempre se muestra)
+    const infoBlockHTML = `
+        <div class="product-card__info">
+            ${marcaHTML}
+            ${nombreHTML}
+        </div>
+    `;
 
+    // Bloque de acciones (varía si tiene tallas o no)
+    let actionsContentHTML = '';
     if (showTallas) {
-        // CON TALLAS (para Sombreros): Muestra nombre, stock, selector, y botón.
-        const stockInfoHTML = `
-            <div class="stock-container">
-                ${stock > 0 ? 
-                    `<div class="stock-indicator in-stock">EN STOCK</div><div class="stock-quantity">(${stock} disponibles)</div>` :
-                    `<div class="stock-indicator out-of-stock">AGOTADO</div>`
-                }
-            </div>`;
-        infoBlockHTML = `${marcaHTML}${nombreHTML}${stockInfoHTML}`;
-
         const tallaOptions = product.tallas
             .map(t => `<option value="${t.talla}" ${t.stock === 0 ? 'disabled' : ''}>${t.talla}${t.stock === 0 ? ' (Agotado)' : ''}</option>`)
             .join('');
@@ -70,36 +66,35 @@ function createProductLinkElement(product) {
                 ${tallaOptions}
             </select>
         `;
-
-        actionsBlockHTML = `
-            ${tallaSelectorHTML}
-            ${buttonHTML}
-        `;
-
-    } else {
-        // SIN TALLAS (para Gorras y otros): Muestra nombre, indicador de stock, y botón.
-        const stockInfoHTML = `
-            <div class="stock-container">
-                ${stock > 0 ? 
-                    `<div class="stock-indicator in-stock">EN STOCK</div><div class="stock-quantity">(${stock} disponibles)</div>` :
-                    `<div class="stock-indicator out-of-stock">AGOTADO</div>`
-                }
-            </div>`;
-        infoBlockHTML = `${marcaHTML}${nombreHTML}${stockInfoHTML}`;
-        actionsBlockHTML = buttonHTML;
+        actionsContentHTML = tallaSelectorHTML;
     }
 
+    const stockInfoHTML = `
+        <div class="stock-container">
+            ${stock > 0 ? 
+                `<div class="stock-indicator in-stock">EN STOCK</div><p class="stock-quantity">(${stock} disponibles)</p>` :
+                `<div class="stock-indicator out-of-stock">AGOTADO</div>`
+            }
+        </div>`;
+
+    const actionsBlockHTML = `
+        <div class="product-card__actions">
+            ${stockInfoHTML}
+            ${actionsContentHTML}
+            ${buttonHTML}
+        </div>
+    `;
+
+    // Ensamblaje final de la tarjeta
     card.innerHTML = `
-        <a href="producto-detalle.html?id=${product.id}" class="product-card__link">
+        <a href="producto-detalle.html?id=${product.id}" class="product-card__image-link">
             <div class="product-card__image-container">
                 <img src="${imagenUrlCompleta}" alt="${product.nombre}" class="product-card__image" onerror="this.src='/assets/logo.png'">
                 <div class="product-card__overlay"><i class="fas fa-eye"></i></div>
             </div>
-            <div class="product-card__info">
-                ${infoBlockHTML}
-            </div>
         </a>
-        <div class="product-card__actions">
+        <div class="product-card__content">
+            ${infoBlockHTML}
             ${actionsBlockHTML}
         </div>
     `;
@@ -288,9 +283,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // 4. LLAMADAS A LAS FUNCIONES DE INICIALIZACIÓN
     initializeMainSlider();
     initializeProductSlider('destacados-slider', `${API_BASE_URL}/api/productos/destacados`);
-    initializeProductSlider('macs-slider', `${API_BASE_URL}/api/productos/categoria/Macs`);
-    initializeProductSlider('importadas-slider', `${API_BASE_URL}/api/productos/categoria/Importada`);
-    initializeProductSlider('alone-slider', `${API_BASE_URL}/api/productos/categoria/Alone`);
-    initializeProductSlider('safari-slider', `${API_BASE_URL}/api/productos/categoria/Safari`);
-    initializeProductSlider('qs-slider', `${API_BASE_URL}/api/productos/categoria/QS`);
+    initializeProductSlider('macs-slider', `${API_BASE_URL}/api/productos/categoria/Gorras?subcategoria=Macs`);
+    initializeProductSlider('importadas-slider', `${API_BASE_URL}/api/productos/categoria/Gorras?subcategoria=Importadas`);
+    initializeProductSlider('alone-slider', `${API_BASE_URL}/api/productos/categoria/Sombreros?subcategoria=Alone`);
+    initializeProductSlider('safari-slider', `${API_BASE_URL}/api/productos/categoria/Sombreros?subcategoria=Safari`);
+    initializeProductSlider('qs-slider', `${API_BASE_URL}/api/productos/categoria/Sombreros?subcategoria=QS`);
 });

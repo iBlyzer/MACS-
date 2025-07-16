@@ -109,7 +109,20 @@ body {
     align-items: center;
 }
 
-.filtros input, .filtros select {
+.filtros-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espacio entre las filas de filtros */
+    margin-bottom: 25px;
+}
+
+.filtros-fila {
+    display: flex;
+    gap: 15px; /* Espacio entre los filtros en una fila */
+}
+
+.filtros-fila input, .filtros-fila select {
+    flex-grow: 1; /* Permite que los filtros crezcan para ocupar el espacio */
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -158,6 +171,14 @@ body {
     padding: 15px;
     text-align: left;
     border-bottom: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+.tabla-admin td:nth-child(2) { /* Columna de Nombre */
+    max-width: 250px; /* Ancho máximo para la celda */
+    white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+    overflow: hidden; /* Oculta el texto que se desborda */
+    text-overflow: ellipsis; /* Muestra '...' para el texto oculto */
 }
 
 .tabla-admin th {

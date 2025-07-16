@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  const API_URL = `${API_BASE_URL}/api/productos`;
   let allProductsInCategory = [];
   let currentlyDisplayedProducts = [];
   let productsLoaded = 0;
@@ -21,58 +20,72 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!productPageContainer) return;
 
     const categorySection = document.querySelector('main.productos-pagina > section');
-    let categoryFilter = '';
-    let subcategoryFilter = '';
-    let brandName = ''; // For backward compatibility with Gorras pages
+    let categoryName = '';
+    let subcategoryName = '';
 
     if (categorySection) {
-        // Get primary category filter
         if (categorySection.dataset.categoria) {
-            categoryFilter = categorySection.dataset.categoria.toLowerCase();
+            categoryName = categorySection.dataset.categoria;
         }
-        // Get sub-category filter (new method)
         if (categorySection.dataset.subcategoria) {
-            subcategoryFilter = categorySection.dataset.subcategoria.toLowerCase();
+            subcategoryName = categorySection.dataset.subcategoria;
         }
-        // Get brand from ID (old method for Gorras)
-        if (categorySection.id && !subcategoryFilter) {
-             brandName = categorySection.id.replace('productos-', '');
-        }
+    } else {
+        console.error("No se encontró la sección de productos con 'data-attributes'.");
+        productPageContainer.innerHTML = "<p>Error: Configuración de página incompleta.</p>";
+        return;
     }
 
-    if (!categoryFilter) {
-      console.error("No se pudo determinar la categoría de la página.");
-      productPageContainer.innerHTML = "<p>Error: Configuración de página incompleta.</p>";
-      return;
+    if (!categoryName) {
+        console.error("No se pudo determinar la categoría principal de la página.");
+        productPageContainer.innerHTML = "<p>Error: Falta la categoría principal.</p>";
+        return;
+    }
+
+    // Construir la URL de la API dinámicamente
+    let apiUrl = `${API_BASE_URL}/api/productos/categoria/${encodeURIComponent(categoryName)}`;
+    if (subcategoryName) {
+        apiUrl += `?subcategoria=${encodeURIComponent(subcategoryName)}`;
     }
 
     try {
-      const response = await fetch(API_URL);
+      // Llamar al endpoint específico de la categoría
+      const response = await fetch(apiUrl);
       if (!response.ok) throw new Error(`Error en la petición: ${response.statusText}`);
-      const allProducts = await response.json();
+      
+      let fetchedProducts = await response.json();
 
-      allProductsInCategory = allProducts.filter(p => {
-        const categoriaLowerCase = (p.categoria_nombre || '').toLowerCase();
-        
-        // 1. Must match the main category
-        if (categoriaLowerCase !== categoryFilter) {
-            return false;
-        }
+      // Solo aplicar la lógica de orden estricto para la subcategoría 'Macs'
+      if (subcategoryName === 'Macs') {
+        const referencedProducts = fetchedProducts.filter(p => p.numero_referencia && /^A\d+$/i.test(p.numero_referencia));
 
-        // 2. Apply sub-filter
-        if (subcategoryFilter) {
-            // New method: filter by subcategory
-            const subcategoriaLowerCase = (p.subcategoria_nombre || '').toLowerCase();
-            return subcategoriaLowerCase === subcategoryFilter;
-        } else if (brandName) {
-            // Old method: filter by brand (for Gorras)
-            const marcaLowerCase = (p.marca || '').toLowerCase();
-            return marcaLowerCase === brandName;
+        if (referencedProducts.length > 0) {
+          referencedProducts.sort((a, b) => {
+            const getNum = (ref) => parseInt(ref.match(/^A(\d+)$/i)[1], 10);
+            return getNum(a.numero_referencia) - getNum(b.numero_referencia);
+          });
+
+          const productMap = new Map(referencedProducts.map(p => [p.numero_referencia, p]));
+          const lastRef = referencedProducts[referencedProducts.length - 1].numero_referencia;
+          const maxRefNum = parseInt(lastRef.match(/^A(\d+)$/i)[1], 10);
+
+          const completeProductList = [];
+          for (let i = 1; i <= maxRefNum; i++) {
+            const ref = `A${String(i).padStart(2, '0')}`;
+            if (productMap.has(ref)) {
+              completeProductList.push(productMap.get(ref));
+            } else {
+              completeProductList.push({ isMissing: true, numero_referencia: ref });
+            }
+          }
+          allProductsInCategory = completeProductList;
+        } else {
+          allProductsInCategory = fetchedProducts;
         }
-        
-        // Fallback for pages with only a category (if any)
-        return true;
-      });
+      } else {
+        // Para cualquier otra subcategoría, simplemente mostrar los productos
+        allProductsInCategory = fetchedProducts;
+      }
       currentlyDisplayedProducts = [...allProductsInCategory];
 
       renderProductPageItems(true);
@@ -95,6 +108,65 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function crearTarjetaProducto(product) {
+    const productCard = document.createElement('div');
+    productCard.className = 'product-card';
+
+    // Lógica para crear la tarjeta del producto
+    const imageLink = document.createElement('a');
+    imageLink.href = `producto-detalle.html?id=${product.id}`;
+    imageLink.className = 'product-card__image-link';
+
+    const imageContainer = document.createElement('div');
+    imageContainer.className = 'product-card__image-container';
+
+    const image = document.createElement('img');
+    image.src = getImageUrl(product.imagen_principal);
+    image.alt = product.nombre;
+    image.className = 'product-card__image';
+    image.loading = 'lazy';
+
+    imageContainer.appendChild(image);
+    imageLink.appendChild(imageContainer);
+
+    const content = document.createElement('div');
+    content.className = 'product-card__content';
+
+    const info = document.createElement('div');
+    info.className = 'product-card__info';
+
+    const brand = document.createElement('p');
+    brand.className = 'product-card__brand';
+    brand.textContent = product.marca;
+
+    const name = document.createElement('h3');
+    name.className = 'product-card__name';
+    name.textContent = product.nombre;
+
+    const price = document.createElement('p');
+    price.className = 'product-card__price';
+    price.textContent = `$${(product.precio || 0).toLocaleString('es-CO')}`;
+
+    info.append(brand, name, price);
+
+    const actions = document.createElement('div');
+    actions.className = 'product-card__actions';
+
+    const addToCartBtn = document.createElement('button');
+    addToCartBtn.className = 'product-card__add-to-cart-btn';
+    addToCartBtn.textContent = 'Añadir al carrito';
+    addToCartBtn.onclick = (e) => {
+        e.preventDefault();
+        agregarAlCarrito(product);
+    };
+
+    actions.appendChild(addToCartBtn);
+    content.append(info, actions);
+    productCard.append(imageLink, content);
+
+    return productCard;
+  }
+
   function renderProductPageItems(isNewRender = false) {
     if (isNewRender) {
       productPageContainer.innerHTML = '';
@@ -114,8 +186,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     for (let i = productsLoaded; i < end; i++) {
       const product = currentlyDisplayedProducts[i];
-      const productElement = createProductLinkElement(product);
-      fragment.appendChild(productElement);
+      if (product.isMissing) {
+        const comment = document.createComment(` Producto con REF ${product.numero_referencia} falta `);
+        fragment.appendChild(comment);
+      } else {
+        const productElement = crearTarjetaProducto(product);
+        fragment.appendChild(productElement);
+      }
     }
 
     productPageContainer.appendChild(fragment);

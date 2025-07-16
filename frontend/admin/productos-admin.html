@@ -22,12 +22,50 @@
     <div class="container mt-5">
         <h2>Gestión de Productos</h2>
         <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#productModal" id="addProductBtn">Añadir Producto</button>
+        <div class="mb-4">
+            <h5>Filtros</h5>
+            <form id="filterForm" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="filterNombre" placeholder="Nombre del producto">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="filterReferencia" placeholder="Referencia">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" id="filterMarca" placeholder="Marca">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="filterCategoria"><option value="">Toda Categoría</option></select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="filterSubcategoria"><option value="">Toda Subcategoría</option></select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="filterStock">
+                        <option value="">Stock</option>
+                        <option value="in">En Stock</option>
+                        <option value="out">Sin Stock</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="filterEstado">
+                        <option value="">Estado</option>
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                </div>
+            </form>
+        </div>
         <table class="table">
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Nombre</th>
                     <th>Marca</th>
+                    <th>Referencia</th>
                     <th>Precio</th>
                     <th>Stock Total</th>
                     <th>Activo</th>

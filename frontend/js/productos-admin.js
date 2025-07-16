@@ -12,14 +12,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const tallasContainer = document.getElementById('tallas-container');
     const addTallaBtn = document.getElementById('addTallaBtn');
 
+    // Filtros
+    const filterForm = document.getElementById('filterForm');
+    const filterNombre = document.getElementById('filterNombre');
+    const filterReferencia = document.getElementById('filterReferencia');
+    const filterMarca = document.getElementById('filterMarca');
+    const filterCategoria = document.getElementById('filterCategoria');
+    const filterSubcategoria = document.getElementById('filterSubcategoria');
+    const filterStock = document.getElementById('filterStock');
+    const filterEstado = document.getElementById('filterEstado');
+
     const API_URL = 'http://localhost:3000/api';
 
-    // Cargar productos al iniciar
+    // Cargar productos y filtros al iniciar
     loadProducts();
-    loadCategories();
+    loadCategoriesForFilter();
 
     function loadProducts() {
-        fetch(`${API_URL}/productos`)
+        const params = new URLSearchParams();
+        if (filterNombre.value) params.append('nombre', filterNombre.value);
+        if (filterReferencia.value) params.append('referencia', filterReferencia.value);
+        if (filterMarca.value) params.append('marca', filterMarca.value);
+        if (filterCategoria.value) params.append('categoria_id', filterCategoria.value);
+        if (filterSubcategoria.value) params.append('subcategoria_id', filterSubcategoria.value);
+        if (filterStock.value) params.append('stock', filterStock.value);
+        if (filterEstado.value) params.append('activo', filterEstado.value);
+
+        fetch(`${API_URL}/productos?${params.toString()}`)
             .then(response => response.json())
             .then(products => {
                 productsTableBody.innerHTML = '';
@@ -29,9 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td>${product.id}</td>
                         <td>${product.nombre}</td>
                         <td>${product.marca}</td>
+                        <td>${product.numero_referencia || 'N/A'}</td>
                         <td>${product.precio}</td>
                         <td>${product.stock_total}</td>
                         <td>${product.activo ? 'Sí' : 'No'}</td>
+                        <td>${product.destacado ? 'Sí' : 'No'}</td>
                         <td>
                             <button class="btn btn-sm btn-warning edit-btn" data-id="${product.id}">Editar</button>
                             <button class="btn btn-sm btn-danger delete-btn" data-id="${product.id}">Eliminar</button>
@@ -42,7 +63,40 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    function loadCategories() {
+    function loadCategoriesForFilter() {
+        fetch(`${API_URL}/categorias`)
+            .then(response => response.json())
+            .then(categories => {
+                filterCategoria.innerHTML = '<option value="">Toda Categoría</option>';
+                categories.forEach(cat => {
+                    filterCategoria.innerHTML += `<option value="${cat.id}">${cat.nombre}</option>`;
+                });
+            });
+        loadCategoriesForModal(); // Cargar también para el modal
+    }
+
+    filterCategoria.addEventListener('change', (e) => {
+        const categoriaId = e.target.value;
+        if (categoriaId) {
+            fetch(`${API_URL}/subcategorias/categoria/${categoriaId}`)
+                .then(response => response.json())
+                .then(subcategories => {
+                    filterSubcategoria.innerHTML = '<option value="">Toda Subcategoría</option>';
+                    subcategories.forEach(sub => {
+                        filterSubcategoria.innerHTML += `<option value="${sub.id}">${sub.nombre}</option>`;
+                    });
+                });
+        } else {
+            filterSubcategoria.innerHTML = '<option value="">Toda Subcategoría</option>';
+        }
+    });
+
+    filterForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        loadProducts();
+    });
+
+    function loadCategoriesForModal() { // Renombrada de loadCategories
         fetch(`${API_URL}/categorias`)
             .then(response => response.json())
             .then(categories => {
@@ -54,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    document.getElementById('categoria').addEventListener('change', (e) => {
+        document.getElementById('categoria').addEventListener('change', (e) => {
         const categoriaId = e.target.value;
         if (categoriaId) {
             fetch(`${API_URL}/subcategorias/categoria/${categoriaId}`)

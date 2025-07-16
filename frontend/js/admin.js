@@ -27,8 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Selectors for main page filters
     const filtroNombreInput = document.getElementById('filtro-nombre');
+    const filtroReferenciaInput = document.getElementById('filtro-referencia');
+    const filtroMarcaInput = document.getElementById('filtro-marca');
     const filtroCategoriaSelect = document.getElementById('filtro-categoria');
     const filtroSubcategoriaSelect = document.getElementById('filtro-subcategoria');
+    const filtroStockSelect = document.getElementById('filtro-stock');
+    const filtroEstadoSelect = document.getElementById('filtro-estado');
 
     // --- STATE VARIABLES ---
     let imagesToDelete = [];
@@ -81,16 +85,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DATA LOADING ---
     async function cargarProductos() {
         try {
-            const nombre = filtroNombreInput ? filtroNombreInput.value : '';
-            const categoriaId = filtroCategoriaSelect ? filtroCategoriaSelect.value : '';
-            const subcategoriaId = filtroSubcategoriaSelect ? filtroSubcategoriaSelect.value : '';
-
             const params = new URLSearchParams();
-            if (nombre) params.append('nombre', nombre);
-            if (categoriaId) params.append('categoria_id', categoriaId);
-            if (subcategoriaId) params.append('subcategoria_id', subcategoriaId);
-            
-            const url = `${API_URL}/productos/get-all?${params.toString()}`;
+            if (filtroNombreInput.value) params.append('nombre', filtroNombreInput.value);
+            if (filtroReferenciaInput.value) params.append('referencia', filtroReferenciaInput.value);
+            if (filtroMarcaInput.value) params.append('marca', filtroMarcaInput.value);
+            if (filtroCategoriaSelect.value) params.append('categoria_id', filtroCategoriaSelect.value);
+            if (filtroSubcategoriaSelect.value) params.append('subcategoria_id', filtroSubcategoriaSelect.value);
+            if (filtroStockSelect.value) params.append('stock', filtroStockSelect.value);
+            if (filtroEstadoSelect.value) params.append('activo', filtroEstadoSelect.value);
+
+            const url = `${API_URL}/productos/admin?${params.toString()}`;
             const productos = await fetchWithAuth(url);
             renderizarTabla(productos);
         } catch (error) {
@@ -176,7 +180,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <table class="tabla-admin">
                 <thead>
                     <tr>
+                        <th>Imagen</th>
                         <th>Nombre</th>
+                        <th>Referencia</th>
                         <th>Categoría</th>
                         <th>Precio</th>
                         <th>Stock</th>
@@ -186,29 +192,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     </tr>
                 </thead>
                 <tbody>
-                    ${productos.map(p => `
-                        <tr>
-                            <td>${p.nombre || ''}</td>
-                            <td>${p.categoria_nombre || 'N/A'}</td>
-                            <td>S/ ${parseFloat(p.precio || 0).toFixed(2)}</td>
-                            <td>${p.stock !== null ? p.stock : 'N/A'}</td>
-                            <td>
-                                <span class="status-pill ${p.activo ? 'activo' : 'inactivo'}">
-                                    ${p.activo ? 'Activo' : 'Inactivo'}
-                                </span>
-                            </td>
-                            <td>${p.destacado ? '⭐' : ''}</td>
-                            <td>
-                                <div class="acciones-container">
-                                    <button class="btn-accion btn-edit" data-id="${p.id}">Editar</button>
-                                    <button class="btn-accion btn-delete" data-id="${p.id}">Eliminar</button>
-                                    <button class="btn-accion btn-toggle-status ${p.activo ? 'desactivar' : 'activar'}" data-id="${p.id}" data-status="${!p.activo}">
-                                        ${p.activo ? 'Desactivar' : 'Activar'}
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `).join('')}
+                    ${productos.map(p => {
+                        const imagenUrl = p.imagen_3_4 ? `${BASE_URL}${p.imagen_3_4}` : '/Assets/loading_no_background.png';
+                        return `
+                            <tr>
+                                <td><img src="${imagenUrl}" alt="${p.nombre}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;"></td>
+                                <td title="${p.nombre || ''}">${p.nombre || ''}</td>
+                                <td>${p.numero_referencia || 'N/A'}</td>
+                                <td>${p.categoria_nombre || 'N/A'}</td>
+                                <td>S/ ${parseFloat(p.precio || 0).toFixed(2)}</td>
+                                <td>${p.stock_total !== null && p.stock_total !== undefined ? p.stock_total : '0'}</td>
+                                <td>
+                                    <span class="status-pill ${p.activo ? 'activo' : 'inactivo'}">
+                                        ${p.activo ? 'Activo' : 'Inactivo'}
+                                    </span>
+                                </td>
+                                <td>${p.destacado ? '⭐' : ''}</td>
+                                <td>
+                                    <div class="acciones-container">
+                                        <button class="btn-accion btn-edit" data-id="${p.id}">Editar</button>
+                                        <button class="btn-accion btn-delete" data-id="${p.id}">Eliminar</button>
+                                        <button class="btn-accion btn-toggle-status ${p.activo ? 'desactivar' : 'activar'}" data-id="${p.id}" data-status="${!p.activo}">
+                                            ${p.activo ? 'Desactivar' : 'Activar'}
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
                 </tbody>
             </table>
         `;
@@ -332,6 +343,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (tieneTallasCheckbox.checked) {
             formData.delete('stock'); // No enviar stock general si hay tallas
+            formData.delete('talla[]');
+            formData.delete('stock[]');
             const tallasInputs = document.querySelectorAll('.talla-item');
             const tallas = Array.from(tallasInputs).map(item => ({
                 talla: item.querySelector('input[name="talla[]"]').value,
@@ -361,36 +374,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function toggleEstadoProducto(id, nuevoEstado) {
+    async function toggleEstadoProducto(id, nuevoEstado, buttonElement) {
         const accion = nuevoEstado ? 'activar' : 'desactivar';
         if (!confirm(`¿Estás seguro de que quieres ${accion} este producto?`)) return;
 
         try {
-            await fetchWithAuth(`${API_URL}/productos/${id}/toggle-status`, {
+            const responseData = await fetchWithAuth(`${API_URL}/productos/${id}/toggle-status`, {
                 method: 'PUT',
-                body: { activo: nuevoEstado } 
+                body: { activo: nuevoEstado }
             });
-            cargarProductos(); // Recargar la tabla para mostrar el cambio
+
+            // Actualización de la UI sin recargar toda la tabla
+            const row = buttonElement.closest('tr');
+            if (row) {
+                // Actualizar píldora de estado
+                const statusPill = row.querySelector('.status-pill');
+                statusPill.textContent = nuevoEstado ? 'Activo' : 'Inactivo';
+                statusPill.className = `status-pill ${nuevoEstado ? 'activo' : 'inactivo'}`;
+
+                // Actualizar texto de referencia
+                // La referencia es el 3er <td> (índice 2)
+                const refCell = row.cells[2];
+                if (refCell) {
+                    refCell.textContent = responseData.nueva_referencia;
+                }
+
+                // Actualizar el botón de toggle
+                buttonElement.textContent = nuevoEstado ? 'Desactivar' : 'Activar';
+                buttonElement.dataset.status = !nuevoEstado;
+                buttonElement.className = `btn-accion btn-toggle-status ${nuevoEstado ? 'desactivar' : 'activar'}`;
+            }
+
         } catch (error) {
             console.error(`Error al ${accion} producto:`, error);
-            alert(`No se pudo ${accion} el producto.`);
+            alert(`No se pudo ${accion} el producto: ${error.message}`);
         }
     }
 
     // --- TALLAS & CATEGORY MANAGEMENT ---
     function setupEventListeners() {
         // Main page filters
-        if (filtroNombreInput) {
-            let debounceTimer;
-            filtroNombreInput.addEventListener('input', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(cargarProductos, 300);
-            });
-        }
+        const allFilters = [filtroNombreInput, filtroReferenciaInput, filtroMarcaInput, filtroCategoriaSelect, filtroSubcategoriaSelect, filtroStockSelect, filtroEstadoSelect];
+        allFilters.forEach(filter => {
+            if (filter) {
+                filter.addEventListener('change', cargarProductos); // 'change' is better for selects
+                if (filter.type === 'text') {
+                    let debounceTimer;
+                    filter.addEventListener('input', () => {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(cargarProductos, 300);
+                    });
+                }
+            }
+        });
+
         if (filtroCategoriaSelect) {
             filtroCategoriaSelect.addEventListener('change', async () => {
                 await cargarSubcategoriasParaFiltro(filtroCategoriaSelect.value);
-                cargarProductos();
+                cargarProductos(); // This will be called twice, but it's fine for now
             });
         }
         if (filtroSubcategoriaSelect) {
@@ -422,7 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     eliminarProducto(id);
                 } else if (target.classList.contains('btn-toggle-status')) {
                     const nuevoEstado = target.dataset.status === 'true';
-                    toggleEstadoProducto(id, nuevoEstado);
+                    toggleEstadoProducto(id, nuevoEstado, target);
                 }
             });
         }

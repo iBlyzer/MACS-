@@ -41,24 +41,31 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
     }
 
-    async function fetchProductDetails() {
-        const ids = [...new Set(cesta.map(item => item.id))];
+    async function fetchProductDetails(ids) {
         if (ids.length === 0) {
-            productsDetailsMap.clear();
-            return;
+            return [];
         }
         try {
-            const response = await fetch(`${API_BASE_URL}/api/productos/details-by-ids`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ids })
-            });
-            if (!response.ok) throw new Error('Failed to fetch product details.');
-            const products = await response.json();
-            productsDetailsMap.clear();
-            products.forEach(p => productsDetailsMap.set(p.id.toString(), p));
+            const response = await fetch(`${API_BASE_URL}/api/productos/details-by-ids?ids=${ids.join(',')}`);
+            
+            // Verificar si la respuesta de la red fue exitosa
+            if (!response.ok) {
+                // Lanzar un error con el estado para que pueda ser capturado por el bloque catch
+                throw new Error(`Error de red: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data;
         } catch (error) {
-            console.error("Error fetching product details:", error);
+            console.error('Error fetching product details:', error);
+            // Mostrar una alerta al usuario sobre el problema
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'No se pudieron cargar los detalles de los productos. Por favor, inténtalo de nuevo más tarde.',
+            });
+            // Retornar un array vacío en caso de error para evitar que el código que lo consume falle.
+            return [];
         }
     }
 
@@ -67,7 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
             actualizarContadorCesta();
         }
         
-        await fetchProductDetails();
+        const ids = [...new Set(cesta.map(item => item.id))];
+        const products = await fetchProductDetails(ids);
+
+        productsDetailsMap.clear();
+        products.forEach(p => productsDetailsMap.set(p.id.toString(), p));
 
         const totalItems = cesta.reduce((acc, item) => acc + item.cantidad, 0);
 
@@ -88,25 +99,27 @@ document.addEventListener('DOMContentLoaded', () => {
             cesta.forEach(item => {
                 const precioFormateado = formatCurrency(item.precio);
                 const productDetails = productsDetailsMap.get(item.id.toString());
-                const imagenUrl = productDetails && productDetails.imagen_3_4
-                    ? `${API_BASE_URL}${productDetails.imagen_3_4}`
-                    : '/assets/logo.png';
+                const imagenUrl = productDetails && productDetails.imagen_principal 
+                    ? (productDetails.imagen_principal.startsWith('http') ? productDetails.imagen_principal : `${API_BASE_URL}${productDetails.imagen_principal}`)
+                    : './assets/img/placeholder.png'; // Placeholder por si no hay imagen
 
                 let tallaInfo = '';
-                if (productDetails && productDetails.tallas && productDetails.tallas.length > 0) {
-                    const options = productDetails.tallas.map(t =>
-                        `<option value="${t.talla}" ${t.talla == item.talla ? 'selected' : ''} ${t.stock === 0 && t.talla != item.talla ? 'disabled' : ''}>` +
-                        `${t.talla}${t.stock === 0 && t.talla != item.talla ? ' (Agotado)' : ''}` +
-                        `</option>`
-                    ).join('');
+                if (productDetails && Array.isArray(productDetails.tallas) && productDetails.tallas.length > 0) {
+                    const tallaSeleccionada = productDetails.tallas.find(t => t.talla === item.talla);
+                    const stock = tallaSeleccionada ? tallaSeleccionada.stock : 'N/A';
                     tallaInfo = `
-                        <div class="item-talla-selector" style="display: flex; align-items: center; margin-top: 5px;">
-                            <label for="talla-select-${item.cartItemId}" style="font-size: 0.9em; color: #555; margin-right: 5px;">Talla:</label>
-                            <select id="talla-select-${item.cartItemId}" class="talla-select" data-id="${item.cartItemId}" style="padding: 2px 5px; border-radius: 4px;">
-                                ${options}
+                        <p class="mb-1">Talla: 
+                            <select class="talla-select form-select form-select-sm d-inline-block w-auto" data-id="${item.cartItemId}">
+                                ${productDetails.tallas.map(t => `<option value="${t.talla}" ${t.talla === item.talla ? 'selected' : ''}>${t.talla}</option>`).join('')}
                             </select>
-                        </div>`;
-                } else if (item.talla) {
+                        </p>
+                        <p class="mb-0 text-muted small">Stock: ${stock}</p>
+                    `;
+                } else if (productDetails && !productDetails.tiene_tallas) {
+                    tallaInfo = `<p class="mb-1">Talla: Única</p>`;
+                } else {
+                    // Fallback por si las tallas no se cargan pero se esperaban
+                    tallaInfo = `<p class="mb-1 text-danger">Talla no disponible</p>`;
                     tallaInfo = `<p class="item-talla" style="font-size: 0.9em; color: #555;">Talla: ${item.talla}</p>`;
                 }
                 

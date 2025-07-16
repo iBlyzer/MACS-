@@ -77,8 +77,24 @@
 
 #main-swiper .swiper-button-prev::after,
 #main-swiper .swiper-button-next::after {
-    font-size: 20px;
-    font-weight: bold;
+    content: '' !important; /* Remove the default icon font */
+}
+
+/* Use Font Awesome icons instead */
+#main-swiper .swiper-button-prev::before,
+#main-swiper .swiper-button-next::before {
+    font-family: "Font Awesome 6 Free";
+    font-size: 22px;
+    font-weight: 900;
+    color: #fff;
+}
+
+#main-swiper .swiper-button-prev::before {
+    content: "\f053"; /* Font Awesome left arrow */
+}
+
+#main-swiper .swiper-button-next::before {
+    content: "\f054"; /* Font Awesome right arrow */
 }
 
 #main-swiper .swiper-pagination-bullet {
@@ -338,11 +354,11 @@
 }
 
 .productos-section .swiper-button-prev {
-    left: calc(50% - 400px); /* Adjust positioning based on design */
+    left: 15px; /* Posiciona el botón a 15px del borde izquierdo */
 }
 
 .productos-section .swiper-button-next {
-    right: calc(50% - 400px); /* Adjust positioning based on design */
+    right: 15px; /* Posiciona el botón a 15px del borde derecho */
 }
 
 .productos-section .swiper-button-next:hover,
@@ -357,50 +373,28 @@
 
 .productos-section .swiper-button-next::after,
 .productos-section .swiper-button-prev::after {
+    content: '' !important; /* Remove the default icon font */
+}
+
+/* Use Font Awesome icons for product sliders */
+.productos-section .swiper-button-prev::before,
+.productos-section .swiper-button-next::before {
+    font-family: "Font Awesome 6 Free";
     font-size: 18px;
+    font-weight: 900;
+    color: #1a1a1a;
 }
 
-/* === Product Card Actions & Size Selector (v5) === */
-
-.product-card .product-card__actions {
-    display: flex;
-    flex-direction: column; /* Stack vertically */
-    gap: 10px; /* Vertical space between items */
-    padding: 15px; /* Consistent padding */
-    margin-top: auto;
+.productos-section .swiper-button-prev::before {
+    content: "\f053"; /* Font Awesome left arrow */
 }
 
-.product-card .product-card__sizes,
-.product-card .product-card__add-to-cart-btn {
-   /*    width: 100%; /* Make both elements full-width */
-    margin-top: -100px;
+.productos-section .swiper-button-next::before {
+    content: "\f054"; /* Font Awesome right arrow */
 }
 
-.product-card .product-card__select-talla {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-    font-size: 0.9em;
-    font-weight: 500;
-    text-align: center;
-    text-align-last: center; /* For centering the selected option */
-    -moz-text-align-last: center; /* Firefox */
-}
 
-.product-card .product-card__add-to-cart-btn {
-    background-color: #1a1a1a;
-    color: #fff;
-    border: none;
-    padding: 12px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9em;
-    font-weight: 600;
-    text-transform: uppercase;
-    transition: background-color 0.3s ease;
-}
+
 
 .product-card .product-card__add-to-cart-btn:hover {
     background-color: #333;

@@ -16,17 +16,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Asumimos que todos los productos están disponibles en una variable global `todosLosProductos`
-            // o que podemos obtenerlos de alguna forma. `productos.js` debería encargarse de esto.
-            const response = await fetch(`${API_BASE_URL}/api/productos`);
+            // Construimos la URL con los IDs de los productos vistos como un query parameter
+            const idsQueryParam = productosVistosIds.join(',');
+            const url = `${API_BASE_URL}/api/vistos-recientemente/productos?ids=${idsQueryParam}`;
+
+            const response = await fetch(url);
             if (!response.ok) {
-                throw new Error('Error al cargar los productos');
+                throw new Error(`Error al cargar los productos vistos. Status: ${response.status}`);
             }
-            const todosLosProductos = await response.json();
+            const productosParaMostrar = await response.json();
 
-            const productosParaMostrar = todosLosProductos.filter(p => productosVistosIds.includes(p.id.toString()));
-
-            if (productosParaMostrar.length > 0) {
+            if (productosParaMostrar && productosParaMostrar.length > 0) {
                 vistosRecientementeContainer.innerHTML = ''; // Limpiar contenedor
                 productosParaMostrar.forEach(producto => {
                     if (typeof createProductLinkElement === 'function') {

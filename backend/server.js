@@ -14,6 +14,21 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// --- Middleware de Seguridad: Content Security Policy (CSP) ---
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; " +
+    "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; " +
+    "img-src 'self' data: https:; " + // Permite 'self', data: y cualquier https
+    "font-src 'self' https://cdnjs.cloudflare.com; " +
+    "connect-src 'self' http://localhost:3000; " +
+    "frame-src 'self' https://www.google.com;"
+  );
+  next();
+});
+
 // Middleware de depuración para registrar todas las solicitudes entrantes
 app.use((req, res, next) => {
   console.log(`[Request Logger] Method: ${req.method}, URL: ${req.originalUrl}`);
@@ -28,6 +43,7 @@ app.use('/api/subcategorias', require('./routes/subcategorias'));
 app.use('/api/slider', require('./routes/slider'));
 app.use('/api/slider-manager', require('./routes/slider-manager'));
 app.use('/api/new-slider', require('./routes/new-slider'));
+app.use('/api/vistos-recientemente', require('./routes/vistos-recientemente'));
 
 // Ruta conflictiva eliminada. La lógica correcta está en routes/slider.js
 

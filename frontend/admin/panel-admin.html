@@ -30,10 +30,30 @@
                 </div>
             </header>
             <section id="productos">
-                <div class="filtros">
-                    <input type="text" id="filtro-nombre" placeholder="Buscar un producto...">
-                    <select id="filtro-categoria"></select>
-                    <select id="filtro-subcategoria"></select>
+                <div class="filtros-container">
+                    <div class="filtros-fila">
+                        <input type="text" id="filtro-nombre" placeholder="Buscar por nombre...">
+                        <input type="text" id="filtro-referencia" placeholder="Buscar por referencia...">
+                        <input type="text" id="filtro-marca" placeholder="Buscar por marca...">
+                    </div>
+                    <div class="filtros-fila">
+                        <select id="filtro-categoria">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                        <select id="filtro-subcategoria">
+                            <option value="">Todas las subcategorías</option>
+                        </select>
+                        <select id="filtro-stock">
+                            <option value="">Todo el stock</option>
+                            <option value="in">Con stock</option>
+                            <option value="out">Sin stock</option>
+                        </select>
+                        <select id="filtro-estado">
+                            <option value="">Cualquier estado</option>
+                            <option value="true">Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="header-section">

@@ -270,26 +270,18 @@ body {
   padding: 2rem 0;
 }
 
+/* --- Estilos de Tarjeta de Producto (Versión Definitiva) --- */
+
+/* Contenedor principal de la tarjeta */
 .product-card {
     background-color: #fff;
-    border: 1px solid #eee;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
     display: flex;
-    flex-direction: column;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    text-decoration: none;
-    color: inherit;
-    position: relative;
-}
-
-/* Altura diferenciada para sombreros y gorras */
-.product-card--sombrero {
-    min-height: 520px; /* Altura mayor para sombreros para dar espacio al selector de talla */
-}
-
-.product-card--gorra {
-    min-height: 500px; /* Altura estándar para gorras y otros productos sin tallas */
+    flex-direction: column; /* Apila la imagen y el contenido */
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    height: 100%; /* Ocupa toda la altura del slide/grid-item */
 }
 
 .product-card:hover {
@@ -297,17 +289,14 @@ body {
     box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
 
-.product-card__link {
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
+/* Enlace de la imagen */
+.product-card__image-link {
+    display: block; /* Ocupa el espacio asignado */
 }
 
 .product-card__image-container {
     position: relative;
     overflow: hidden;
-    border-radius: 12px 12px 0 0; /* Rounded corners only at the top */
 }
 
 .product-card__image {
@@ -325,10 +314,7 @@ body {
 
 .product-card__overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0; width: 100%; height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
@@ -337,38 +323,59 @@ body {
     transition: opacity 0.4s ease;
     color: white;
     font-size: 2.5rem;
-    border-radius: 12px 12px 0 0;
 }
 
 .product-card:hover .product-card__overlay {
     opacity: 1;
 }
 
-.product-card__info {
+/* Contenedor para la información y las acciones */
+.product-card__content {
     padding: 15px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Ocupa el espacio restante */
+}
+
+/* Bloque de información (nombre, marca) */
+.product-card__info {
     text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex-grow: 1;
-    justify-content: center;
 }
 
+/* Bloque de acciones (stock, tallas, botón) */
 .product-card__actions {
+    margin-top: auto; /* Empuja este bloque a la parte inferior */
+    padding-top: 15px; /* Espacio entre la info y las acciones */
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 0 15px 15px;
-    align-items: stretch;
-    margin-top: auto; /* Empuja las acciones a la parte inferior */
+    gap: 12px; /* Espacio entre elementos de acción */
 }
 
+/* --- Estilos para el contenedor de Stock --- */
 .stock-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    margin-top: 10px;
+    gap: 4px; /* Espacio entre el indicador y la cantidad */
+}
+
+.stock-indicator {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: #e8f5e9; /* Verde claro */
+    color: #2e7d32; /* Verde oscuro */
+    border: 1px solid #a5d6a7;
+}
+
+.stock-indicator.out-of-stock {
+    background-color: #fce4e4;
+    color: #c62828;
+    border-color: #ef9a9a;
 }
 
 .stock-quantity {
@@ -377,12 +384,48 @@ body {
     text-align: center;
 }
 
-.product-card__talla-select {
-    width: 100%;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ddd;
+/* Contenedor para los botones de talla */
+.product-card__tallas-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 0 5px; /* Pequeño padding para que no se peguen a los bordes */
+}
+
+/* Estilo base de los botones de talla */
+.talla-btn {
+    border: 1px solid #dcdcdc;
+    background-color: #f0f0f0;
+    padding: 10px 5px;
     text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9em;
+    font-weight: 500;
+    border-radius: 4px;
+    color: #333;
+}
+
+/* Hover state */
+.talla-btn:not(:disabled):hover {
+    border-color: #a0a0a0;
+    background-color: #e9e9e9;
+}
+
+/* Selected state */
+.talla-btn.selected {
+    background-color: #333;
+    color: #fff;
+    border-color: #333;
+}
+
+/* Disabled state */
+.talla-btn:disabled {
+    background-color: #f5f5f5;
+    color: #b0b0b0;
+    cursor: not-allowed;
+    text-decoration: line-through;
 }
 
 .product-card__brand {
@@ -398,6 +441,23 @@ body {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+}
+
+
+
+.product-card__name {
+    font-size: 1em;
+    font-weight: 600;
+    color: #333;
+    margin: 4px 0 10px 0;
+    line-height: 1.4;
+    height: 4.2em; /* 1.4em * 3 líneas */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Limita el texto a 3 líneas */
+    line-clamp: 3; /* Estándar */
+    -webkit-box-orient: vertical;
 }
 
 .stock-indicator {
@@ -488,10 +548,6 @@ body {
 }
 
 .product-card__add-to-cart-btn {
-    position: absolute;
-    bottom: 15px; /* Subido */
-    left: 15px;
-    width: calc(100% - 30px);
     background-color: #1a1a1a;
     color: #fff;
     border: none;

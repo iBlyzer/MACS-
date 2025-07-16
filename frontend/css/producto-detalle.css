@@ -1,3 +1,68 @@
+/* Estilos para los botones de navegación de la galería principal */
+.gallery-top {
+    position: relative;
+}
+
+.gallery-top .swiper-button-next,
+.gallery-top .swiper-button-prev {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    z-index: 10;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Botón izquierdo (Prev) - Círculo gris relleno */
+.gallery-top .swiper-button-prev {
+    left: 15px;
+    background-color: #ccc;
+    border: 1px solid #ccc;
+}
+
+/* Botón derecho (Next) - Círculo con borde negro */
+.gallery-top .swiper-button-next {
+    right: 15px;
+    background-color: #ccc;
+    border: 1px solid #000;
+}
+
+.gallery-top .swiper-button-next:hover,
+.gallery-top .swiper-button-prev:hover {
+    background-color: #b3b3b3; /* Un gris un poco más oscuro al pasar el ratón */
+}
+
+.gallery-top .swiper-button-disabled {
+    opacity: 0.3;
+    cursor: auto;
+    pointer-events: none;
+}
+
+/* Estilo para los íconos < y > */
+.gallery-top .swiper-button-next::after,
+.gallery-top .swiper-button-prev::after {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 20px;
+    font-weight: bold;
+    color: #000;
+    line-height: 1;
+}
+
+.gallery-top .swiper-button-prev::after {
+    content: '<';
+    padding-right: 2px; /* Ajuste fino de posición */
+}
+
+.gallery-top .swiper-button-next::after {
+    content: '>';
+    padding-left: 2px; /* Ajuste fino de posición */
+}
+
 /* Estilos para el botón de añadir a la cesta */
 
 /* Estilos para el carrusel de recomendados */

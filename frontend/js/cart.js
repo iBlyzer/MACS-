@@ -5,42 +5,51 @@ function agregarAlCarrito(product, boton) {
         return;
     }
 
+    // 1. Lógica de UI del botón (si el botón existe)
+    let originalText = 'AGREGAR AL CARRITO'; // Texto por defecto
     if (boton) {
         const textElement = boton.querySelector('.btn-text');
-        if (!textElement) return;
-        const originalText = textElement.innerHTML;
-
+        if (textElement) {
+            originalText = textElement.innerHTML;
+        }
         boton.classList.add('adding');
         boton.disabled = true;
-        textElement.textContent = 'AÑADIENDO...';
+        if (textElement) {
+            textElement.textContent = 'AÑADIENDO...';
+        }
+    }
 
-        new Promise(resolve => {
-            setTimeout(() => {
-                let cesta = JSON.parse(localStorage.getItem('cesta')) || [];
-                const talla = product.talla || 'unica';
-                const cartItemId = product.cartItemId || `${product.id}-${talla}`;
-                const itemIndex = cesta.findIndex(item => item.cartItemId === cartItemId);
-                const cantidadAAgregar = product.cantidad || 1;
+    // 2. Lógica de actualización del carrito (se ejecuta siempre)
+    // Se usa una promesa para simular una operación asíncrona y no bloquear el hilo principal.
+    new Promise(resolve => {
+        setTimeout(() => {
+            let cesta = JSON.parse(localStorage.getItem('cesta')) || [];
+            const talla = product.talla || 'unica';
+            const cartItemId = product.cartItemId || `${product.id}-${talla}`;
+            const itemIndex = cesta.findIndex(item => item.cartItemId === cartItemId);
+            const cantidadAAgregar = product.cantidad || 1;
 
-                if (itemIndex > -1) {
-                    cesta[itemIndex].cantidad += cantidadAAgregar;
-                } else {
-                    const newItem = { ...product, cantidad: cantidadAAgregar, talla: talla, cartItemId: cartItemId };
-                    cesta.push(newItem);
-                }
+            if (itemIndex > -1) {
+                cesta[itemIndex].cantidad += cantidadAAgregar;
+            } else {
+                const newItem = { ...product, cantidad: cantidadAAgregar, talla: talla, cartItemId: cartItemId };
+                cesta.push(newItem);
+            }
 
-                localStorage.setItem('cesta', JSON.stringify(cesta));
-                actualizarContadorCesta();
-                
-                resolve(product);
-            }, 1500);
-        }).then((addedProduct) => {
-            // Cambiar a estado de éxito y mostrar modal
+            localStorage.setItem('cesta', JSON.stringify(cesta));
+            actualizarContadorCesta();
+            
+            resolve(product); // Resolvemos con el producto añadido
+        }, 1000); // Reducido el tiempo para una mejor experiencia de usuario
+    }).then((addedProduct) => {
+        // 3. Mostrar modal y actualizar UI del botón (cuando la promesa se resuelve)
+        showAddedToCartModal(addedProduct, boton, originalText);
+        
+        if (boton) {
             boton.classList.remove('adding');
             boton.classList.add('added');
-            showAddedToCartModal(addedProduct, boton, originalText);
-        });
-    }
+        }
+    });
 }
 
 function showAddedToCartModal(product, boton, originalText) {
@@ -51,9 +60,13 @@ function showAddedToCartModal(product, boton, originalText) {
     }
 
     // Poblar datos del producto
-    document.getElementById('modal-product-image').src = product.imagen_3_4 || './assets/placeholder.png';
+    const imagePath = product.imagen_3_4 || product.imagen_principal;
+    const imageUrl = imagePath && imagePath.startsWith('http') 
+        ? imagePath 
+        : (imagePath ? `${API_BASE_URL}${imagePath}` : './assets/placeholder.png');
+    document.getElementById('modal-product-image').src = imageUrl;
     document.getElementById('modal-product-name').textContent = product.nombre;
-    document.getElementById('modal-product-price').textContent = `$${product.precio.toLocaleString('es-CO')}`;
+    document.getElementById('modal-product-price').textContent = `$${Number(product.precio).toLocaleString('es-CO')}`;
     document.getElementById('modal-product-color').textContent = `Color: ${product.color || 'No especificado'}`;
     document.getElementById('modal-product-size').textContent = product.talla ? `Talla: ${product.talla}` : '';
     document.getElementById('modal-product-quantity').textContent = `Cantidad: ${product.cantidad || 1}`;
@@ -67,21 +80,24 @@ function showAddedToCartModal(product, boton, originalText) {
     document.getElementById('modal-cart-subtotal').textContent = `$${subtotal.toLocaleString('es-CO')}`;
     document.getElementById('modal-cart-total').textContent = `$${subtotal.toLocaleString('es-CO')}`;
 
-    // Escuchar el cierre de la modal para restaurar el botón
-    const handleModalClose = () => {
-        const textElement = boton.querySelector('.btn-text');
-        boton.classList.remove('added');
-        if (textElement) {
-            textElement.innerHTML = originalText;
-        }
-        boton.disabled = false;
-        document.removeEventListener('modalClosed', handleModalClose);
-    };
-    document.addEventListener('modalClosed', handleModalClose, { once: true });
+    // Escuchar el cierre de la modal para restaurar el botón, solo si el botón existe
+    if (boton) {
+        const handleModalClose = () => {
+            const textElement = boton.querySelector('.btn-text');
+            boton.classList.remove('added');
+            if (textElement) {
+                textElement.innerHTML = originalText;
+            }
+            boton.disabled = false;
+            // Usar { once: true } directamente en el listener es más limpio
+        };
+        document.addEventListener('modalClosed', handleModalClose, { once: true });
+    }
 
     // Mostrar modal
     modal.style.display = 'flex';
     setTimeout(() => modal.classList.add('visible'), 10);
+
 }
 
 function hideAddedToCartModal() {
