@@ -31,4 +31,22 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// POST /api/subcategorias - Crear una nueva subcategoría
+router.post('/', auth, async (req, res) => {
+  const { nombre, categoria_id, descripcion = '' } = req.body;
+
+  if (!nombre || !categoria_id) {
+    return res.status(400).json({ message: 'El nombre y el ID de la categoría son obligatorios.' });
+  }
+
+  try {
+    const query = 'INSERT INTO subcategorias (nombre, categoria_id, descripcion) VALUES (?, ?, ?)';
+    const [result] = await db.query(query, [nombre, categoria_id, descripcion]);
+    res.status(201).json({ id: result.insertId, nombre, categoria_id, descripcion });
+  } catch (error) {
+    console.error('Error al crear la subcategoría:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
 module.exports = router;

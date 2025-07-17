@@ -14,4 +14,25 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// POST /api/categorias - Crear una nueva categoría
+router.post('/', auth, async (req, res) => {
+  const { nombre, descripcion = '' } = req.body;
+
+  if (!nombre) {
+    return res.status(400).json({ message: 'El nombre de la categoría es obligatorio.' });
+  }
+
+  try {
+    const query = 'INSERT INTO categorias (nombre, descripcion) VALUES (?, ?)';
+    const [result] = await db.query(query, [nombre, descripcion]);
+    res.status(201).json({ id: result.insertId, nombre, descripcion });
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+        return res.status(409).json({ message: 'Ya existe una categoría con ese nombre.' });
+    }
+    console.error('Error al crear la categoría:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
 module.exports = router;

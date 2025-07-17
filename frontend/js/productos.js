@@ -108,64 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function crearTarjetaProducto(product) {
-    const productCard = document.createElement('div');
-    productCard.className = 'product-card';
 
-    // Lógica para crear la tarjeta del producto
-    const imageLink = document.createElement('a');
-    imageLink.href = `producto-detalle.html?id=${product.id}`;
-    imageLink.className = 'product-card__image-link';
-
-    const imageContainer = document.createElement('div');
-    imageContainer.className = 'product-card__image-container';
-
-    const image = document.createElement('img');
-    image.src = getImageUrl(product.imagen_principal);
-    image.alt = product.nombre;
-    image.className = 'product-card__image';
-    image.loading = 'lazy';
-
-    imageContainer.appendChild(image);
-    imageLink.appendChild(imageContainer);
-
-    const content = document.createElement('div');
-    content.className = 'product-card__content';
-
-    const info = document.createElement('div');
-    info.className = 'product-card__info';
-
-    const brand = document.createElement('p');
-    brand.className = 'product-card__brand';
-    brand.textContent = product.marca;
-
-    const name = document.createElement('h3');
-    name.className = 'product-card__name';
-    name.textContent = product.nombre;
-
-    const price = document.createElement('p');
-    price.className = 'product-card__price';
-    price.textContent = `$${(product.precio || 0).toLocaleString('es-CO')}`;
-
-    info.append(brand, name, price);
-
-    const actions = document.createElement('div');
-    actions.className = 'product-card__actions';
-
-    const addToCartBtn = document.createElement('button');
-    addToCartBtn.className = 'product-card__add-to-cart-btn';
-    addToCartBtn.textContent = 'Añadir al carrito';
-    addToCartBtn.onclick = (e) => {
-        e.preventDefault();
-        agregarAlCarrito(product);
-    };
-
-    actions.appendChild(addToCartBtn);
-    content.append(info, actions);
-    productCard.append(imageLink, content);
-
-    return productCard;
-  }
 
   function renderProductPageItems(isNewRender = false) {
     if (isNewRender) {
@@ -190,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const comment = document.createComment(` Producto con REF ${product.numero_referencia} falta `);
         fragment.appendChild(comment);
       } else {
-        const productElement = crearTarjetaProducto(product);
+        const productElement = createProductLinkElement(product);
         fragment.appendChild(productElement);
       }
     }

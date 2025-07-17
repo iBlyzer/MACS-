@@ -650,8 +650,55 @@ document.addEventListener('DOMContentLoaded', () => {
         updateImageCounter();
     }
 
+    // --- SETUP DE CATEGORÍAS INICIALES ---
+    async function setupInitialCategories() {
+        try {
+            const newCategoryName = 'Textiles Artesanales';
+            const newSubcategories = ['Ponchos', 'Muleras'];
+
+            // 1. Verificar si la categoría ya existe
+            const existingCategories = await fetchWithAuth(`${API_URL}/categorias`);
+            let category = existingCategories.find(c => c.nombre.toLowerCase() === newCategoryName.toLowerCase());
+
+            // 2. Si no existe, crearla
+            if (!category) {
+                console.log(`Creando categoría: "${newCategoryName}"...`);
+                category = await fetchWithAuth(`${API_URL}/categorias`, {
+                    method: 'POST',
+                    body: { nombre: newCategoryName }
+                });
+                console.log('Categoría creada con éxito.');
+            } else {
+                console.log(`La categoría "${newCategoryName}" ya existe.`);
+            }
+
+            // 3. Añadir subcategorías
+            if (category && category.id) {
+                const existingSubcategories = await fetchWithAuth(`${API_URL}/subcategorias/categoria/${category.id}`);
+                const existingSubcategoryNames = existingSubcategories.map(s => s.nombre.toLowerCase());
+
+                for (const subcategoryName of newSubcategories) {
+                    if (!existingSubcategoryNames.includes(subcategoryName.toLowerCase())) {
+                        console.log(`Creando subcategoría: "${subcategoryName}" para "${newCategoryName}"...`);
+                        await fetchWithAuth(`${API_URL}/subcategorias`, {
+                            method: 'POST',
+                            body: { nombre: subcategoryName, categoria_id: category.id }
+                        });
+                        console.log('Subcategoría creada con éxito.');
+                    } else {
+                        console.log(`La subcategoría "${subcategoryName}" ya existe.`);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error durante la configuración inicial de categorías:', error);
+        }
+    }
+
+
     // --- INITIALIZATION ---
-    function init() {
+    async function init() {
+        await setupInitialCategories(); // Añadir categorías y subcategorías si no existen
         setupEventListeners();
         cargarProductos();
         cargarCategorias(); // For modal
