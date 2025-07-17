@@ -29,7 +29,10 @@ function createProductLinkElement(product) {
         ? imagenUrl 
         : (imagenUrl ? `${API_BASE_URL}${imagenUrl}` : '/assets/logo.png');
 
-    const stock = product.stock_total || 0;
+    const stock = product.stock_total || 
+                  (Array.isArray(product.tallas) && product.tallas.length > 0
+                    ? product.tallas.reduce((total, talla) => total + (parseInt(talla.stock, 10) || 0), 0)
+                    : (parseInt(product.stock, 10) || 0));
 
     const marca = product.marca || 'Macs';
     const marcaClass = marca.toLowerCase() === 'macs' ? 'rgb-text' : '';

@@ -441,50 +441,82 @@ async function cargarRecomendados(categoriaId, excludeId) {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/productos/categoria/${categoriaId}`);
+        const response = await fetch(`${API_BASE_URL}/api/productos/recomendados?categoriaId=${categoriaId}&excludeId=${excludeId}`);
         if (!response.ok) {
             throw new Error('No se pudieron obtener los recomendados.');
         }
-        let recomendados = await response.json();
+        let recomendadosSimplificados = await response.json();
 
-        recomendados = recomendados.filter(p => p.id.toString() !== excludeId.toString()).slice(0, 10);
-
-        if (recomendados.length === 0) {
+        if (recomendadosSimplificados.length === 0) {
             recomendadosSection.style.display = 'none';
             return;
         }
 
+        // Obtener los detalles completos de cada producto recomendado
+        const promesasProductos = recomendadosSimplificados.map(p => 
+            fetch(`${API_BASE_URL}/api/productos/${p.id}`).then(res => res.json())
+        );
+
+        const recomendados = await Promise.all(promesasProductos);
+
+        if (recomendados.length === 0) {
+            recomendadosSection.style.display = 'block';
+            recomendadosContainer.innerHTML = '<p style="text-align: center; width: 100%;">No hay productos recomendados por el momento.</p>';
+            return;
+        }
+
+        recomendadosWrapper.innerHTML = ''; // Limpiar el contenedor
         recomendados.forEach(producto => {
-            if (typeof crearTarjetaProducto !== 'function') {
-                console.error('La función crearTarjetaProducto no está definida.');
-                return;
-            }
-            const tarjeta = crearTarjetaProducto(producto);
+            const productCard = createProductLinkElement(producto);
+            
             const swiperSlide = document.createElement('div');
             swiperSlide.className = 'swiper-slide';
-            swiperSlide.appendChild(tarjeta);
+            swiperSlide.appendChild(productCard);
+            
             recomendadosWrapper.appendChild(swiperSlide);
+        });
+
+        new Swiper('#recomendados-slider', {
+            effect: 'coverflow',
+            grabCursor: true,
+            centeredSlides: true,
+            loop: true,
+            slidesPerView: 1,
+            spaceBetween: 20,
+            autoplay: {
+                delay: 5000,
+                disableOnInteraction: false,
+            },
+            coverflowEffect: {
+                rotate: 40,
+                stretch: 0,
+                depth: 100,
+                modifier: 1,
+                slideShadows: false,
+            },
+            pagination: {
+                el: '#recomendados-slider .swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '#recomendados-slider .swiper-button-next',
+                prevEl: '#recomendados-slider .swiper-button-prev',
+            },
+            breakpoints: {
+                640: { slidesPerView: 2 },
+                768: { slidesPerView: 3 },
+                1024: { 
+                    slidesPerView: 4,
+                    spaceBetween: 30
+                },
+            },
         });
 
         recomendadosSection.style.display = 'block';
 
-        new Swiper(recomendadosContainer, {
-            slidesPerView: 2,
-            spaceBetween: 15,
-            navigation: {
-                nextEl: '#recomendados .swiper-button-next',
-                prevEl: '#recomendados .swiper-button-prev',
-            },
-            breakpoints: {
-                600: { slidesPerView: 3, spaceBetween: 20 },
-                900: { slidesPerView: 4, spaceBetween: 20 },
-                1200: { slidesPerView: 5, spaceBetween: 20 },
-            },
-        });
-
     } catch (error) {
         console.error('Error al cargar productos recomendados:', error);
-        // Asegurarse de que la sección esté oculta si hay un error.
-        recomendadosSection.style.display = 'none';
+        recomendadosSection.style.display = 'block';
+        recomendadosContainer.innerHTML = '<p style="text-align: center; width: 100%;">No se pudieron cargar los productos recomendados.</p>';
     }
 }
