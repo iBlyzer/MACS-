@@ -66,7 +66,7 @@ function openImageModal(product, initialIndex) {
     modalOverlay.innerHTML = `
         <div class="image-modal-content">
             <button class="modal-close-btn">&times;</button>
-            <div class="swiper-container modal-swiper">
+            <div class="swiper-container modal-gallery-top">
                 <div class="swiper-wrapper">
                     ${images.map(img => `
                         <div class="swiper-slide">
@@ -77,19 +77,69 @@ function openImageModal(product, initialIndex) {
                 <div class="swiper-button-next"></div>
                 <div class="swiper-button-prev"></div>
             </div>
+            <div class="swiper-container modal-gallery-thumbs">
+                <div class="swiper-wrapper">
+                    ${images.map(img => `
+                        <div class="swiper-slide">
+                            <img src="${getImageUrl(img.ruta_imagen)}" alt="Thumbnail ${product.nombre}">
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
         </div>
     `;
 
     document.body.appendChild(modalOverlay);
     document.body.style.overflow = 'hidden';
 
-    const modalSwiper = new Swiper('.modal-swiper', {
+    const modalThumbsSwiper = new Swiper(modalOverlay.querySelector('.modal-gallery-thumbs'), {
+        spaceBetween: 10,
+        slidesPerView: 4,
+        freeMode: true,
+        watchSlidesProgress: true,
+    });
+
+    const modalTopSwiper = new Swiper(modalOverlay.querySelector('.modal-gallery-top'), {
         initialSlide: initialIndex,
         navigation: {
-            nextEl: '.modal-swiper .swiper-button-next',
-            prevEl: '.modal-swiper .swiper-button-prev',
+            nextEl: '.modal-gallery-top .swiper-button-next',
+            prevEl: '.modal-gallery-top .swiper-button-prev',
+        },
+        thumbs: {
+            swiper: modalThumbsSwiper,
         },
         keyboard: true,
+    });
+
+    // Forzar la actualización de Swiper después de la inicialización
+    modalThumbsSwiper.update();
+    modalTopSwiper.update();
+
+    // Interactive Zoom Logic for Modal
+    const modalSlides = modalOverlay.querySelectorAll('.modal-gallery-top .swiper-slide');
+    modalSlides.forEach(slide => {
+        const img = slide.querySelector('img');
+        if (!img) return;
+
+        slide.addEventListener('mousemove', (e) => {
+            const rect = slide.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const xPercent = (x / rect.width) * 100;
+            const yPercent = (y / rect.height) * 100;
+
+            img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+        });
+
+        slide.addEventListener('mouseenter', () => {
+            img.style.transform = 'scale(2)'; // Zoom más pronunciado en el modal
+        });
+
+        slide.addEventListener('mouseleave', () => {
+            img.style.transform = 'scale(1)';
+            img.style.transformOrigin = 'center center';
+        });
     });
 
     const closeModal = () => {
@@ -418,6 +468,37 @@ function setupImageGallery(product, container) {
             },
         });
 
+        galleryTop.on('slideChangeTransitionEnd', function () {
+            galleryThumbs.slideTo(galleryTop.activeIndex);
+        });
+
+        // Interactive Zoom Logic
+        const slides = galleryTopContainer.querySelectorAll('.swiper-slide');
+        slides.forEach(slide => {
+            const img = slide.querySelector('img');
+            if (!img) return;
+
+            slide.addEventListener('mousemove', (e) => {
+                const rect = slide.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const xPercent = (x / rect.width) * 100;
+                const yPercent = (y / rect.height) * 100;
+
+                img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+            });
+
+            slide.addEventListener('mouseenter', () => {
+                img.style.transform = 'scale(1.5)';
+            });
+
+            slide.addEventListener('mouseleave', () => {
+                img.style.transform = 'scale(1)';
+                img.style.transformOrigin = 'center center';
+            });
+        });
+
         container.querySelector('.gallery-top .swiper-wrapper').addEventListener('click', (e) => {
             if (e.target.tagName === 'IMG') {
                 const index = parseInt(e.target.dataset.index, 10);
@@ -425,8 +506,8 @@ function setupImageGallery(product, container) {
             }
         });
 
-    } catch (e) {
-        console.error('Error inicializando Swiper:', e);
+    } catch (error) {
+        console.error("Error initializing Swiper:", error);
     }
 }
 

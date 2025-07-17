@@ -1142,6 +1142,14 @@
   background: transparent; /* El fondo del slide es transparente */
 }
 
+.modal-gallery-top .swiper-slide img {
+  max-height: 100%;
+  max-width: 100%;
+  height: auto;
+  width: auto;
+  object-fit: contain; /* Asegura que la imagen se ajuste sin distorsionarse */
+}
+
 .modal-gallery-top .swiper-zoom-container {
     width: 100%;
     height: 100%;
@@ -2083,7 +2091,8 @@
 
 .btn-main-action.added .btn-success-icon,
 .product-card__add-to-cart-btn.added .btn-success-icon {
-    display: flex; /* Usar flex para centrar el ícono si es necesario */
+    opacity: 1;
+    transform: scale(1);
 }
 
 /* Sección de Recomendados */
@@ -2255,6 +2264,165 @@
 }
 
 /* --- Estilos para la Galería con Swiper.js --- */
+
+/* --- Estilos para el Modal de Imagen (Bloque completo y corregido) --- */
+.image-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+.image-modal-content {
+    position: relative;
+    width: 90%;
+    height: 90%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    background: #111; /* Fondo oscuro para el contenido */
+}
+
+.image-modal-overlay .modal-close-btn {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.modal-gallery-top {
+    flex-grow: 1;
+    height: 80%; /* Ocupa la mayor parte del espacio */
+    width: 100%;
+    position: relative; /* Necesario para los botones de navegación */
+}
+
+.modal-gallery-thumbs {
+    height: 18%; /* Espacio para las miniaturas */
+    max-height: 120px; /* Altura máxima para las miniaturas */
+    box-sizing: border-box;
+    padding: 10px 0;
+}
+
+/* Contenedores Swiper deben tener tamaño */
+.modal-gallery-top .swiper-container,
+.modal-gallery-thumbs .swiper-container {
+    width: 100%;
+    height: 100%;
+}
+
+/* Slides deben ser flexibles */
+.modal-gallery-top .swiper-slide,
+.modal-gallery-thumbs .swiper-slide {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    overflow: hidden;
+}
+
+/* Imágenes deben ajustarse correctamente */
+.modal-gallery-top .swiper-slide img,
+.modal-gallery-thumbs .swiper-slide img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+/* Estilos específicos para miniaturas */
+.modal-gallery-thumbs .swiper-slide {
+    width: 25%;
+    height: 100%;
+    opacity: 0.5;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+    border: 2px solid transparent;
+    border-radius: 4px;
+}
+
+.modal-gallery-thumbs .swiper-slide:hover {
+    opacity: 0.8;
+}
+
+.modal-gallery-thumbs .swiper-slide-thumb-active {
+    opacity: 1;
+    border-color: #007aff;
+}
+
+/* Botones de navegación */
+.modal-gallery-top .swiper-button-next,
+.modal-gallery-top .swiper-button-prev {
+    color: white;
+    --swiper-navigation-size: 35px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 50%;
+}
+
+.modal-gallery-top .swiper-button-next:hover,
+.modal-gallery-top .swiper-button-prev:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Estilos para los íconos de flecha */
+.modal-gallery-top .swiper-button-next::after,
+.modal-gallery-top .swiper-button-prev::after {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.modal-gallery-top .swiper-button-prev::after {
+    content: '<';
+}
+
+.modal-gallery-top .swiper-button-next::after {
+    content: '>';
+}
+
+
+/* --- Estilos para la Galería con Swiper.js --- */
+
+
+/* --- Zoom Effect on Gallery --- */
+.gallery-top .swiper-slide {
+    overflow: hidden; /* This is crucial to contain the zoomed image */
+    cursor: zoom-in;
+}
+
+.gallery-top .swiper-slide img {
+    transition: transform 0.5s ease; /* Smooth transition for the zoom effect */
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+
 
 .product-gallery .swiper {
     width: 100%;

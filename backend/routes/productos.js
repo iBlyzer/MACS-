@@ -344,7 +344,7 @@ router.post('/create', [auth, upload, processAndUploadImages], async (req, res) 
     try {
         await connection.beginTransaction();
         if (numero_referencia) {
-            const [exists] = await connection.query('SELECT id FROM productos WHERE numero_referencia = ?', [numero_referencia]);
+            const [exists] = await connection.query('SELECT id FROM productos WHERE numero_referencia = ? AND categoria_id = ?', [numero_referencia, categoria_id]);
             if (exists.length > 0) {
                 await connection.rollback();
                 return res.status(409).json({ message: `La referencia "${numero_referencia}" ya está en uso.` });
@@ -391,7 +391,7 @@ router.put('/update/:id', [auth, upload, processAndUploadImages], async (req, re
         await connection.beginTransaction();
 
         if (numero_referencia) {
-            const [exists] = await connection.query('SELECT id FROM productos WHERE numero_referencia = ? AND id != ?', [numero_referencia, id]);
+            const [exists] = await connection.query('SELECT id FROM productos WHERE numero_referencia = ? AND categoria_id = ? AND id != ?', [numero_referencia, categoria_id, id]);
             if (exists.length > 0) {
                 await connection.rollback();
                 return res.status(409).json({ message: `La referencia "${numero_referencia}" ya está en uso.` });
