@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const pedidoForm = document.getElementById('pedido-form');
     const addProductoBtn = document.getElementById('btn-agregar-producto-pedido');
     const productosLista = document.getElementById('pedido-productos-lista');
+    const pedidoNumeroSufijoInput = document.getElementById('pedido-numero-sufijo');
+    const pedidoNumeroHiddenInput = document.getElementById('pedido-numero');
 
     // Inicializar vista de pedidos
     function initPedidosView() {
@@ -9,29 +11,29 @@ document.addEventListener('DOMContentLoaded', function() {
         const fechaInput = document.getElementById('pedido-fecha');
         fechaInput.value = new Date().toISOString().split('T')[0];
 
-        // Generar número de orden único (ej. timestamp)
-        const numeroOrdenInput = document.getElementById('pedido-numero');
-        numeroOrdenInput.value = `ORD-${Date.now()}`;
-
         // Limpiar formulario
         pedidoForm.reset();
         productosLista.innerHTML = '';
         fechaInput.value = new Date().toISOString().split('T')[0];
-        numeroOrdenInput.value = `ORD-${Date.now()}`;
-        updateResumen();
+        actualizarResumenPedido();
     }
 
 
+
+    // Combinar prefijo y sufijo para el número de orden
+    pedidoNumeroSufijoInput.addEventListener('input', () => {
+        pedidoNumeroHiddenInput.value = `ORD-${pedidoNumeroSufijoInput.value}`;
+    });
 
     // Lógica para añadir productos a la orden
     addProductoBtn.addEventListener('click', () => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td><input type="text" class="producto-ref" placeholder="Referencia"></td>
-            <td><input type="text" class="producto-nombre" placeholder="Nombre"></td>
-            <td><input type="number" class="producto-cantidad" value="1" min="1"></td>
-            <td><input type="number" class="producto-valor-unitario" value="0" min="0"></td>
-            <td><input type="text" class="producto-valor-total" readonly></td>
+            <td><input type="text" name="referencia[]" class="producto-ref" placeholder="Referencia"></td>
+            <td><input type="text" name="nombre[]" class="producto-nombre" placeholder="Nombre"></td>
+            <td><input type="number" name="cantidad[]" class="producto-cantidad" value="1" min="1"></td>
+            <td><input type="number" name="valor_unitario[]" class="producto-valor-unitario" value="0" min="0"></td>
+            <td><input type="text" name="valor_total[]" class="producto-valor-total" readonly></td>
             <td><button type="button" class="btn-remove-producto">Eliminar</button></td>
         `;
         productosLista.appendChild(row);
@@ -45,31 +47,42 @@ document.addEventListener('DOMContentLoaded', function() {
             const valorUnitario = parseFloat(row.querySelector('.producto-valor-unitario').value) || 0;
             const valorTotalInput = row.querySelector('.producto-valor-total');
             valorTotalInput.value = (cantidad * valorUnitario).toFixed(2);
-            updateResumen();
+            actualizarResumenPedido();
         }
     });
 
     productosLista.addEventListener('click', (e) => {
         if (e.target.classList.contains('btn-remove-producto')) {
             e.target.closest('tr').remove();
-            updateResumen();
+            actualizarResumenPedido();
         }
     });
 
     // Actualizar el resumen del pedido (subtotal, IVA, total)
-    function updateResumen() {
+    function actualizarResumenPedido() {
         let subtotal = 0;
-        productosLista.querySelectorAll('tr').forEach(row => {
-            const valorTotal = parseFloat(row.querySelector('.producto-valor-total').value) || 0;
-            subtotal += valorTotal;
+        document.querySelectorAll('#pedido-productos-lista tr').forEach(fila => {
+            const valorTotalInput = fila.querySelector('input[name="valor_total[]"]');
+            if (valorTotalInput) {
+                subtotal += parseFloat(valorTotalInput.value) || 0;
+            }
         });
 
         const iva = subtotal * 0.19;
         const total = subtotal + iva;
 
+        // Formatear como moneda
+        const formatCurrency = (value) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 2 }).format(value);
+
+        // Actualizar los campos de input ocultos para el formulario
         document.getElementById('pedido-subtotal').value = subtotal.toFixed(2);
         document.getElementById('pedido-iva').value = iva.toFixed(2);
         document.getElementById('pedido-total').value = total.toFixed(2);
+
+        // Actualizar los spans para la visualización del usuario
+        document.getElementById('resumen-subtotal').textContent = formatCurrency(subtotal);
+        document.getElementById('resumen-iva').textContent = formatCurrency(iva);
+        document.getElementById('resumen-total').textContent = formatCurrency(total);
     }
 
     // Enviar el formulario
@@ -116,11 +129,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify(data),
             });
 
+            const result = await response.json();
+
             if (!response.ok) {
-                throw new Error('Error en la respuesta del servidor');
+                throw new Error(result.message || 'Error al crear el pedido.');
             }
 
-            const result = await response.json();
             alert(result.message);
             
             // Ofrecer la descarga del archivo
@@ -135,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Error al crear el pedido:', error);
-            alert('Error al crear el pedido. Por favor, revise la consola para más detalles.');
+            alert(error.message);
         }
     });
 

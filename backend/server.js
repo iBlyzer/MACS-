@@ -47,6 +47,8 @@ const vistosRecientementeRoutes = require('./routes/vistos-recientemente');
 const pedidosRoutes = require('./routes/pedidos');
 app.use('/api/vistos-recientemente', vistosRecientementeRoutes);
 app.use('/api/pedidos', pedidosRoutes);
+app.use('/api/setup', require('./routes/setup'));
+app.use('/api/stock', require('./routes/stock'));
 
 // Ruta conflictiva eliminada. La lógica correcta está en routes/slider.js
 

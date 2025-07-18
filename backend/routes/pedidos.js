@@ -9,6 +9,17 @@ const fs = require('fs');
 router.post('/', async (req, res) => {
     const { cliente_nombre, cliente_id, cliente_telefono, cliente_direccion, pedido_fecha, pedido_numero, pedido_vendedor, productos, subtotal, iva, total } = req.body;
 
+    // Validar que el número de orden sea único
+    try {
+        const [existingOrder] = await pool.query('SELECT 1 FROM pedidos WHERE numero_orden = ? LIMIT 1', [pedido_numero]);
+        if (existingOrder.length > 0) {
+            return res.status(409).json({ message: `El Número de Orden '${pedido_numero}' ya existe. Por favor, utilice uno diferente.` });
+        }
+    } catch (error) {
+        console.error('Error al validar el número de orden:', error);
+        return res.status(500).json({ message: 'Error interno del servidor al validar el número de orden.' });
+    }
+
     let pedidoId;
 
     try {

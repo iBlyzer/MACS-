@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes de Stock - Panel de Administración</title>
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Macs Admin</h2>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="/admin/stock-reports.html" class="active">Dashboard</a></li>
+                    <li><a href="/admin/panel-admin.html">Productos</a></li>
+                    <li class="has-submenu">
+                        <a href="#">Pedidos</a>
+                        <ul class="submenu">
+                            <li><a href="/admin/Dashboard.html">Crear Pedido</a></li>
+                            <li><a href="/admin/pedidos-historial.html">Historial</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#">Categorías</a></li>
+                    <li><a href="/admin/gestor-slider.html">Slider</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <div class="main-content">
+            <main class="admin-main">
+                <div class="card">
+                    <h2>Registrar Modificación de Stock</h2>
+                    <form id="stock-change-form" class="form-grid">
+                        <div class="form-group">
+                            <label for="responsable_modificacion">Responsable</label>
+                            <input type="text" id="responsable_modificacion" name="responsable_modificacion" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="autorizado_por">Autorizado Por</label>
+                            <input type="text" id="autorizado_por" name="autorizado_por" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="ref_producto">Referencia del Producto</label>
+                            <input type="text" id="ref_producto" name="ref_producto" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="categoria">Categoría</label>
+                            <input type="text" id="categoria" name="categoria">
+                        </div>
+                        <div class="form-group">
+                            <label for="subcategoria">Subcategoría</label>
+                            <input type="text" id="subcategoria" name="subcategoria">
+                        </div>
+                        <div class="form-group">
+                            <label for="cantidad_cambio">Cantidad</label>
+                            <input type="number" id="cantidad_cambio" name="cantidad_cambio" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tipo_cambio">Tipo de Cambio</label>
+                            <select id="tipo_cambio" name="tipo_cambio" required>
+                                <option value="Aumento">Aumento</option>
+                                <option value="Disminución">Disminución</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="stock_change_order_id_sufijo">ID de Movimiento</label>
+                            <div class="input-prefix-group">
+                                <span>MOD-</span>
+                                <input type="text" id="stock_change_order_id_sufijo" name="stock_change_order_id_sufijo" required>
+                                <input type="hidden" id="stock_change_order_id" name="stock_change_order_id">
+                            </div>
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label for="descripcion_cambio">Descripción del Cambio</label>
+                            <textarea id="descripcion_cambio" name="descripcion_cambio" rows="3" required></textarea>
+                        </div>
+                        <div class="form-actions form-group-full">
+                            <button type="submit" class="btn-primary">Guardar Modificación</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>Historial de Modificaciones de Stock</h2>
+                    <div class="filtros-container">
+                        <input type="date" id="filtro-fecha-inicio" title="Fecha de inicio">
+                        <input type="date" id="filtro-fecha-fin" title="Fecha de fin">
+                        <input type="text" id="filtro-referencia" placeholder="Buscar por Referencia...">
+                        <input type="text" id="filtro-responsable" placeholder="Buscar por Responsable...">
+                        <input type="text" id="filtro-orden-id" placeholder="Buscar por ID Movimiento...">
+                        <button id="btn-filtrar" class="btn-primary">Filtrar</button>
+                        <button id="btn-limpiar-filtros" class="btn-secondary">Limpiar</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="stock-history-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Fecha</th>
+                                    <th>Responsable</th>
+                                    <th>Autorizado</th>
+                                    <th>Referencia</th>
+                                    <th>Cantidad</th>
+                                    <th>Tipo</th>
+                                    <th>ID Movimiento</th>
+                                    <th>Descripción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock-history-body">
+                                <!-- Los datos se cargarán aquí dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="../js/stock-reports.js"></script>
+</body>
+</html>

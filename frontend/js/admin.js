@@ -235,6 +235,10 @@ document.addEventListener('DOMContentLoaded', () => {
     async function abrirModalParaEditar(id) {
         resetModal();
         modalTitulo.textContent = 'Editar Producto';
+
+        // Deshabilitar campos de stock para la edición
+        stockGeneralInput.readOnly = true;
+        // La lógica para deshabilitar los inputs de tallas se hará al poblarlos.
         try {
             const p = await fetchWithAuth(`${API_URL}/productos/${id}`);
             document.getElementById('producto-id').value = p.id;
@@ -265,9 +269,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (p.tiene_tallas && p.tallas) {
                     tallasList.innerHTML = ''; // Clear before adding
-                    p.tallas.forEach(t => agregarInputTalla(t.talla, t.stock));
+                    // Pasar 'true' para hacer los campos de talla y stock de solo lectura
+                    p.tallas.forEach(t => agregarInputTalla(t.talla, t.stock, true)); 
                 } else {
-                    const stockUnico = p.tallas && p.tallas.length > 0 ? p.tallas[0].stock : '';
+                    const stockUnico = p.tallas && p.tallas.length > 0 ? p.tallas[0].stock : (p.stock_total || '');
                     stockGeneralInput.value = stockUnico;
                 }
             } else {
@@ -290,6 +295,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetModal() {
+        // Asegurarse de que los campos de stock vuelvan a ser editables para 'Crear Producto'
+        stockGeneralInput.readOnly = false;
+
         productoForm.reset();
         document.getElementById('producto-id').value = '';
         if (tallasList) tallasList.innerHTML = '';
@@ -536,17 +544,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function agregarInputTalla(talla = '', stock = '', isReadOnly = false) {
         if (!tallasList) return;
-        const div = document.createElement('div');
-        div.className = 'talla-item';
-        const tallaInputHTML = `<input type="text" name="talla[]" placeholder="Talla" value="${talla}" required ${isReadOnly ? 'readonly' : ''}>`;
-        const stockInputHTML = `<input type="number" name="stock[]" placeholder="Stock" value="${stock}" required>`;
-        const removeButtonHTML = `<button type="button" class="btn-remove-talla" style="display: ${isReadOnly ? 'none' : 'inline-block'}">&times;</button>`;
-
-        div.innerHTML = `${tallaInputHTML} ${stockInputHTML} ${removeButtonHTML}`;
-        tallasList.appendChild(div);
+        const item = document.createElement('div');
+        item.className = 'talla-item';
+        // Se añade el atributo 'readonly' también al input de stock si isReadOnly es true
+        item.innerHTML = `
+            <input type="text" name="talla[]" placeholder="Talla (ej. S, M, L)" value="${talla}" ${isReadOnly ? 'readonly' : ''}>
+            <input type="number" name="stock[]" placeholder="Stock" value="${stock}" ${isReadOnly ? 'readonly' : ''}>
+            <button type="button" class="remove-talla-btn" style="display: ${isReadOnly ? 'none' : 'inline-block'};">&times;</button>
+        `;
+        tallasList.appendChild(item);
 
         if (!isReadOnly) {
-            div.querySelector('.btn-remove-talla').addEventListener('click', () => div.remove());
+            item.querySelector('.remove-talla-btn').addEventListener('click', () => item.remove());
         }
     }
 

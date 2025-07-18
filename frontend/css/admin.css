@@ -400,6 +400,213 @@ body {
     display: block;
 }
 
+/* === Estilos para el Formulario de Reportes de Stock === */
+#stock-change-form.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    align-items: end;
+}
+
+#stock-change-form .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+#stock-change-form label {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+#stock-change-form input[type="text"],
+#stock-change-form input[type="number"],
+#stock-change-form select,
+#stock-change-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#stock-change-form input:focus,
+#stock-change-form select:focus,
+#stock-change-form textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+#stock-change-form .form-group-full {
+    grid-column: 1 / -1;
+}
+
+#stock-change-form .form-actions {
+    grid-column: 1 / -1;
+    text-align: right;
+    margin-top: 15px;
+}
+
+#stock-change-form .btn-primary {
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 6px;
+}
+
+/* === Estilos Mejorados para el Formulario de Creación de Pedidos === */
+
+.pedido-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px; /* Columna principal y barra lateral */
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.pedido-main {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.card-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    color: #111827;
+}
+
+#productos-pedido-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+#productos-pedido-tabla th,
+#productos-pedido-tabla td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+#productos-pedido-tabla th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #6b7280;
+    background-color: #f9fafb;
+}
+
+#productos-pedido-tabla td input {
+    width: 100%;
+    padding: 8px;
+}
+
+#productos-pedido-tabla .btn-remove-producto {
+    background-color: #fee2e2;
+    color: #ef4444;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+#productos-pedido-tabla .btn-remove-producto:hover {
+    background-color: #fca5a5;
+    color: #b91c1c;
+}
+
+#btn-agregar-producto-pedido {
+    align-self: flex-start;
+}
+
+.pedido-summary .resumen-pedido {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.pedido-summary .resumen-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+    color: #4b5563;
+}
+
+.pedido-summary .resumen-item.total {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #111827;
+}
+
+.pedido-summary hr {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 0.5rem 0;
+}
+
+.btn-block {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+}
+
+/* === Estilos para el Formulario de Creación de Pedidos === */
+.form-section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.section-title {
+    font-size: 18px;
+    color: #2c3e50;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.input-prefix-group {
+    display: flex;
+    align-items: center;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-prefix-group:focus-within {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.input-prefix-group span {
+    padding: 0 12px;
+    background-color: #f3f4f6;
+    color: #555;
+    font-weight: 600;
+    border-right: 1px solid #d1d5db;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+}
+
+.input-prefix-group input {
+    border: none;
+    outline: none;
+    padding: 12px;
+    flex-grow: 1;
+    background-color: transparent;
+}
+
 .gallery-item .delete-btn {
     position: absolute;
     top: 8px;

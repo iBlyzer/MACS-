@@ -14,106 +14,119 @@
             </div>
             <nav>
                 <ul>
-                    <li><a href="/admin/panel-admin.html">Dashboard</a></li>
-                    <li><a href="#">Productos</a></li>
+                    <li><a href="/admin/stock-reports.html">Dashboard</a></li>
+                    <li><a href="/admin/panel-admin.html">Productos</a></li>
                     <li class="has-submenu">
-                        <a href="#">Pedidos</a>
+                        <a href="#" class="active">Pedidos</a>
                         <ul class="submenu">
                             <li><a href="/admin/Dashboard.html" class="active">Crear Pedido</a></li>
                             <li><a href="/admin/pedidos-historial.html">Historial</a></li>
                         </ul>
                     </li>
                     <li><a href="#">Categorías</a></li>
-                    <li><a href="#">Slider</a></li>
+                    <li><a href="/admin/gestor-slider.html">Slider</a></li>
                 </ul>
             </nav>
         </aside>
 
         <div class="main-content">
             <main class="admin-main">
-                <section id="pedidos">
-                    <div class="card">
-                        <div class="header-section">
-                            <h2>Generar Orden de Pedido</h2>
-                        </div>
-                        <form id="pedido-form">
-                            <div class="form-container">
-                                <div class="form-column">
-                                    <h3>Datos del Cliente</h3>
+                <div class="header-section">
+                    <h2>Generar Orden de Pedido</h2>
+                </div>
+                <form id="pedido-form">
+                    <div class="pedido-layout">
+                        <!-- Columna Principal -->
+                        <div class="pedido-main">
+                            <div class="card">
+                                <h3 class="card-header">Datos del Cliente y de la Orden</h3>
+                                <div class="form-section-grid">
                                     <div class="form-group">
-                                        <label for="cliente-nombre">Nombre del Cliente:</label>
+                                        <label for="cliente-nombre">Nombre del Cliente</label>
                                         <input type="text" id="cliente-nombre" name="cliente_nombre" required>
                                     </div>
                                     <div class="form-group">
-                                        <label for="cliente-id">Cédula/NIT:</label>
+                                        <label for="cliente-id">Cédula/NIT</label>
                                         <input type="text" id="cliente-id" name="cliente_id">
                                     </div>
                                     <div class="form-group">
-                                        <label for="cliente-telefono">Teléfono:</label>
+                                        <label for="cliente-telefono">Teléfono</label>
                                         <input type="text" id="cliente-telefono" name="cliente_telefono">
                                     </div>
                                     <div class="form-group">
-                                        <label for="cliente-direccion">Dirección:</label>
+                                        <label for="cliente-direccion">Dirección</label>
                                         <input type="text" id="cliente-direccion" name="cliente_direccion">
                                     </div>
-                                </div>
-                                <div class="form-column">
-                                    <h3>Datos de la Orden</h3>
                                     <div class="form-group">
-                                        <label for="pedido-fecha">Fecha:</label>
+                                        <label for="pedido-fecha">Fecha</label>
                                         <input type="date" id="pedido-fecha" name="pedido_fecha" required>
                                     </div>
                                     <div class="form-group">
-                                        <label for="pedido-numero">Número de Orden:</label>
-                                        <input type="text" id="pedido-numero" name="pedido_numero" readonly>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="pedido-vendedor">Vendedor:</label>
+                                        <label for="pedido-vendedor">Vendedor</label>
                                         <input type="text" id="pedido-vendedor" name="pedido_vendedor">
                                     </div>
+                                    <div class="form-group">
+                                        <label for="pedido-numero-sufijo">Número de Orden</label>
+                                        <div class="input-prefix-group">
+                                            <span>ORD-</span>
+                                            <input type="text" id="pedido-numero-sufijo" name="pedido_numero_sufijo" required>
+                                            <input type="hidden" id="pedido-numero" name="pedido_numero">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
-                            <h3>Productos</h3>
-                            <div id="productos-pedido-container">
-                                <table id="productos-pedido-tabla">
-                                    <thead>
-                                        <tr>
-                                            <th>Referencia</th>
-                                            <th>Producto</th>
-                                            <th>Cantidad</th>
-                                            <th>Valor Unitario</th>
-                                            <th>Valor Total</th>
-                                            <th>Acción</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="pedido-productos-lista">
-                                        <!-- Filas de productos se añadirán aquí -->
-                                    </tbody>
-                                </table>
+                            <div class="card">
+                                <h3 class="card-header">Productos</h3>
+                                <div id="productos-pedido-container">
+                                    <table id="productos-pedido-tabla">
+                                        <thead>
+                                            <tr>
+                                                <th>Referencia</th>
+                                                <th>Producto</th>
+                                                <th>Cantidad</th>
+                                                <th>Valor Unitario</th>
+                                                <th>Valor Total</th>
+                                                <th>Acción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="pedido-productos-lista">
+                                            <!-- Filas de productos se añadirán aquí -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <button type="button" id="btn-agregar-producto-pedido" class="btn-secondary">Añadir Producto</button>
                             </div>
-                            <button type="button" id="btn-agregar-producto-pedido" class="btn-secondary">Añadir Producto</button>
+                        </div>
 
-                            <div class="resumen-pedido">
-                                <div class="form-group">
-                                    <label for="pedido-subtotal">Subtotal:</label>
-                                    <input type="text" id="pedido-subtotal" name="pedido_subtotal" readonly>
-                                </div>
-                                <div class="form-group">
-                                    <label for="pedido-iva">IVA (19%):</label>
-                                    <input type="text" id="pedido-iva" name="pedido_iva" readonly>
-                                </div>
-                                <div class="form-group">
-                                    <label for="pedido-total">Total:</label>
-                                    <input type="text" id="pedido-total" name="pedido_total" readonly>
+                        <!-- Barra Lateral de Resumen -->
+                        <div class="pedido-summary">
+                            <div class="card">
+                                <h3 class="card-header">Resumen del Pedido</h3>
+                                <div class="resumen-pedido">
+                                    <div class="resumen-item">
+                                        <span>Subtotal</span>
+                                        <span id="resumen-subtotal">$0.00</span>
+                                        <input type="hidden" id="pedido-subtotal" name="pedido_subtotal">
+                                    </div>
+                                    <div class="resumen-item">
+                                        <span>IVA (19%)</span>
+                                        <span id="resumen-iva">$0.00</span>
+                                        <input type="hidden" id="pedido-iva" name="pedido_iva">
+                                    </div>
+                                    <hr>
+                                    <div class="resumen-item total">
+                                        <span>Total</span>
+                                        <span id="resumen-total">$0.00</span>
+                                        <input type="hidden" id="pedido-total" name="pedido_total">
+                                    </div>
                                 </div>
                                 <div class="form-actions">
-                                    <button type="submit" class="btn-primary">Generar Orden y Guardar</button>
+                                    <button type="submit" class="btn-primary btn-block">Generar Orden y Guardar</button>
                                 </div>
                             </div>
-                        </form>
+                        </div>
                     </div>
-                </section>
+                </form>
             </main>
         </div>
     </div>
