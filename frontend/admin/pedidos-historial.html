@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de Pedidos - Panel de Administración</title>
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Macs Admin</h2>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="/admin/panel-admin.html">Dashboard</a></li>
+                    <li><a href="#">Productos</a></li>
+                    <li class="has-submenu">
+                        <a href="#">Pedidos</a>
+                        <ul class="submenu">
+                            <li><a href="/admin/Dashboard.html">Crear Pedido</a></li>
+                            <li><a href="/admin/pedidos-historial.html" class="active">Historial</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#">Categorías</a></li>
+                    <li><a href="#">Slider</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <div class="main-content">
+            <main class="admin-main">
+            <div class="card">
+                <h2>Historial de Órdenes de Pedido</h2>
+                <div class="filtros-container">
+                    <input type="text" id="filtro-numero-orden" placeholder="Buscar por Nº Orden...">
+                    <input type="text" id="filtro-cliente" placeholder="Buscar por Cliente...">
+                    <input type="date" id="filtro-fecha-inicio" title="Fecha de inicio">
+                    <input type="date" id="filtro-fecha-fin" title="Fecha de fin">
+                    <button id="btn-filtrar" class="btn-primary">Filtrar</button>
+                    <button id="btn-limpiar-filtros" class="btn-secondary">Limpiar</button>
+                </div>
+                <div class="table-container">
+                    <table id="pedidos-table">
+                        <thead>
+                            <tr>
+                                <th>Nº Orden</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Total</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pedidos-table-body">
+                            <!-- Las filas de los pedidos se insertarán aquí dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </main>
+        </div>
+    </div>
+    <script src="../js/pedidos-historial.js"></script>
+</body>
+</html>

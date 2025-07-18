@@ -43,7 +43,10 @@ app.use('/api/subcategorias', require('./routes/subcategorias'));
 app.use('/api/slider', require('./routes/slider'));
 app.use('/api/slider-manager', require('./routes/slider-manager'));
 app.use('/api/new-slider', require('./routes/new-slider'));
-app.use('/api/vistos-recientemente', require('./routes/vistos-recientemente'));
+const vistosRecientementeRoutes = require('./routes/vistos-recientemente');
+const pedidosRoutes = require('./routes/pedidos');
+app.use('/api/vistos-recientemente', vistosRecientementeRoutes);
+app.use('/api/pedidos', pedidosRoutes);
 
 // Ruta conflictiva eliminada. La lógica correcta está en routes/slider.js
 
