@@ -36,8 +36,8 @@ router.post('/', async (req, res) => {
         // Insertar los productos del pedido
         for (const producto of productos) {
             await pool.query(
-                'INSERT INTO pedido_productos (pedido_id, referencia, nombre, cantidad, valor_unitario, valor_total) VALUES (?, ?, ?, ?, ?, ?)',
-                [pedidoId, producto.referencia, producto.nombre, producto.cantidad, producto.valor_unitario, producto.valor_total]
+                'INSERT INTO pedido_productos (pedido_id, referencia, nombre, cantidad, valor_unitario, valor_total, area_asignada) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [pedidoId, producto.referencia, producto.nombre, producto.cantidad, producto.valor_unitario, producto.valor_total, producto.area_asignada]
             );
         }
 

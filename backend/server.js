@@ -7,6 +7,12 @@ const fs = require('fs');
 
 // --- Configuración Inicial ---
 const app = express();
+
+// Verificar que la clave secreta JWT esté definida
+if (!process.env.JWT_SECRET) {
+    console.error('FATAL ERROR: JWT_SECRET is not defined.');
+    process.exit(1);
+}
 const PORT = process.env.PORT || 3000;
 
 // --- Middlewares Esenciales ---
@@ -37,6 +43,7 @@ app.use((req, res, next) => {
 
 // --- Rutas de la API ---
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auth-produccion', require('./routes/auth-produccion'));
 app.use('/api/productos', require('./routes/productos'));
 app.use('/api/categorias', require('./routes/categorias'));
 app.use('/api/subcategorias', require('./routes/subcategorias'));
@@ -45,8 +52,10 @@ app.use('/api/slider-manager', require('./routes/slider-manager'));
 app.use('/api/new-slider', require('./routes/new-slider'));
 const vistosRecientementeRoutes = require('./routes/vistos-recientemente');
 const pedidosRoutes = require('./routes/pedidos');
+const tareasRoutes = require('./routes/tareas'); // Importar la nueva ruta de tareas
 app.use('/api/vistos-recientemente', vistosRecientementeRoutes);
 app.use('/api/pedidos', pedidosRoutes);
+app.use('/api/tareas', tareasRoutes); // Registrar la nueva ruta de tareas
 app.use('/api/setup', require('./routes/setup'));
 app.use('/api/stock', require('./routes/stock'));
 
