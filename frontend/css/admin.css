@@ -287,31 +287,227 @@ body {
     display: none; /* Oculto por defecto */
     position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
     overflow: auto; background-color: rgba(0,0,0,0.6);
+    -webkit-animation-name: fadeIn; animation-name: fadeIn;
+    -webkit-animation-duration: 0.4s; animation-duration: 0.4s
 }
 
 .modal-content {
     background-color: #fefefe; margin: 5% auto; padding: 25px; border: 1px solid #888;
-    width: 80%; max-width: 900px; border-radius: 8px; position: relative;
+    width: 80%; max-width: 500px; border-radius: 8px; position: relative;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    -webkit-animation-name: slideIn; animation-name: slideIn;
+    -webkit-animation-duration: 0.4s; animation-duration: 0.4s
 }
 
-.modal-content.large { max-width: 900px; }
 .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-#producto-form .form-container { display: flex; gap: 25px; }
-#producto-form .form-column { flex: 1; }
-#producto-form .form-group { margin-bottom: 15px; }
-#producto-form label { display: block; margin-bottom: 5px; font-weight: bold; }
-#producto-form input[type="text"], #producto-form input[type="number"], 
-#producto-form textarea, #producto-form select {
-    width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+.close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
+
+/* Agrega aquí más estilos específicos para el panel de administración */
+
+/* === Responsive Design for Product Table === */
+@media screen and (max-width: 768px) {
+    #tabla-productos-container table {
+        border: 0;
+    }
+
+    #tabla-productos-container table thead {
+        display: none; /* Ocultar encabezados en móvil */
+    }
+
+    #tabla-productos-container table tr {
+        display: block;
+        margin-bottom: 1.5em;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    #tabla-productos-container table td {
+        display: block;
+        text-align: right;
+        border-bottom: 1px dotted #ccc;
+        padding: 10px;
+    }
+
+    #tabla-productos-container table td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    #tabla-productos-container table td:last-child {
+        border-bottom: 0;
+    }
+
+    #tabla-productos-container .acciones-producto {
+        text-align: right;
+    }
+
+    #tabla-productos-container .acciones-producto .btn-accion {
+        display: inline-block;
+        margin: 5px 5px 5px 0;
+    }
+
+    .filtros-container {
+        flex-direction: column;
+    }
+
+    .filtros-fila {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .filtros-fila > * {
+        width: 100%;
+        margin-bottom: 10px;
+    }
 }
-#producto-form .form-group-inline { display: flex; align-items: center; gap: 10px; }
-#image-previews-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-.image-preview-card { border: 2px dashed #ddd; border-radius: 8px; padding: 10px; text-align: center; position: relative; }
-.image-preview-card .image-placeholder { width: 100%; height: 120px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
-.image-preview-card .image-placeholder img { width: 100%; height: 100%; object-fit: cover; }
-.remove-image-btn { position: absolute; top: 5px; right: 5px; background: #e74c3c; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; display: none; }
-#producto-form .form-actions { text-align: right; margin-top: 20px; }
+
+/* === Estilos Específicos para el Modal de Tarea de Producto === */
+#modal-producto .modal-content {
+    max-width: 600px;
+    padding: 30px 40px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+#modal-producto h3 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 25px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+#form-producto-tarea {
+    display: flex;
+    flex-direction: column;
+    gap: 18px; /* Espacio vertical entre cada campo */
+}
+
+#modal-producto .form-group {
+    margin-bottom: 0;
+}
+
+#modal-producto .form-group label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+#modal-producto .form-group label i {
+    margin-right: 10px;
+    color: #888;
+    font-size: 15px;
+    width: 20px;
+    text-align: center;
+}
+
+#modal-producto input[type="text"],
+#modal-producto input[type="number"],
+#modal-producto select,
+#modal-producto textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 15px;
+    color: #333;
+    background-color: #fdfdfd;
+    transition: all 0.2s ease-in-out;
+    box-sizing: border-box;
+}
+
+#modal-producto input[type="text"]:focus,
+#modal-producto input[type="number"]:focus,
+#modal-producto select:focus,
+#modal-producto textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+}
+
+#modal-producto textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+#modal-producto .file-upload-zone {
+    border: 2px dashed #ddd;
+    border-radius: 6px;
+    padding: 25px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    background-color: #f9f9f9;
+}
+
+#modal-producto .file-upload-zone:hover {
+    border-color: #3498db;
+    background-color: #f1f7fc;
+}
+
+#modal-producto .file-upload-zone .fa-cloud-upload-alt {
+    font-size: 32px;
+    color: #aaa;
+    margin-bottom: 10px;
+}
+
+#modal-producto .file-upload-zone p {
+    margin: 0;
+    font-size: 13px;
+    color: #777;
+}
+
+#modal-producto .form-actions-modal {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+#modal-producto .btn-submit-modal {
+    background-color: #3498db;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#modal-producto .btn-submit-modal:hover {
+    background-color: #2980b9;
+}
+
+#modal-producto .file-previews {
+    margin-top: 15px;
+    font-size: 13px;
+}
+
+#modal-producto .file-previews ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+#modal-producto .file-previews li {
+    background-color: #f0f4f8;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    color: #555;
+}
 
 /* === Componentes de Tarjeta (Card) === */
 .card {
@@ -394,8 +590,8 @@ body {
     gap: 22px;
 }
 
-/* Grupo de formulario individual */
-.form-group {
+/* Grupo de formulario individual (no modal) */
+#pedido-form .form-group {
     display: flex;
     flex-direction: column;
 }
@@ -688,12 +884,171 @@ body {
     font-size: 1rem;
 }
 
-/* === Estilos para el Formulario de Creación de Pedidos === */
+/* === Estilos para el Formulario de Creación de Pedidos (Layout Principal) === */
+
+/* === Estilos Finales para el Modal de Tarea de Producto v4 === */
+#modal-producto .modal-content {
+    max-width: 600px;
+    padding: 30px 40px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+#modal-producto h3 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 25px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+#form-producto-tarea {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+#modal-producto .form-group {
+    margin-bottom: 0;
+}
+
+#modal-producto .form-group label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+#modal-producto .form-group label i {
+    margin-right: 10px;
+    color: #888;
+    font-size: 15px;
+    width: 20px;
+    text-align: center;
+}
+
+#modal-producto input[type="text"],
+#modal-producto input[type="number"],
+#modal-producto select,
+#modal-producto textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 15px;
+    color: #333;
+    background-color: #fdfdfd;
+    transition: all 0.2s ease-in-out;
+    box-sizing: border-box;
+}
+
+#modal-producto input[type="text"]:focus,
+#modal-producto input[type="number"]:focus,
+#modal-producto select:focus,
+#modal-producto textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+}
+
+#modal-producto textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+#modal-producto .file-upload-zone {
+    border: 2px dashed #ddd;
+    border-radius: 6px;
+    padding: 25px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    background-color: #f9f9f9;
+}
+
+#modal-producto .file-upload-zone:hover {
+    border-color: #3498db;
+    background-color: #f1f7fc;
+}
+
+#modal-producto .file-upload-zone .fa-cloud-upload-alt {
+    font-size: 32px;
+    color: #aaa;
+    margin-bottom: 10px;
+}
+
+#modal-producto .file-upload-zone p {
+    margin: 0;
+    font-size: 13px;
+    color: #777;
+}
+
+#modal-producto .form-actions-modal {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+#modal-producto .btn-submit-modal {
+    background-color: #3498db;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#modal-producto .btn-submit-modal:hover {
+    background-color: #2980b9;
+}
+
 .form-section-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 25px;
-    margin-bottom: 30px;
+    grid-template-columns: 1fr 1fr; /* Dos columnas de igual tamaño */
+    gap: 22px 28px; /* Espacio entre filas y columnas */
+    margin-bottom: 20px;
+}
+
+.form-section-grid .form-group {
+    margin-bottom: 0;
+}
+
+.form-section-grid label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.form-section-grid input[type="text"],
+.form-section-grid input[type="date"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #2d3748;
+    background-color: #fff;
+    transition: all 0.2s ease-in-out;
+    box-sizing: border-box;
+}
+
+.form-section-grid input[type="text"]:focus,
+.form-section-grid input[type="date"]:focus {
+    outline: none;
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
 }
 
 .section-title {

@@ -629,26 +629,8 @@ document.addEventListener('DOMContentLoaded', () => {
             card.appendChild(deleteBtn);
             container.appendChild(card);
 
-            placeholder.addEventListener('click', () => fileInput.click());
-
-            deleteBtn.addEventListener('click', () => {
-                if (existingImage) {
-                    if (!imagesToDelete.includes(field.name)) {
-                        imagesToDelete.push(field.name);
-                    }
-                }
-                delete imageFiles[field.name];
-
-                img.src = '';
-                placeholder.innerHTML = '<span class="upload-icon">+</span>';
-                placeholder.classList.remove('has-image');
-                deleteBtn.style.display = 'none';
-                updateImageCounter();
-            });
-
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
+            const handleFileSelect = (file) => {
+                if (file && file.type.startsWith('image/')) {
                     imageFiles[field.name] = file;
 
                     const index = imagesToDelete.indexOf(field.name);
@@ -667,6 +649,49 @@ document.addEventListener('DOMContentLoaded', () => {
                     reader.readAsDataURL(file);
                 }
                 updateImageCounter();
+            };
+
+            // Event Listeners
+            placeholder.addEventListener('click', () => fileInput.click());
+
+            // Drag & Drop Listeners
+            ['dragenter', 'dragover'].forEach(eventName => {
+                placeholder.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    placeholder.classList.add('drag-over');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                placeholder.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    placeholder.classList.remove('drag-over');
+                });
+            });
+
+            placeholder.addEventListener('drop', (e) => {
+                const file = e.dataTransfer.files[0];
+                handleFileSelect(file);
+            });
+
+            deleteBtn.addEventListener('click', () => {
+                if (existingImage) {
+                    if (!imagesToDelete.includes(field.name)) {
+                        imagesToDelete.push(field.name);
+                    }
+                }
+                delete imageFiles[field.name];
+
+                img.src = '';
+                placeholder.innerHTML = '<span class="upload-icon">+</span>';
+                placeholder.classList.remove('has-image');
+                deleteBtn.style.display = 'none';
+                updateImageCounter();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                handleFileSelect(file);
             });
         });
 

@@ -187,7 +187,12 @@ function crearTarjetaProducto(producto) {
 
     const category = document.createElement('p');
     category.className = 'product-category';
-    category.textContent = producto.categoria_nombre || 'Categoría';
+    const subcategory = producto.subcategoria_nombre || producto.categoria_nombre || 'Categoría';
+    category.textContent = subcategory.toUpperCase();
+
+    if (subcategory.toUpperCase() === 'MACS') {
+        category.classList.add('rgb-text');
+    }
 
     const nameLink = document.createElement('a');
     nameLink.href = `producto-detalle.html?id=${producto.id}`;
@@ -197,13 +202,14 @@ function crearTarjetaProducto(producto) {
     name.textContent = producto.nombre;
     nameLink.appendChild(name);
 
-    const price = document.createElement('p');
-    price.className = 'product-price';
-    price.textContent = `$${parseFloat(producto.precio).toLocaleString('es-CO')}`;
+    // Elminamos el precio de la tarjeta de producto
+    // const price = document.createElement('p');
+    // price.className = 'product-price';
+    // price.textContent = `$${parseFloat(producto.precio).toLocaleString('es-CO')}`;
 
     info.appendChild(category);
     info.appendChild(nameLink);
-    info.appendChild(price);
+    // info.appendChild(price);
 
     // 4. Bloque de Acciones (Stock, Botón de carrito)
     const actions = document.createElement('div');

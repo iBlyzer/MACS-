@@ -5,24 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Panel de Administración</title>
     <script src="../js/config.js"></script>
-    <link rel="icon" href="../../assets/logo.png?v=2" type="image/png">
+    <link rel="icon" href="../assets/macs-agencia.png" type="image/png">
     <link rel="stylesheet" href="../css/login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="login-container">
-        <form id="login-form" class="login-form">
-            <h2>Admin Login</h2>
-            <div id="error-message" class="error-message" style="display:none;"></div>
-            <div class="form-group">
-                <label for="username">Usuario</label>
-                <input type="text" id="username" name="username" required>
+    <div class="login-wrapper">
+        <div class="login-welcome-panel">
+            <div class="welcome-content">
+                <div class="logo">
+                    <img src="../assets/macs-agencia.png" alt="Logo Macs Agencia">
+                    <span>Macs Agencia</span>
+                </div>
+                <h1>Bienvenido de nuevo</h1>
+                <p>Accede a nuestro sistema de gestión integral. Supervisa en tiempo real el estado de la producción, administra el inventario de materia prima y producto terminado, asigna tareas específicas y analiza los indicadores clave de rendimiento (KPIs) para una toma de decisiones estratégica.</p>
             </div>
-            <div class="form-group">
-                <label for="password">Contraseña</label>
-                <input type="password" id="password" name="password" required>
+        </div>
+        <div class="login-form-panel">
+            <div class="form-container">
+                <h2>Iniciar Sesión</h2>
+                <p class="subtitle">Ingresa tus credenciales para acceder al panel.</p>
+                <div id="error-message" class="error-message" style="display:none;"></div>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="username">Usuario</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="form-options">
+                        <div class="remember-me">
+                            <input type="checkbox" id="remember">
+                            <label for="remember">Recordarme</label>
+                        </div>
+                        <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+                    </div>
+                    <button type="submit" class="btn-login">INGRESAR</button>
+                </form>
             </div>
-            <button type="submit" class="btn-login">Ingresar</button>
-        </form>
+        </div>
     </div>
     <script src="../js/login.js"></script>
 </body>

@@ -6,11 +6,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const pedidoNumeroHiddenInput = document.getElementById('pedido-numero');
 
     // --- Referencias a elementos de la Modal ---
-    const modal = document.getElementById('product-modal'); // Corregido: ID del modal
+    const modal = document.getElementById('modal-producto');
     const openModalBtn = document.getElementById('btn-agregar-producto-pedido');
-    const closeModalBtn = document.querySelector('.close-btn'); // Corregido: Clase del botón de cierre
-    // La siguiente línea se deja comentada porque el formulario no existe en el modal actual
-    // const productoTareaForm = document.getElementById('form-producto-tarea');
+    const closeModalBtn = document.querySelector('.close-button');
+    const productoTareaForm = document.getElementById('form-producto-tarea');
+    const fileUploadZone = document.getElementById('file-upload-zone');
+    const fileInput = document.getElementById('tarea-imagenes');
+    const filePreviews = document.getElementById('file-previews');
 
     // --- Funciones de la Modal ---
     function openModal() {
@@ -20,6 +22,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function closeModal() {
         modal.style.display = 'none';
         productoTareaForm.reset(); // Limpiar el formulario al cerrar
+        filePreviews.innerHTML = ''; // Limpiar vistas previas
+        fileInput.value = ''; // Asegurarse de limpiar el input de archivos
     }
 
     // --- Event Listeners de la Modal ---
@@ -30,6 +34,45 @@ document.addEventListener('DOMContentLoaded', function() {
             closeModal();
         }
     });
+
+    // --- Lógica para la Zona de Carga de Archivos ---
+    fileUploadZone.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+        updateFilePreviews();
+    });
+
+    fileUploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        fileUploadZone.classList.add('drag-over');
+    });
+
+    fileUploadZone.addEventListener('dragleave', () => {
+        fileUploadZone.classList.remove('drag-over');
+    });
+
+    fileUploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        fileUploadZone.classList.remove('drag-over');
+        fileInput.files = e.dataTransfer.files;
+        updateFilePreviews();
+    });
+
+    function updateFilePreviews() {
+        filePreviews.innerHTML = '';
+        const files = fileInput.files;
+        if (files.length > 0) {
+            const list = document.createElement('ul');
+            for (const file of files) {
+                const item = document.createElement('li');
+                item.textContent = file.name;
+                list.appendChild(item);
+            }
+            filePreviews.appendChild(list);
+        }
+    }
 
     // --- Lógica principal del formulario de Pedidos ---
 
@@ -49,8 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Lógica para AÑADIR producto desde la modal a la tabla
-    // Se comenta temporalmente ya que el formulario 'productoTareaForm' no existe en el HTML actual.
-    /*
     productoTareaForm.addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -94,7 +135,6 @@ document.addEventListener('DOMContentLoaded', function() {
         actualizarResumenPedido();
         closeModal();
     });
-    */
 
     // Eliminar filas de productos
     productosLista.addEventListener('click', (e) => {

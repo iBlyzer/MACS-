@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <title>Dashboard - Órdenes de Pedido</title>
     <script src="../js/config.js"></script>
-    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css?v=1.5">
 </head>
 <body>
     <div class="admin-container">
@@ -141,12 +142,52 @@
     </div>
 
     <script src="../js/auth.js"></script>
-    <div id="product-modal" class="modal">
+    <div id="modal-producto" class="modal">
         <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h2>Añadir Producto al Pedido</h2>
-            <input type="text" id="product-search" placeholder="Buscar producto por nombre o referencia...">
-            <div id="product-list"></div>
+            <span class="close-button">&times;</span>
+            <h3>Detalles de la Tarea de Producción</h3>
+            <form id="form-producto-tarea">
+                <div class="form-group">
+                    <label for="producto-referencia"><i class="fas fa-tag"></i> Referencia</label>
+                    <input type="text" id="producto-referencia" required>
+                </div>
+                <div class="form-group">
+                    <label for="producto-nombre"><i class="fas fa-box"></i> Nombre del Producto</label>
+                    <input type="text" id="producto-nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="producto-cantidad"><i class="fas fa-sort-numeric-up"></i> Cantidad</label>
+                    <input type="number" id="producto-cantidad" value="1" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="producto-valor"><i class="fas fa-dollar-sign"></i> Valor Unitario</label>
+                    <input type="number" id="producto-valor" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="tarea-area"><i class="fas fa-industry"></i> Área de Producción</label>
+                    <select id="tarea-area" required>
+                        <option value="Bordado">Bordado</option>
+                        <option value="Parche">Parche</option>
+                        <option value="Textil">Textil</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="tarea-descripcion"><i class="fas fa-align-left"></i> Descripción de la Tarea</label>
+                    <textarea id="tarea-descripcion" rows="3"></textarea>
+                </div>
+                <div class="form-group form-group-full">
+                    <label><i class="fas fa-images"></i> Anexar Imágenes</label>
+                    <div class="file-upload-zone" id="file-upload-zone">
+                        <input type="file" id="tarea-imagenes" multiple accept="image/*" class="file-input-hidden">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Arrastra y suelta archivos aquí, o haz clic para seleccionar</p>
+                    </div>
+                    <div class="file-previews" id="file-previews"></div>
+                </div>
+                <div class="form-actions-modal">
+                    <button type="submit" class="btn-submit-modal">Añadir y Generar Tarea</button>
+                </div>
+            </form>
         </div>
     </div>
     <script src="../js/pedidos-admin.js"></script>

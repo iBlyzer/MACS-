@@ -1,29 +1,94 @@
+/* General Body Styles */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    height: 100vh;
+    background-color: #f0f4f8;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    margin: 0;
 }
 
-.login-container {
+/* Wrapper for the entire login component */
+.login-wrapper {
+    display: flex;
+    width: 900px;
+    max-width: 95%;
+    height: 600px;
+    background-color: #ffffff;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+/* Left Panel: Welcome Message */
+.login-welcome-panel {
+    flex-basis: 50%;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 50px;
+    box-sizing: border-box;
+}
+
+.welcome-content .logo {
+    display: flex;
+    align-items: center;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 40px;
+}
+
+.welcome-content .logo img {
+    width: 60px;
+    margin-right: 15px;
+}
+
+.welcome-content .logo span {
+    font-size: 28px;
+}
+
+.welcome-content h1 {
+    font-size: 36px;
+    margin-bottom: 15px;
+}
+
+.welcome-content p {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.welcome-footer p {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+/* Right Panel: Login Form */
+.login-form-panel {
+    flex-basis: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 50px;
+    box-sizing: border-box;
+}
+
+.form-container {
     width: 100%;
-    max-width: 400px;
+    max-width: 350px;
 }
 
-.login-form {
-    background: #fff;
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-.login-form h2 {
-    text-align: center;
-    margin-bottom: 20px;
+.form-container h2 {
+    font-size: 32px;
     color: #333;
+    margin-bottom: 10px;
+}
+
+.form-container .subtitle {
+    color: #777;
+    margin-bottom: 30px;
 }
 
 .form-group {
@@ -32,40 +97,111 @@ body {
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
+    font-size: 14px;
     color: #555;
+    margin-bottom: 8px;
 }
 
 .form-group input {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
     box-sizing: border-box;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #4facfe;
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+}
+
+.remember-me input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.forgot-password,
+.signup-link a {
+    color: #4facfe;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.forgot-password:hover,
+.signup-link a:hover {
+    color: #007bff;
 }
 
 .btn-login {
     width: 100%;
-    padding: 12px;
-    background-color: #3498db;
+    padding: 15px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
     color: white;
     font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: transform 0.2s, box-shadow 0.3s;
 }
 
 .btn-login:hover {
-    background-color: #2980b9;
+    box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+    transform: translateY(-2px);
+}
+
+.signup-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
 }
 
 .error-message {
     background-color: #f8d7da;
     color: #721c24;
-    border: 1px solid #f5c6cb;
     padding: 10px;
+    border: 1px solid #f5c6cb;
     border-radius: 4px;
     margin-bottom: 20px;
     text-align: center;
+}
+
+/* Responsive Design for Mobile */
+@media (max-width: 900px) {
+    .login-wrapper {
+        flex-direction: column;
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+        border-radius: 0;
+    }
+
+    .login-welcome-panel {
+        display: none; /* Hide welcome panel on mobile */
+    }
+
+    .login-form-panel {
+        flex-basis: 100%;
+        justify-content: flex-start;
+        padding: 40px 20px;
+        background: linear-gradient(180deg, #e0f7fa 0%, #ffffff 30%);
+    }
+    
+    .form-container {
+        margin-top: 20%;
+    }
 }
