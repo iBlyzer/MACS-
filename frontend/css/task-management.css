@@ -1,0 +1,64 @@
+/* Estilos para el nuevo layout del modal de tareas */
+.task-modal-layout {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.task-modal-image-container {
+    flex: 0 0 150px; /* Ancho fijo para la imagen */
+    text-align: center;
+}
+
+.task-modal-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.task-modal-details-container {
+    flex: 1;
+}
+
+.task-modal-details-container p,
+.task-modal-description p {
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+
+.task-modal-details-container p strong,
+.task-modal-description p strong {
+    color: #333;
+}
+
+.task-modal-description {
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+    margin-top: 15px;
+}
+
+.badge-area {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: #007bff; /* Azul por defecto */
+    border-radius: 12px;
+    text-transform: capitalize;
+}
+
+/* Puedes añadir colores específicos por área si lo deseas */
+.badge-area.bordado {
+    background-color: #28a745; /* Verde */
+}
+
+.badge-area.parche {
+    background-color: #ffc107; /* Amarillo */
+    color: #212529;
+}
+
+.badge-area.textil {
+    background-color: #17a2b8; /* Cian */
+}

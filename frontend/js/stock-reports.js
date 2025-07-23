@@ -1,4 +1,65 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const productoCategoriaSelect = document.getElementById('producto-categoria');
+    const productoSubcategoriaSelect = document.getElementById('producto-subcategoria');
+
+    // --- Lógica para cargar categorías y subcategorías ---
+    const API_URL = 'http://localhost:3000/api'; // Asegúrate de que esta URL sea correcta
+
+    async function fetchWithAuth(url, options = {}) {
+        const token = localStorage.getItem('token');
+        const headers = {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            ...options.headers,
+        };
+        const response = await fetch(url, { ...options, headers });
+        if (!response.ok) {
+            throw new Error(`Error en la petición: ${response.statusText}`);
+        }
+        return response.json();
+    }
+
+    async function cargarCategorias() {
+        if (!productoCategoriaSelect) return;
+        try {
+            const categorias = await fetchWithAuth(`${API_URL}/categorias`);
+            productoCategoriaSelect.innerHTML = '<option value="">Seleccione una categoría</option>';
+            categorias.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = cat.nombre;
+                productoCategoriaSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar categorías:', error);
+        }
+    }
+
+    async function cargarSubcategorias(categoriaId) {
+        if (!productoSubcategoriaSelect) return;
+        productoSubcategoriaSelect.innerHTML = '<option value="">Seleccione una subcategoría</option>';
+        if (!categoriaId) return;
+
+        try {
+            const subcategorias = await fetchWithAuth(`${API_URL}/subcategorias/categoria/${categoriaId}`);
+            subcategorias.forEach(sub => {
+                const option = document.createElement('option');
+                option.value = sub.id;
+                option.textContent = sub.nombre;
+                productoSubcategoriaSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar subcategorías:', error);
+        }
+    }
+
+    if (productoCategoriaSelect) {
+        cargarCategorias();
+        productoCategoriaSelect.addEventListener('change', () => {
+            cargarSubcategorias(productoCategoriaSelect.value);
+        });
+    }
+
     const stockForm = document.getElementById('stock-change-form');
     const historyBody = document.getElementById('stock-history-body');
 

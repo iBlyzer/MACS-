@@ -9,8 +9,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_URL = 'http://localhost:3000/api';
     const BASE_URL = 'http://localhost:3000';
 
-    // --- DOM SELECTORS ---
+    // --- LOGOUT BUTTON (General) ---
+    const btnLogout = document.getElementById('btn-logout');
+    if (btnLogout) {
+        btnLogout.addEventListener('click', () => {
+            localStorage.removeItem('token');
+            window.location.href = '/admin/login.html';
+        });
+    }
+
+    // --- PRODUCT PANEL SPECIFIC LOGIC ---
     const tablaProductosContainer = document.getElementById('tabla-productos-container');
+
+    // Only run this code if we are on the product management page
+    if (tablaProductosContainer) {
+
+    // --- DOM SELECTORS (Product Page) ---
     const modal = document.getElementById('producto-modal');
     const modalTitulo = document.getElementById('modal-titulo');
     const closeButton = document.querySelector('.close-button');
@@ -716,4 +730,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     init();
+
+    } // End of the 'if (tablaProductosContainer)' block
 });
