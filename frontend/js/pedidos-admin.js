@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 cantidad: parseFloat(row.querySelector('input[name="cantidad[]"]').value) || 0,
                 valor_unitario: parseFloat(row.querySelector('input[name="valor_unitario[]"]').value) || 0,
                 valor_total: valorTotalProducto,
-                area: row.querySelector('input[name="area[]"]').value,
+                area_asignada: row.querySelector('input[name="area[]"]').value,
                 tarea_descripcion: row.dataset.tareaDescripcion,
 
             });

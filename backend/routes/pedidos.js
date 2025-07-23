@@ -35,10 +35,19 @@ router.post('/', async (req, res) => {
 
         // Insertar los productos del pedido
         for (const producto of productos) {
-            await pool.query(
+            const [pedidoProductoResult] = await pool.query(
                 'INSERT INTO pedido_productos (pedido_id, referencia, nombre, cantidad, valor_unitario, valor_total, area_asignada) VALUES (?, ?, ?, ?, ?, ?, ?)',
                 [pedidoId, producto.referencia, producto.nombre, producto.cantidad, producto.valor_unitario, producto.valor_total, producto.area_asignada]
             );
+            const pedidoProductoId = pedidoProductoResult.insertId;
+
+            // Crear la tarea asociada al producto del pedido
+            if (producto.area_asignada && producto.area_asignada !== 'N/A') {
+                await pool.query(
+                    'INSERT INTO tareas (pedido_id, pedido_producto_id, area, estado, descripcion, fecha_creacion) VALUES (?, ?, ?, ?, ?, NOW())',
+                    [pedidoId, pedidoProductoId, producto.area_asignada, 'Pendiente', producto.tarea_descripcion]
+                );
+            }
         }
 
         // Commit de la transacción
