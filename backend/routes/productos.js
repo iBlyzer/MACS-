@@ -507,7 +507,81 @@ router.delete('/:id', auth, async (req, res) => {
         connection.release();
     }
 });
+router.get('/detalles-para-stock', auth, async (req, res) => {
+    console.log('--- [DEBUG] RUTA /detalles-para-stock INVOCADA ---');
+    const { referencia, categoriaId } = req.query;
+    console.log(`--- [DEBUG] Parámetros recibidos: Referencia=${referencia}, CategoriaID=${categoriaId}`);
 
+    if (!referencia || !categoriaId) {
+        console.log('--- [DEBUG] ERROR: Parámetros incompletos.');
+        return res.status(400).json({ message: 'Referencia y categoría son requeridas.' });
+    }
 
+    try {
+        const query = `
+            SELECT 
+                p.id, 
+                p.subcategoria_id, 
+                p.tiene_tallas,
+                (SELECT JSON_ARRAYAGG(JSON_OBJECT('talla', pt.talla, 'stock', pt.stock)) 
+                 FROM producto_tallas pt 
+                 WHERE pt.producto_id = p.id) as tallas
+            FROM productos p
+            WHERE p.numero_referencia = ? AND p.categoria_id = ?;
+        `;
+        
+        console.log('--- [DEBUG] Ejecutando consulta SQL...');
+        const [results] = await db.query(query, [referencia, categoriaId]);
+        console.log(`--- [DEBUG] Consulta SQL finalizada. Resultados: ${results.length}`);
+
+        if (results.length === 0) {
+            console.log('--- [DEBUG] Producto no encontrado en la base de datos.');
+            return res.status(404).json({ message: 'Producto no encontrado' });
+        }
+
+        const producto = results[0];
+        console.log('--- [DEBUG] Producto encontrado. Enviando datos:', JSON.stringify(producto, null, 2));
+        res.json(producto);
+
+    } catch (error) {
+        console.error('--- [DEBUG] ¡ERROR CRÍTICO EN LA RUTA!:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
+
+// NUEVA RUTA DE VERIFICACIÓN PARA EVITAR PROBLEMAS DE CACHÉ
+router.get('/verify-product-details', auth, async (req, res) => {
+    console.log('✅✅✅ --- RUTA /verify-product-details INVOCADA --- ✅✅✅');
+    const { referencia, categoriaId } = req.query;
+    console.log(`✅✅✅ Parámetros: Referencia=${referencia}, CategoriaID=${categoriaId}`);
+
+    try {
+        const query = `
+            SELECT 
+                p.id, p.subcategoria_id, p.tiene_tallas,
+                (SELECT JSON_ARRAYAGG(JSON_OBJECT('talla', pt.talla, 'stock', pt.stock)) 
+                 FROM producto_tallas pt WHERE pt.producto_id = p.id) as tallas
+            FROM productos p
+            WHERE p.numero_referencia = ? AND p.categoria_id = ?;
+        `;
+        
+        console.log('✅✅✅ Ejecutando consulta...');
+        const [results] = await db.query(query, [referencia, categoriaId]);
+        console.log(`✅✅✅ Consulta finalizada. Resultados: ${results.length}`);
+
+        if (results.length === 0) {
+            console.log('❌❌❌ Producto no encontrado en BD.');
+            return res.status(404).json({ message: 'Producto no encontrado' });
+        }
+
+        const producto = results[0];
+        console.log('✅✅✅ Producto encontrado. Enviando:', JSON.stringify(producto, null, 2));
+        res.json(producto);
+
+    } catch (error) {
+        console.error('❌❌❌ ¡ERROR CRÍTICO EN LA NUEVA RUTA!:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
 
 module.exports = router;

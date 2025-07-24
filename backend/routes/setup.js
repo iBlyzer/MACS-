@@ -15,13 +15,14 @@ router.get('/create-stock-table', async (req, res) => {
             subcategoria VARCHAR(255),
             cantidad_cambio INT NOT NULL,
             tipo_cambio ENUM('Aumento', 'Disminución') NOT NULL,
+            talla VARCHAR(50),
             fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             stock_change_order_id VARCHAR(255) UNIQUE,
             descripcion_cambio TEXT
         );
         `;
         await pool.query(createTableQuery);
-        res.status(200).send('Tabla \"modificaciones_stock\" creada exitosamente o ya existente.');
+        res.status(200).send('Tabla "modificaciones_stock" creada exitosamente o ya existente.');
     } catch (error) {
         console.error('Error al crear la tabla de modificaciones de stock:', error);
         res.status(500).json({ message: 'Error en el servidor al crear la tabla.', error: error.message });
@@ -64,6 +65,38 @@ router.get('/setup-tareas', async (req, res) => {
 
     } catch (error) {
         console.error('Error al configurar la tabla de tareas:', error);
+        res.status(500).json({ message: 'Error en el servidor al configurar la tabla.', error: error.message });
+    }
+});
+
+// Ruta para configurar la tabla de modificaciones_stock
+router.get('/setup-stock', async (req, res) => {
+    const dbName = process.env.DB_NAME || 'macs_productos';
+
+    const columnExists = async (tableName, columnName) => {
+        const [columns] = await pool.query(`
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = ? AND table_name = ? AND column_name = ?
+        `, [dbName, tableName, columnName]);
+        return columns.length > 0;
+    };
+
+    try {
+        let messages = [];
+
+        // Verificar y añadir 'talla'
+        if (!await columnExists('modificaciones_stock', 'talla')) {
+            await pool.query('ALTER TABLE modificaciones_stock ADD COLUMN talla VARCHAR(50) NULL AFTER tipo_cambio;');
+            messages.push('Columna "talla" añadida a modificaciones_stock.');
+        } else {
+            messages.push('Columna "talla" ya existe en modificaciones_stock.');
+        }
+
+        res.status(200).json({ message: 'Configuración de la tabla de stock completada.', details: messages });
+
+    } catch (error) {
+        console.error('Error al configurar la tabla de stock:', error);
         res.status(500).json({ message: 'Error en el servidor al configurar la tabla.', error: error.message });
     }
 });

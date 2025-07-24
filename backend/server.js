@@ -52,12 +52,13 @@ app.use('/api/slider-manager', require('./routes/slider-manager'));
 app.use('/api/new-slider', require('./routes/new-slider'));
 const vistosRecientementeRoutes = require('./routes/vistos-recientemente');
 const pedidosRoutes = require('./routes/pedidos');
-const tareasRoutes = require('./routes/tareas'); // Importar la nueva ruta de tareas
+const tareasRoutes = require('./routes/tareas');
+const stockRoutes = require('./routes/stock'); // Rutas para la nueva lógica de stock
 app.use('/api/vistos-recientemente', vistosRecientementeRoutes);
 app.use('/api/pedidos', pedidosRoutes);
-app.use('/api/tareas', tareasRoutes); // Registrar la nueva ruta de tareas
+app.use('/api/tareas', tareasRoutes);
 app.use('/api/setup', require('./routes/setup'));
-app.use('/api/stock', require('./routes/stock'));
+app.use('/api/stock', stockRoutes); // <-- USO DE LA NUEVA RUTA
 
 // Ruta conflictiva eliminada. La lógica correcta está en routes/slider.js
 

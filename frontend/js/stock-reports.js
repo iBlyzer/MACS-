@@ -7,16 +7,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchWithAuth(url, options = {}) {
         const token = localStorage.getItem('token');
+        if (!token) {
+            alert('No se encontró el token de autenticación. Por favor, inicie sesión de nuevo.');
+            window.location.href = '/admin/login.html'; // Redirigir al login
+            throw new Error('Token no encontrado');
+        }
+
         const headers = {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             ...options.headers,
         };
-        const response = await fetch(url, { ...options, headers });
-        if (!response.ok) {
-            throw new Error(`Error en la petición: ${response.statusText}`);
+
+        try {
+            const response = await fetch(url, { ...options, headers });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                throw new Error(`Error al contactar la API: ${errorData.message}`);
+            }
+            return response.json();
+        } catch (error) {
+            console.error('Error en fetchWithAuth:', error);
+            // No mostramos la alerta aquí para que cada llamada pueda manejarla
+            throw error; // Re-lanzamos el error para que el llamador lo maneje
         }
-        return response.json();
     }
 
     async function cargarCategorias() {
@@ -62,6 +76,73 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const stockForm = document.getElementById('stock-change-form');
     const historyBody = document.getElementById('stock-history-body');
+    const refProductoInput = document.getElementById('ref_producto');
+    const tallaFormGroup = document.getElementById('talla-form-group');
+    const tallaSelect = document.getElementById('talla');
+    const refStatus = document.getElementById('ref-status');
+
+    async function checkAndFetchTallas() {
+        const referencia = refProductoInput.value.trim();
+        const categoriaId = productoCategoriaSelect.value;
+        const subcategoriaId = productoSubcategoriaSelect.value;
+
+        // Limpiar estado anterior
+        refStatus.textContent = '';
+        refStatus.className = 'ref-status';
+        tallaFormGroup.style.display = 'none';
+
+        // SOLO PROCEDER SI LOS TRES CAMPOS ESTÁN LLENOS
+        if (referencia && categoriaId && subcategoriaId) {
+            refStatus.textContent = 'Buscando...';
+            refStatus.classList.add('searching');
+
+            console.log(`%c[FRONTEND-DEBUG] Iniciando búsqueda con:`, 'color: blue; font-weight: bold;');
+            console.log(`%c  - Referencia: ${referencia}`, 'color: blue;');
+            console.log(`%c  - Categoria ID: ${categoriaId}`, 'color: blue;');
+
+            try {
+                // APUNTAMOS A LA NUEVA RUTA DE BACKEND
+                const url = `/api/stock/lookup?referencia=${encodeURIComponent(referencia)}&categoriaId=${encodeURIComponent(categoriaId)}&subcategoriaId=${encodeURIComponent(subcategoriaId)}`;
+                const data = await fetchWithAuth(url);
+
+                if (data && data.id) {
+                    refStatus.textContent = '✓ Referencia válida';
+                    refStatus.classList.remove('searching');
+                    refStatus.classList.add('success');
+
+                    if (data.subcategoria_id) {
+                        productoSubcategoriaSelect.value = data.subcategoria_id;
+                    }
+
+                    if (data.tiene_tallas && data.tallas && data.tallas.length > 0) {
+                        tallaSelect.innerHTML = '<option value="">Seleccione una talla</option>';
+                        data.tallas.forEach(t => {
+                            const option = document.createElement('option');
+                            option.value = t.talla;
+                            option.textContent = `${t.talla} (Stock: ${t.stock})`;
+                            tallaSelect.appendChild(option);
+                        });
+                        tallaFormGroup.style.display = 'block';
+                    } else {
+                        tallaFormGroup.style.display = 'none';
+                    }
+                } else {
+                    throw new Error('Producto no encontrado en la respuesta de la API');
+                }
+            } catch (error) {
+                refStatus.textContent = '✗ Referencia no encontrada';
+                refStatus.classList.remove('searching');
+                refStatus.classList.add('error');
+                tallaFormGroup.style.display = 'none';
+                console.error('%c[FRONTEND-DEBUG] Error en checkAndFetchTallas:', 'color: red; font-weight: bold;', error.message);
+            }
+        }
+    }
+
+    // La búsqueda se activa al cambiar la referencia o la categoría.
+    refProductoInput.addEventListener('blur', checkAndFetchTallas);
+    productoCategoriaSelect.addEventListener('change', checkAndFetchTallas);
+    productoSubcategoriaSelect.addEventListener('change', checkAndFetchTallas);
 
     const stockChangeIdSufijoInput = document.getElementById('stock_change_order_id_sufijo');
     const stockChangeIdHiddenInput = document.getElementById('stock_change_order_id');
@@ -72,15 +153,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const fetchStockHistory = async (filters = {}) => {
         const queryParams = new URLSearchParams(filters).toString();
         try {
-            const response = await fetch(`/api/stock/modificaciones?${queryParams}`);
-            if (!response.ok) {
-                throw new Error('Error al obtener el historial de stock.');
-            }
-            const history = await response.json();
+            const history = await fetchWithAuth(`/api/stock/modificaciones?${queryParams}`);
             renderStockHistory(history);
         } catch (error) {
-            console.error(error);
-            alert(error.message);
+            // fetchWithAuth ya maneja el error y lo loguea, solo mostramos la alerta
+            alert(error.message || 'Error al obtener el historial de stock.');
         }
     };
 
@@ -94,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderStockHistory = (history) => {
         historyBody.innerHTML = '';
         if (history.length === 0) {
-            historyBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No se encontraron registros.</td></tr>';
+            historyBody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No se encontraron registros.</td></tr>';
             return;
         }
 
@@ -108,6 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${record.ref_producto}</td>
                 <td>${record.cantidad_cambio}</td>
                 <td>${record.tipo_cambio}</td>
+                <td>${record.talla || 'N/A'}</td>
                 <td>${record.stock_change_order_id}</td>
                 <td>${record.descripcion_cambio}</td>
             `;
