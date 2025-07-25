@@ -87,7 +87,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const tarea = await response.json();
 
             const fechaCreacion = new Date(tarea.fecha_creacion).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            const imagenSrc = tarea.imagen_url ? `/uploads/${tarea.imagen_url}` : 'https://via.placeholder.com/300x300.png?text=Sin+Imagen';
+            const cloudinaryBaseUrl = 'https://res.cloudinary.com/dj6prfjm9/image/upload/';
+            let imagenSrc = 'https://via.placeholder.com/300x300.png?text=Sin+Imagen';
+            if (tarea.imagen_url) {
+                const filename = tarea.imagen_url.substring(tarea.imagen_url.lastIndexOf('/') + 1);
+                imagenSrc = `${cloudinaryBaseUrl}${filename}`;
+            }
 
             modalBody.innerHTML = `
                 <div class="task-modal-layout">

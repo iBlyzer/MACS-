@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </thead>
                 <tbody>
                     ${productos.map(p => {
-                        const imagenUrl = p.imagen_3_4 ? `${BASE_URL}${p.imagen_3_4}` : '/Assets/loading_no_background.png';
+                        const imagenUrl = getImageUrl(p.imagen_3_4) || '/Assets/loading_no_background.png';
                         return `
                             <tr>
                                 <td><img src="${imagenUrl}" alt="${p.nombre}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;"></td>
@@ -610,7 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const placeholder = document.createElement('div');
             placeholder.className = 'image-placeholder';
             const img = document.createElement('img');
-            img.src = existingImage ? `${BASE_URL}${existingImage.ruta_imagen}` : '';
+            img.src = existingImage ? getImageUrl(existingImage.ruta_imagen) : '';
             placeholder.innerHTML = existingImage ? '' : '<span class="upload-icon">+</span>';
             if (existingImage) placeholder.appendChild(img);
             const label = document.createElement('p');

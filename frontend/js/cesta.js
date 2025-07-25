@@ -99,9 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cesta.forEach(item => {
                 const precioFormateado = formatCurrency(item.precio);
                 const productDetails = productsDetailsMap.get(item.id.toString());
-                const imagenUrl = productDetails && productDetails.imagen_principal 
-                    ? (productDetails.imagen_principal.startsWith('http') ? productDetails.imagen_principal : `${API_BASE_URL}${productDetails.imagen_principal}`)
-                    : './assets/img/placeholder.png'; // Placeholder por si no hay imagen
+                const imagenUrl = getImageUrl(productDetails?.imagen_principal) || './assets/img/placeholder.png'; // Usar la función centralizada
 
                 let tallaInfo = '';
                 if (productDetails && Array.isArray(productDetails.tallas) && productDetails.tallas.length > 0) {

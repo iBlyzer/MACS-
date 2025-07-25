@@ -61,9 +61,7 @@ function showAddedToCartModal(product, boton, originalText) {
 
     // Poblar datos del producto
     const imagePath = product.imagen_3_4 || product.imagen_principal;
-    const imageUrl = imagePath && imagePath.startsWith('http') 
-        ? imagePath 
-        : (imagePath ? `${API_BASE_URL}${imagePath}` : './assets/placeholder.png');
+    const imageUrl = getImageUrl(imagePath) || './assets/placeholder.png'; // Usar la función centralizada
     document.getElementById('modal-product-image').src = imageUrl;
     document.getElementById('modal-product-name').textContent = product.nombre;
     document.getElementById('modal-product-price').textContent = `$${Number(product.precio).toLocaleString('es-CO')}`;

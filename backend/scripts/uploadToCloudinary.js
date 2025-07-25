@@ -1,37 +1,62 @@
-
 require('dotenv').config({ path: '../.env' });
 const cloudinary = require('cloudinary').v2;
-const fs = require('fs');
+const fs = require('fs').promises; // Usamos la versión de promesas de fs
 const path = require('path');
 
-// Configura Cloudinary con tus credenciales
+// Configuración de Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME?.trim(),
-  api_key: process.env.CLOUDINARY_API_KEY?.trim(),
-  api_secret: process.env.CLOUDINARY_API_SECRET?.trim()
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME.trim(),
+  api_key: process.env.CLOUDINARY_API_KEY.trim(),
+  api_secret: process.env.CLOUDINARY_API_SECRET.trim(),
 });
 
-const uploadsDir = path.join(__dirname, '..', 'uploads');
+const uploadsDirectory = path.join(__dirname, '..', 'uploads');
 
-fs.readdir(uploadsDir, (err, files) => {
-  if (err) {
-    return console.error('No se pudo leer el directorio de uploads:', err);
-  }
+// Función para obtener todos los archivos de forma recursiva
+async function getFiles(dir) {
+    const dirents = await fs.readdir(dir, { withFileTypes: true });
+    const files = await Promise.all(dirents.map((dirent) => {
+        const res = path.resolve(dir, dirent.name);
+        return dirent.isDirectory() ? getFiles(res) : res;
+    }));
+    return Array.prototype.concat(...files);
+}
 
-  files.forEach(file => {
-    const filePath = path.join(uploadsDir, file);
+async function uploadAll() {
+    console.log('Buscando archivos para subir...');
+    let allFiles = await getFiles(uploadsDirectory);
 
-    const publicId = path.parse(file).name;
+    // Filtra solo por archivos .webp y .pdf
+    const allowedExtensions = ['.webp', '.pdf'];
+    let filteredFiles = allFiles.filter(file => allowedExtensions.includes(path.extname(file).toLowerCase()));
 
-    // Sube el archivo a Cloudinary, usando el nombre original como public_id
-    cloudinary.uploader.upload(filePath, { public_id: publicId, overwrite: true }, (error, result) => {
-      if (error) {
-        return console.error(`Error al subir ${file}:`, error);
-      }
-      console.log(`Se subió ${file} como ${result.public_id} exitosamente:`, result.secure_url);
-      
-      // Opcional: Borra el archivo local después de subirlo
-      // fs.unlinkSync(filePath);
+    if (filteredFiles.length === 0) {
+        console.log('No se encontraron archivos .webp o .pdf para subir.');
+        return;
+    }
+
+    console.log(`Se encontraron ${filteredFiles.length} archivos (.webp y .pdf). Iniciando subida...`);
+
+    const uploadPromises = filteredFiles.map(filePath => {
+        const publicId = path.parse(filePath).name;
+        const ext = path.extname(filePath).toLowerCase();
+        const resourceType = ext === '.pdf' ? 'raw' : 'image';
+
+        return cloudinary.uploader.upload(filePath, {
+            public_id: publicId,
+            resource_type: resourceType,
+            overwrite: true,
+        }).then(result => {
+            console.log(`Éxito: ${path.basename(filePath)} -> ${result.public_id}`);
+        }).catch(error => {
+            console.error(`Error al subir ${path.basename(filePath)}: ${error.message}`);
+        });
     });
-  });
-});
+
+    await Promise.all(uploadPromises);
+
+    console.log('\n¡Subida de todos los archivos completada!');
+}
+
+uploadAll();
+

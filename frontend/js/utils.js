@@ -5,20 +5,31 @@
 // =================================================================================================
 
 /**
- * Construye la URL completa para una imagen de producto.
- * Asume que las imágenes se sirven desde el backend en el puerto 3001.
- * @param {string} imagePath - La ruta relativa de la imagen (ej. 'uploads/imagen.jpg').
- * @returns {string} La URL completa de la imagen.
+ * Construye la URL completa de Cloudinary para una imagen o PDF.
+ * Si la ruta ya es una URL completa, la devuelve directamente.
+ * Si es una ruta local (ej. 'uploads/productos/imagen.jpg'), extrae solo el nombre del archivo
+ * y lo usa para construir la URL de Cloudinary.
+ * @param {string} path - La ruta de la imagen o PDF.
+ * @returns {string} La URL completa de Cloudinary o un placeholder si la ruta no es válida.
  */
 function getImageUrl(imagePath) {
-    if (!imagePath) {
-        return 'img/default-product.png'; // Retorna una imagen por defecto si no hay ruta
+    const cloudinaryBaseUrl = 'https://res.cloudinary.com/dj6prfjm9/image/upload/';
+
+    if (!imagePath || typeof imagePath !== 'string') {
+        // Retorna una imagen por defecto si no hay ruta o no es válida
+        return 'https://via.placeholder.com/300x300.png?text=Sin+Imagen';
     }
-    // Evita duplicar el slash si la ruta ya lo incluye
-    if (imagePath.startsWith('/')) {
-        return `${API_BASE_URL}${imagePath}`;
+
+    // Si ya es una URL completa (de Cloudinary u otra), la devuelve tal cual.
+    if (imagePath.startsWith('http')) {
+        return imagePath;
     }
-    return `${API_BASE_URL}/${imagePath}`;
+
+    // Extrae solo el nombre del archivo con su extensión de la ruta completa
+    const filename = imagePath.substring(imagePath.lastIndexOf('/') + 1);
+    
+    // Construye la URL de Cloudinary
+    return `${cloudinaryBaseUrl}${filename}`;
 }
 
 /**

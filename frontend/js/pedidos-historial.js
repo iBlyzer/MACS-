@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td>${pedido.cliente_nombre}</td>
                     <td>${total}</td>
                     <td>
-                        <a href="/uploads/pedidos/${pedido.numero_orden}.pdf" class="btn-accion" target="_blank">Ver PDF</a>
+                        <a href="https://res.cloudinary.com/dj6prfjm9/raw/upload/${pedido.numero_orden}.pdf" class="btn-accion" target="_blank">Ver PDF</a>
                     </td>
                 `;
                 tableBody.appendChild(row);

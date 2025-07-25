@@ -28,19 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-function getImageUrl(imagePath) {
-    const placeholder = 'https://via.placeholder.com/400x400.png?text=Sin+Imagen';
-    if (!imagePath || typeof imagePath !== 'string' || imagePath.trim() === '') {
-        return placeholder;
-    }
-    if (imagePath.startsWith('http')) {
-        return imagePath;
-    }
-    if (!imagePath.includes('/')) {
-        return `${API_BASE_URL}/uploads/${imagePath}`;
-    }
-    return `${API_BASE_URL}${imagePath}`;
-}
+
 
 const GUIA_DE_TALLAS = {
     'sombreros': {

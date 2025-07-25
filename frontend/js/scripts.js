@@ -25,9 +25,7 @@ function createProductLinkElement(product) {
     }
 
     const imagenUrl = product.imagen_principal || product.imagen_3_4;
-    const imagenUrlCompleta = imagenUrl && imagenUrl.startsWith('http') 
-        ? imagenUrl 
-        : (imagenUrl ? `${API_BASE_URL}${imagenUrl}` : '/assets/logo.png');
+    const imagenUrlCompleta = getImageUrl(imagenUrl);
 
     const stock = product.stock_total || 
                   (Array.isArray(product.tallas) && product.tallas.length > 0

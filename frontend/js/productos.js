@@ -169,7 +169,8 @@ function crearTarjetaProducto(producto) {
     imageContainer.className = 'product-card__image-container';
 
     const image = document.createElement('img');
-    image.src = producto.imagen_principal || 'assets/placeholder.png';
+    // Usamos la función getImageUrl para construir la ruta correcta desde Cloudinary
+    image.src = getImageUrl(producto.imagen_principal) || 'assets/placeholder.png'; 
     image.alt = producto.nombre;
     image.className = 'product-card__image';
     image.loading = 'lazy';
