@@ -105,7 +105,7 @@
                             <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
                         </div>
                         <div class="row">
-                             <div class="col-md-4 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label for="precio" class="form-label">Precio</label>
                                 <input type="number" class="form-control" id="precio" name="precio" step="0.01" required>
                             </div>
@@ -118,19 +118,16 @@
                                 <select class="form-select" id="subcategoria" name="subcategoria_id"></select>
                             </div>
                         </div>
-                        
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="tiene_tallas" name="tiene_tallas" value="true">
                             <label class="form-check-label" for="tiene_tallas">
                                 ¿El producto tiene tallas específicas?
                             </label>
                         </div>
-
                         <div id="stock-general-section" class="mb-3">
                             <label for="stock" class="form-label">Stock General</label>
                             <input type="number" class="form-control" id="stock" name="stock" required>
                         </div>
-
                         <div id="tallas-section" class="mb-3" style="display: none;">
                             <label class="form-label">Tallas y Stock</label>
                             <div id="tallas-container">
@@ -138,9 +135,8 @@
                             </div>
                             <button type="button" class="btn btn-secondary btn-sm mt-2" id="addTallaBtn">Añadir Talla</button>
                         </div>
-
                         <div class="row">
-                             <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label for="activo" class="form-label">Activo</label>
                                 <select class="form-select" id="activo" name="activo">
                                     <option value="true">Sí</option>
@@ -155,7 +151,6 @@
                                 </select>
                             </div>
                         </div>
-
                         <div class="mb-3">
                             <h6>Imágenes</h6>
                             <div class="row" id="image-fields-container">
@@ -163,7 +158,6 @@
                             </div>
                             <div id="image-previews-container" class="mt-2"></div>
                         </div>
-
                         <button type="submit" class="btn btn-primary">Guardar Producto</button>
                     </form>
                 </div>

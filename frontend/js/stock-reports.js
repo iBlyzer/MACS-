@@ -80,8 +80,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const tallaFormGroup = document.getElementById('talla-form-group');
     const tallaSelect = document.getElementById('talla');
     const refStatus = document.getElementById('ref-status');
+    const productNameDisplay = document.getElementById('product-name-display');
 
     async function checkAndFetchTallas() {
+        const API_URL = 'http://localhost:3000/api'; // Asegúrate de que esta URL sea correcta
         const referencia = refProductoInput.value.trim();
         const categoriaId = productoCategoriaSelect.value;
         const subcategoriaId = productoSubcategoriaSelect.value;
@@ -89,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Limpiar estado anterior
         refStatus.textContent = '';
         refStatus.className = 'ref-status';
+        productNameDisplay.textContent = ''; // Limpiar el nombre del producto
         tallaFormGroup.style.display = 'none';
 
         // SOLO PROCEDER SI LOS TRES CAMPOS ESTÁN LLENOS
@@ -106,23 +109,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await fetchWithAuth(url);
 
                 if (data && data.id) {
-                    refStatus.textContent = '✓ Referencia válida';
-                    refStatus.classList.remove('searching');
-                    refStatus.classList.add('success');
+                    refStatus.textContent = 'Referencia válida.';
+                    refStatus.className = 'ref-status success';
 
-                    if (data.subcategoria_id) {
-                        productoSubcategoriaSelect.value = data.subcategoria_id;
+                    // --- NUEVA LÓGICA ---
+                    // El lookup solo nos da el ID, ahora buscamos el producto completo para obtener el nombre.
+                    try {
+                        const productoCompleto = await fetchWithAuth(`${API_URL}/productos/${data.id}`);
+                        if (productoCompleto && productoCompleto.nombre) {
+                            productNameDisplay.textContent = productoCompleto.nombre; // Mostrar el nombre del producto
+                        }
+                    } catch (fetchError) {
+                        console.error('Error al obtener los detalles completos del producto:', fetchError);
+                        productNameDisplay.textContent = 'No se pudo cargar el nombre.';
                     }
+                    // --- FIN NUEVA LÓGICA ---
 
-                    if (data.tiene_tallas && data.tallas && data.tallas.length > 0) {
+                    // Si el producto tiene tallas, las cargamos
+                    if (data.tiene_tallas && data.tallas) {
+                        tallaFormGroup.style.display = 'block';
                         tallaSelect.innerHTML = '<option value="">Seleccione una talla</option>';
-                        data.tallas.forEach(t => {
+                        data.tallas.forEach(tallaInfo => {
                             const option = document.createElement('option');
-                            option.value = t.talla;
-                            option.textContent = `${t.talla} (Stock: ${t.stock})`;
+                            option.value = tallaInfo.talla;
+                            option.textContent = `${tallaInfo.talla} (Stock: ${tallaInfo.stock})`;
                             tallaSelect.appendChild(option);
                         });
-                        tallaFormGroup.style.display = 'block';
                     } else {
                         tallaFormGroup.style.display = 'none';
                     }
@@ -130,8 +142,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error('Producto no encontrado en la respuesta de la API');
                 }
             } catch (error) {
-                refStatus.textContent = '✗ Referencia no encontrada';
-                refStatus.classList.remove('searching');
+                refStatus.textContent = 'Referencia no encontrada.';
+                refStatus.className = 'ref-status error';
+                productNameDisplay.textContent = ''; // Limpiar si no se encuentra
                 refStatus.classList.add('error');
                 tallaFormGroup.style.display = 'none';
                 console.error('%c[FRONTEND-DEBUG] Error en checkAndFetchTallas:', 'color: red; font-weight: bold;', error.message);
@@ -199,20 +212,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = Object.fromEntries(formData.entries());
 
         try {
-            const response = await fetch('/api/stock/modificaciones', {
+            const result = await fetchWithAuth('/api/stock/modificaciones', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
                 body: JSON.stringify(data)
             });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                // Si la respuesta no es OK, lanza un error con el mensaje del servidor.
-                throw new Error(result.message || 'Ocurrió un error desconocido.');
-            }
 
             // Muestra el mensaje de éxito específico del servidor.
             alert(result.message);
@@ -220,7 +223,13 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchStockHistory(); // Recargar el historial
         } catch (error) {
             console.error(error);
-            alert(error.message);
+            // Si el error es genérico, es muy probable que sea por un ID de movimiento duplicado.
+            if (error.message.includes('Error interno del servidor')) {
+                alert('Error al procesar la modificación. El ID de Movimiento que intenta usar ya existe. Por favor, verifíquelo.');
+            } else {
+                // Para otros errores, muestra el mensaje específico.
+                alert(error.message);
+            }
         }
     });
 

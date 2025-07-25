@@ -48,6 +48,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const filtroStockSelect = document.getElementById('filtro-stock');
     const filtroEstadoSelect = document.getElementById('filtro-estado');
 
+    // --- AUTH MODAL & EDIT MODE SELECTORS ---
+    const authModal = document.getElementById('auth-modal');
+    const authForm = document.getElementById('auth-form');
+    const authCancelBtn = document.getElementById('auth-cancel-btn');
+    const authErrorMessage = document.getElementById('auth-error-message');
+    const editModeToggle = document.getElementById('edit-mode-toggle');
+    const productFormFieldset = document.getElementById('product-form-fieldset');
+
+
     // --- STATE VARIABLES ---
     let imagesToDelete = [];
     let imageFiles = {}; // Stores files to be uploaded, e.g., { imagen_frontal: File, ... }
@@ -250,9 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
         resetModal();
         modalTitulo.textContent = 'Editar Producto';
 
-        // Deshabilitar campos de stock para la edición
-        stockGeneralInput.readOnly = true;
-        // La lógica para deshabilitar los inputs de tallas se hará al poblarlos.
         try {
             const p = await fetchWithAuth(`${API_URL}/productos/${id}`);
             document.getElementById('producto-id').value = p.id;
@@ -283,17 +289,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (p.tiene_tallas && p.tallas) {
                     tallasList.innerHTML = ''; // Clear before adding
-                    // Pasar 'true' para hacer los campos de talla y stock de solo lectura
-                    p.tallas.forEach(t => agregarInputTalla(t.talla, t.stock, true)); 
+                    p.tallas.forEach(t => agregarInputTalla(t.talla, t.stock)); 
                 } else {
-                    const stockUnico = p.tallas && p.tallas.length > 0 ? p.tallas[0].stock : (p.stock_total || '');
-                    stockGeneralInput.value = stockUnico;
+                    stockGeneralInput.value = p.stock_total || '';
                 }
             } else {
                 // For gorras, assume the first size entry is the 'OS' stock.
                 tallasList.innerHTML = '';
-                const tallaUnica = p.tallas && p.tallas.length > 0 ? p.tallas[0] : null;
-                agregarInputTalla('OS', tallaUnica ? tallaUnica.stock : '', true);
+                agregarInputTalla('OS', p.stock_total || '');
             }
 
             renderImageUploader(p.imagenes);
@@ -743,6 +746,71 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
+    // --- EDIT MODE & AUTHENTICATION LOGIC ---
+    if (editModeToggle && productFormFieldset && authModal && authForm) {
+        
+        const openAuthModal = () => {
+            authModal.style.display = 'flex';
+            authErrorMessage.textContent = '';
+            authForm.reset();
+            document.getElementById('auth-user').focus();
+        };
+
+        const closeAuthModal = () => {
+            authModal.style.display = 'none';
+        };
+
+        const setEditMode = (enabled) => {
+            productFormFieldset.disabled = !enabled;
+            editModeToggle.classList.toggle('edit-mode-on', enabled);
+            
+            const icon = editModeToggle.querySelector('i');
+            if (enabled) {
+                icon.classList.remove('fa-lock');
+                icon.classList.add('fa-unlock-alt');
+            } else {
+                icon.classList.remove('fa-unlock-alt');
+                icon.classList.add('fa-lock');
+            }
+        };
+
+        editModeToggle.addEventListener('click', () => {
+            if (productFormFieldset.disabled) {
+                openAuthModal();
+            } else {
+                setEditMode(false);
+            }
+        });
+
+        authForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('auth-user').value;
+            const password = document.getElementById('auth-password').value;
+
+            // Simple hardcoded credentials (replace with a secure check)
+            if (username === 'Control-Maestro' && password === 'Activar_Control_Maestro_llave_00001') {
+                setEditMode(true);
+                closeAuthModal();
+            } else {
+                authErrorMessage.textContent = 'Credenciales incorrectas.';
+                // Shake animation for feedback
+                authModal.querySelector('.modal-content').style.animation = 'modal-shake 0.5s';
+                setTimeout(() => {
+                    authModal.querySelector('.modal-content').style.animation = '';
+                }, 500);
+            }
+        });
+
+        document.getElementById('cancel-auth-btn').addEventListener('click', closeAuthModal);
+
+        // Close modal if clicking outside of it
+        authModal.addEventListener('click', (e) => {
+            if (e.target === authModal) {
+                closeAuthModal();
+            }
+        });
+    }
 
     // --- INITIALIZATION ---
     async function init() {
