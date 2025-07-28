@@ -4,9 +4,15 @@ const db = require('../config/db');
 const logger = require('../config/logger');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
-const sharp = require('sharp');
+const cloudinary = require('cloudinary').v2;
 const auth = require('../middleware/authMiddleware');
+
+// Configuración de Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Define los nombres de los campos de imagen que se esperan del formulario
 const imageFields = [
@@ -31,54 +37,63 @@ const getImageLabel = (fieldName) => {
     return labels[fieldName] || 'Vista';
 };
 
-// Helper para formatear la ruta de la imagen para el cliente
-const formatImagePath = (dbPath) => {
-    if (!dbPath) return null;
-    return dbPath;
-};
-
 // Configuración de Multer para la subida de archivos en memoria
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage }).fields(
     imageFields.map(field => ({ name: field, maxCount: 1 }))
 );
 
-// Middleware para procesar y guardar imágenes localmente
+// Middleware para procesar y subir imágenes a Cloudinary
 const processAndUploadImages = async (req, res, next) => {
     if (!req.files || Object.keys(req.files).length === 0) {
         return next();
     }
 
-    const uploadDir = path.join(__dirname, '..', 'uploads', 'productos');
-    if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    req.local_image_paths = {};
+    req.cloudinary_image_paths = {};
 
     try {
-        const processingPromises = [];
+        const uploadPromises = [];
         for (const field in req.files) {
             for (const file of req.files[field]) {
-                const originalName = path.parse(file.originalname).name;
-                const filename = `${Date.now()}-${originalName}.webp`;
-                const filepath = path.join(uploadDir, filename);
-
-                const promise = sharp(file.buffer)
-                    .webp({ quality: 80 })
-                    .toFile(filepath)
-                    .then(() => {
-                        const webPath = `/uploads/productos/${filename}`;
-                        req.local_image_paths[field] = webPath;
-                    });
-                processingPromises.push(promise);
+                const promise = new Promise((resolve, reject) => {
+                    const uploadStream = cloudinary.uploader.upload_stream(
+                        {
+                            folder: 'productos',
+                            public_id: `${Date.now()}-${path.parse(file.originalname).name}`,
+                            resource_type: 'image'
+                        },
+                        (error, result) => {
+                            if (error) {
+                                logger.error('Error al subir imagen a Cloudinary:', error);
+                                return reject(error);
+                            }
+                            req.cloudinary_image_paths[field] = result.secure_url;
+                            resolve();
+                        }
+                    );
+                    uploadStream.end(file.buffer);
+                });
+                uploadPromises.push(promise);
             }
         }
-        await Promise.all(processingPromises);
+        await Promise.all(uploadPromises);
         next();
     } catch (error) {
-        logger.error('Error procesando o guardando imágenes localmente:', error);
+        logger.error('Error procesando o subiendo imágenes a Cloudinary:', error);
         next(error);
+    }
+};
+
+// Helper para extraer el public_id de una URL de Cloudinary
+const getPublicIdFromUrl = (url) => {
+    try {
+        const parts = url.split('/');
+        const filename = parts[parts.length - 1];
+        const public_id = `productos/${path.parse(filename).name}`;
+        return public_id;
+    } catch (error) {
+        logger.error(`No se pudo extraer el public_id de la URL: ${url}`, error);
+        return null;
     }
 };
 
@@ -115,17 +130,7 @@ router.get('/admin', auth, async (req, res) => {
 
         const [rows] = await db.query(query, params);
 
-        const formattedRows = rows.map(product => {
-            const formattedProduct = { ...product };
-            imageFields.forEach(field => {
-                if (product[field]) {
-                    formattedProduct[field] = formatImagePath(product[field]);
-                }
-            });
-            return formattedProduct;
-        });
-
-        res.json(formattedRows);
+        res.json(rows);
     } catch (error) {
         logger.error('Error al obtener todos los productos para admin:', error);
         res.status(500).json({ message: 'Error interno del servidor' });
@@ -149,12 +154,7 @@ router.get('/destacados', async (req, res) => {
         `;
         const [productos] = await db.query(query);
 
-        const formattedProducts = productos.map(p => ({
-            ...p,
-            imagen_principal: formatImagePath(p.imagen_principal)
-        }));
-
-        res.json(formattedProducts);
+        res.json(productos);
     } catch (error) {
         logger.error('Error al obtener productos destacados:', error);
         res.status(500).json({ message: 'Error interno del servidor' });
@@ -165,8 +165,7 @@ router.get('/destacados', async (req, res) => {
 router.get('/categoria/:nombreCategoria', async (req, res) => {
     try {
         const { nombreCategoria } = req.params;
-        console.log(`[DEBUG] Categoria solicitada: '${nombreCategoria}'`); // <-- LOG DE DEPURACIÓN
-        const { subcategoria: nombreSubcategoria } = req.query; // Obtener de query params
+        const { subcategoria: nombreSubcategoria } = req.query;
 
         let query = `
             SELECT 
@@ -196,13 +195,8 @@ router.get('/categoria/:nombreCategoria', async (req, res) => {
         if (productos.length === 0) {
             return res.json([]);
         }
-
-        const formattedProducts = productos.map(p => ({
-            ...p,
-            imagen_principal: formatImagePath(p.imagen_principal)
-        }));
         
-        res.json(formattedProducts);
+        res.json(productos);
     } catch (error) {
         logger.error(`Error al obtener productos para la categoría ${req.params.nombreCategoria}:`, error);
         res.status(500).json({ message: 'Error interno del servidor' });
@@ -227,13 +221,7 @@ router.get('/recomendados', async (req, res) => {
         `;
 
         const [productos] = await db.query(query, [categoriaId, excludeId]);
-
-        const formattedProducts = productos.map(p => ({
-            ...p,
-            imagen_principal: formatImagePath(p.imagen_principal)
-        }));
-
-        res.json(formattedProducts);
+        res.json(productos);
     } catch (error) {
         logger.error('Error al obtener productos recomendados:', error);
         res.status(500).json({ message: 'Error interno del servidor' });
@@ -273,10 +261,8 @@ router.get('/details-by-ids', async (req, res) => {
 
         const [productos] = await db.query(query, [productIds]);
 
-        // Obtener todas las tallas para los productos solicitados en una sola consulta
         const [tallas] = await db.query('SELECT producto_id, talla, stock FROM producto_tallas WHERE producto_id IN (?)', [productIds]);
 
-        // Mapear las tallas por producto_id para un acceso rápido
         const tallasMap = tallas.reduce((acc, talla) => {
             if (!acc[talla.producto_id]) {
                 acc[talla.producto_id] = [];
@@ -285,11 +271,9 @@ router.get('/details-by-ids', async (req, res) => {
             return acc;
         }, {});
 
-        // Adjuntar las tallas a cada producto y formatear la ruta de la imagen
         const detailedProducts = productos.map(p => ({
             ...p,
-            imagen_principal: formatImagePath(p.imagen_principal),
-            tallas: tallasMap[p.id] || [] // Adjuntar tallas o un array vacío si no tiene
+            tallas: tallasMap[p.id] || []
         }));
 
         res.json(detailedProducts);
@@ -323,7 +307,7 @@ router.get('/:id', async (req, res) => {
             if (producto[field]) {
                 producto.imagenes.push({
                     id: field,
-                    ruta_imagen: formatImagePath(producto[field]),
+                    ruta_imagen: producto[field],
                     label: getImageLabel(field)
                 });
             }
@@ -351,7 +335,7 @@ router.post('/create', [auth, upload, processAndUploadImages], async (req, res) 
             }
         }
 
-        const imagePaths = req.local_image_paths || {};
+        const imagePaths = req.cloudinary_image_paths || {};
         const productoData = {
             nombre, marca, precio, descripcion, numero_referencia, categoria_id,
             subcategoria_id: subcategoria_id || null, activo: activo === 'true',
@@ -384,45 +368,82 @@ router.post('/create', [auth, upload, processAndUploadImages], async (req, res) 
 // PUT /api/productos/update/:id - Actualizar un producto existente
 router.put('/update/:id', [auth, upload, processAndUploadImages], async (req, res) => {
     const { id } = req.params;
-    const { nombre, marca, precio, descripcion, numero_referencia, categoria_id, subcategoria_id, activo, destacado, tiene_tallas, tallas } = req.body;
     const connection = await db.getConnection();
 
     try {
         await connection.beginTransaction();
 
-        if (numero_referencia) {
-            const [exists] = await connection.query('SELECT id FROM productos WHERE numero_referencia = ? AND categoria_id = ? AND id != ?', [numero_referencia, categoria_id, id]);
-            if (exists.length > 0) {
-                await connection.rollback();
-                return res.status(409).json({ message: `La referencia "${numero_referencia}" ya está en uso.` });
+        // --- 1. Lógica para eliminar imágenes de Cloudinary --- 
+        const imageFieldsToDelete = imageFields.filter(field => req.body[`remove_${field}`] === 'true');
+        if (imageFieldsToDelete.length > 0) {
+            const [currentProductRows] = await connection.query('SELECT ?? FROM productos WHERE id = ?', [imageFieldsToDelete, id]);
+            if (currentProductRows.length > 0) {
+                const currentProduct = currentProductRows[0];
+                for (const field of imageFieldsToDelete) {
+                    const imageUrl = currentProduct[field];
+                    if (imageUrl) {
+                        const publicId = getPublicIdFromUrl(imageUrl);
+                        if (publicId) {
+                            await cloudinary.uploader.destroy(publicId);
+                            logger.info(`Imagen eliminada de Cloudinary: ${publicId}`);
+                        }
+                    }
+                }
             }
+            const nullUpdates = imageFieldsToDelete.map(field => `${field} = NULL`).join(', ');
+            await connection.query(`UPDATE productos SET ${nullUpdates} WHERE id = ?`, [id]);
         }
 
-        const updateFields = { nombre, marca, precio, descripcion, numero_referencia, categoria_id, subcategoria_id, activo: activo === 'true', destacado: destacado === 'true', tiene_tallas: tiene_tallas === 'true' };
+        // --- 2. Actualizar datos del producto --- 
+        const { nombre, marca, precio, descripcion, numero_referencia, categoria_id, subcategoria_id, activo, destacado, tiene_tallas, tallas } = req.body;
         
-        if (req.local_image_paths) {
-            Object.assign(updateFields, req.local_image_paths);
+        const productData = {
+            nombre,
+            marca,
+            precio,
+            descripcion,
+            numero_referencia,
+            categoria_id,
+            subcategoria_id,
+            activo: activo === 'true' || activo === true,
+            destacado: destacado === 'true' || destacado === true,
+            tiene_tallas: tiene_tallas === 'true' || tiene_tallas === true,
+            ...req.cloudinary_image_paths
+        };
+
+        Object.keys(productData).forEach(key => productData[key] === undefined && delete productData[key]);
+
+        if (Object.keys(productData).length > 0) {
+            await connection.query('UPDATE productos SET ? WHERE id = ?', [productData, id]);
         }
 
-        await connection.query('UPDATE productos SET ? WHERE id = ?', [updateFields, id]);
-
-        if (updateFields.tiene_tallas) {
+        // --- 3. Manejar tallas y stock --- 
+        if (productData.tiene_tallas) {
             await connection.query('DELETE FROM producto_tallas WHERE producto_id = ?', [id]);
-            const tallasArray = JSON.parse(tallas);
-            if (Array.isArray(tallasArray) && tallasArray.length > 0) {
-                const tallasValues = tallasArray.map(t => [id, t.talla, t.stock]);
-                await connection.query('INSERT INTO producto_tallas (producto_id, talla, stock) VALUES ?', [tallasValues]);
+            if (tallas && typeof tallas === 'string') {
+                try {
+                    const tallasArray = JSON.parse(tallas);
+                    if (Array.isArray(tallasArray) && tallasArray.length > 0) {
+                        const tallasValues = tallasArray.map(t => [id, t.talla, t.stock]);
+                        await connection.query('INSERT INTO producto_tallas (producto_id, talla, stock) VALUES ?', [tallasValues]);
+                    }
+                } catch (jsonError) {
+                    logger.error('Error al parsear JSON de tallas:', jsonError);
+                }
             }
+        } else {
+            await connection.query('DELETE FROM producto_tallas WHERE producto_id = ?', [id]);
         }
 
         await connection.commit();
         res.status(200).json({ message: 'Producto actualizado con éxito' });
+
     } catch (error) {
         await connection.rollback();
         logger.error(`Error al actualizar el producto ${id}:`, error);
-        res.status(500).json({ message: `Error de base de datos: ${error.message}` });
+        res.status(500).json({ message: 'Error interno del servidor al actualizar el producto.' });
     } finally {
-        connection.release();
+        if (connection) connection.release();
     }
 });
 
@@ -469,11 +490,12 @@ router.put('/:id/toggle-status', auth, async (req, res) => {
     }
 });
 
-// DELETE /api/productos/:id - Eliminar un producto
-router.delete('/:id', auth, async (req, res) => {
+// DELETE /api/productos/delete/:id - Eliminar un producto
+router.delete('/delete/:id', auth, async (req, res) => {
     const { id } = req.params;
-    const connection = await db.getConnection();
+    let connection;
     try {
+        connection = await db.getConnection();
         await connection.beginTransaction();
 
         const [productRows] = await connection.query(`SELECT ${imageFields.join(', ')} FROM productos WHERE id = ?`, [id]);
@@ -481,10 +503,10 @@ router.delete('/:id', auth, async (req, res) => {
             const product = productRows[0];
             for (const field of imageFields) {
                 if (product[field]) {
-                    const filePath = path.join(__dirname, '..', product[field]);
-                    if (fs.existsSync(filePath)) {
-                        fs.unlinkSync(filePath);
-                        logger.info(`Archivo local eliminado: ${filePath}`);
+                    const publicId = getPublicIdFromUrl(product[field]);
+                    if (publicId) {
+                        await cloudinary.uploader.destroy(publicId, { resource_type: 'image' });
+                        logger.info(`Imagen eliminada de Cloudinary: ${publicId}`);
                     }
                 }
             }
@@ -494,19 +516,21 @@ router.delete('/:id', auth, async (req, res) => {
         const [deleteResult] = await connection.query('DELETE FROM productos WHERE id = ?', [id]);
 
         if (deleteResult.affectedRows === 0) {
-            throw new Error('El producto no fue encontrado para eliminar.');
+            await connection.rollback();
+            return res.status(404).json({ message: 'El producto no fue encontrado para eliminar.' });
         }
 
         await connection.commit();
         res.status(200).json({ message: 'Producto y sus imágenes han sido eliminados correctamente' });
     } catch (error) {
-        await connection.rollback();
+        if (connection) await connection.rollback();
         logger.error(`Error al eliminar el producto ${id}:`, error);
         res.status(500).json({ message: 'Error interno del servidor al eliminar el producto.' });
     } finally {
-        connection.release();
+        if(connection) connection.release();
     }
 });
+
 router.get('/detalles-para-stock', auth, async (req, res) => {
     console.log('--- [DEBUG] RUTA /detalles-para-stock INVOCADA ---');
     const { referencia, categoriaId } = req.query;

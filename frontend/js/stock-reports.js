@@ -1,4 +1,57 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const responsableInput = document.getElementById('responsable_modificacion');
+
+    // --- Lógica para rellenar el nombre del responsable ---
+    function decodificarToken(token) {
+        try {
+            const payloadBase64 = token.split('.')[1];
+            const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        } catch (e) {
+            console.error('Error al decodificar el token:', e);
+            return null;
+        }
+    }
+
+    function rellenarResponsable() {
+        const token = localStorage.getItem('token');
+        if (token && responsableInput) {
+            const userData = decodificarToken(token);
+            if (userData && userData.nombre_usuario) {
+                responsableInput.value = userData.nombre_usuario;
+                responsableInput.readOnly = true; // Hacer el campo no editable
+            }
+        }
+    }
+
+    rellenarResponsable(); // Llenar el campo al cargar la página
+
+    // --- Lógica para obtener el siguiente ID de Movimiento ---
+    async function cargarSiguienteIdMovimiento() {
+        const sufijoInput = document.getElementById('stock_change_order_id_sufijo');
+        const hiddenInput = document.getElementById('stock_change_order_id');
+        if (!sufijoInput || !hiddenInput) return;
+
+        try {
+            const data = await fetchWithAuth('/api/stock/modificaciones/next-id');
+            if (data && data.nextId) {
+                const nextIdFormatted = String(data.nextId).padStart(2, '0'); // Asegura 2 dígitos
+                sufijoInput.value = nextIdFormatted;
+                hiddenInput.value = `MOD-${nextIdFormatted}`;
+                sufijoInput.readOnly = true; // Hacer el campo no editable
+            }
+        } catch (error) {
+            console.error('Error al cargar el siguiente ID de movimiento:', error);
+            sufijoInput.value = 'Error';
+        }
+    }
+
+    cargarSiguienteIdMovimiento();
+
+
     const productoCategoriaSelect = document.getElementById('producto-categoria');
     const productoSubcategoriaSelect = document.getElementById('producto-subcategoria');
 
@@ -174,12 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Combinar prefijo y sufijo para el ID de Movimiento
-    if (stockChangeIdSufijoInput) {
-        stockChangeIdSufijoInput.addEventListener('input', () => {
-            stockChangeIdHiddenInput.value = `MOD-${stockChangeIdSufijoInput.value}`;
-        });
-    }
+
 
     const renderStockHistory = (history) => {
         historyBody.innerHTML = '';
@@ -195,6 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${new Date(record.fecha_modificacion).toLocaleDateString('es-CO')}</td>
                 <td>${record.responsable_modificacion}</td>
                 <td>${record.autorizado_por}</td>
+                <td>${record.cliente || 'N/A'}</td>
                 <td>${record.ref_producto}</td>
                 <td>${record.cantidad_cambio}</td>
                 <td>${record.tipo_cambio}</td>

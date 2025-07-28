@@ -764,7 +764,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const setEditMode = (enabled) => {
             productFormFieldset.disabled = !enabled;
             editModeToggle.classList.toggle('edit-mode-on', enabled);
-            
+
+            // Toggle main lock icon
             const icon = editModeToggle.querySelector('i');
             if (enabled) {
                 icon.classList.remove('fa-lock');
@@ -772,6 +773,23 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 icon.classList.remove('fa-unlock-alt');
                 icon.classList.add('fa-lock');
+            }
+
+            // Enable/disable dynamically added size/stock inputs
+            const tallaInputs = tallasList.querySelectorAll('input[name="talla[]"], input[name="stock[]"]');
+            tallaInputs.forEach(input => {
+                input.readOnly = !enabled;
+            });
+
+            // Show/hide remove buttons for sizes
+            const removeButtons = tallasList.querySelectorAll('.remove-talla-btn');
+            removeButtons.forEach(btn => {
+                btn.style.display = enabled ? 'inline-block' : 'none';
+            });
+
+            // Enable/disable the 'Add Size' button
+            if (btnAgregarTalla) {
+                btnAgregarTalla.disabled = !enabled;
             }
         };
 
@@ -783,22 +801,37 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        authForm.addEventListener('submit', (e) => {
+        authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('auth-user').value;
             const password = document.getElementById('auth-password').value;
 
-            // Simple hardcoded credentials (replace with a secure check)
-            if (username === 'Control-Maestro' && password === 'Activar_Control_Maestro_llave_00001') {
-                setEditMode(true);
-                closeAuthModal();
-            } else {
-                authErrorMessage.textContent = 'Credenciales incorrectas.';
-                // Shake animation for feedback
-                authModal.querySelector('.modal-content').style.animation = 'modal-shake 0.5s';
-                setTimeout(() => {
-                    authModal.querySelector('.modal-content').style.animation = '';
-                }, 500);
+            try {
+                const response = await fetch(`${API_URL}/auth-produccion/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nombre_usuario: username, password: password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Si las credenciales son correctas, activa el modo edición
+                    setEditMode(true);
+                    closeAuthModal();
+                } else {
+                    // Si las credenciales son incorrectas, muestra el mensaje de error del servidor
+                    authErrorMessage.textContent = data.message || 'Credenciales incorrectas.';
+                    authModal.querySelector('.modal-content').style.animation = 'modal-shake 0.5s';
+                    setTimeout(() => {
+                        authModal.querySelector('.modal-content').style.animation = '';
+                    }, 500);
+                }
+            } catch (error) {
+                console.error('Error al autenticar para modo edición:', error);
+                authErrorMessage.textContent = 'Error de conexión. Inténtalo de nuevo.';
             }
         });
 

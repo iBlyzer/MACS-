@@ -9,12 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = e.target.password.value;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+            const response = await fetch(`${API_BASE_URL}/api/auth-produccion/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({ nombre_usuario: username, password })
             });
 
             const data = await response.json();

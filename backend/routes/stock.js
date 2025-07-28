@@ -52,6 +52,7 @@ router.post('/modificaciones', auth, async (req, res) => {
     const { 
         responsable_modificacion, 
         autorizado_por, 
+        cliente,
         ref_producto, 
         categoria, 
         subcategoria, 
@@ -88,10 +89,10 @@ router.post('/modificaciones', auth, async (req, res) => {
 
         // 1. Insertar el registro de la modificación de stock
         const insertModificationQuery = `
-            INSERT INTO modificaciones_stock (responsable_modificacion, autorizado_por, ref_producto, categoria, subcategoria, cantidad_cambio, tipo_cambio, talla, stock_change_order_id, descripcion_cambio)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO modificaciones_stock (responsable_modificacion, autorizado_por, cliente, ref_producto, categoria, subcategoria, cantidad_cambio, tipo_cambio, talla, stock_change_order_id, descripcion_cambio)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
-        await connection.query(insertModificationQuery, [responsable_modificacion, autorizado_por, ref_producto, categoria, subcategoria, cantidad_cambio, tipo_cambio, tallaParaActualizar, stock_change_order_id, descripcion_cambio]);
+        await connection.query(insertModificationQuery, [responsable_modificacion, autorizado_por, cliente, ref_producto, categoria, subcategoria, cantidad_cambio, tipo_cambio, tallaParaActualizar, stock_change_order_id, descripcion_cambio]);
 
         // 2. Actualizar el stock en la tabla 'producto_tallas'
         const stockChange = tipo_cambio === 'Aumento' ? parseInt(cantidad_cambio, 10) : -parseInt(cantidad_cambio, 10);
@@ -154,6 +155,30 @@ router.get('/modificaciones', auth, async (req, res) => {
     } catch (error) {
         console.error('Error al obtener el historial de modificaciones:', error);
         res.status(500).json({ message: 'Error en el servidor al obtener el historial.', error: error.message });
+    }
+});
+
+// GET para obtener el siguiente ID de movimiento disponible
+router.get('/modificaciones/next-id', auth, async (req, res) => {
+    try {
+        const query = `
+            SELECT MAX(CAST(SUBSTRING(stock_change_order_id, 5) AS UNSIGNED)) as last_id 
+            FROM modificaciones_stock 
+            WHERE stock_change_order_id LIKE 'MOD-%';
+        `;
+        
+        const [rows] = await db.query(query);
+        
+        let nextId = 1;
+        if (rows.length > 0 && rows[0].last_id !== null) {
+            nextId = parseInt(rows[0].last_id, 10) + 1;
+        }
+        
+        res.status(200).json({ nextId });
+
+    } catch (error) {
+        console.error('Error al obtener el siguiente ID de movimiento:', error);
+        res.status(500).json({ message: 'Error en el servidor al obtener el siguiente ID.' });
     }
 });
 
