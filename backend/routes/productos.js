@@ -288,7 +288,8 @@ router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const query = `
-            SELECT p.*, c.id as categoria_id, c.nombre as categoria_nombre
+            SELECT p.*, c.id as categoria_id, c.nombre as categoria_nombre,
+                   (SELECT SUM(stock) FROM producto_tallas WHERE producto_id = p.id) as stock_total
             FROM productos p
             LEFT JOIN categorias c ON p.categoria_id = c.id
             WHERE p.id = ?

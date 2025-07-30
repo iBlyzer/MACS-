@@ -15,9 +15,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         const producto = await response.json();
 
+        console.log('--- DEBUG: Datos del Producto ---');
+        console.log('Producto completo recibido de la API:', producto);
+        console.log(`Stock Total (leído de producto.stock_total): ${producto.stock_total}`);
+        console.log('Tallas recibidas:', producto.tallas);
+        console.log('---------------------------------');
+
         renderizarProductoPrincipal(producto);
 
-        // Asegurarse de que categoria_id exista antes de llamar a cargarRecomendados
         if (producto.categoria_id) {
             await cargarRecomendados(producto.categoria_id, producto.id);
         }
@@ -27,8 +32,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (detalleContainer) detalleContainer.innerHTML = `<p>Error al cargar el producto: ${error.message}</p>`;
     }
 });
-
-
 
 const GUIA_DE_TALLAS = {
     'sombreros': {
@@ -143,11 +146,10 @@ function renderizarProductoPrincipal(product) {
     const detalleContainer = document.getElementById('detalle-producto-container');
     if (!detalleContainer) return;
 
+    const stockTotal = product.stock_total || 0;
+
     const hasTallas = Array.isArray(product.tallas) && product.tallas.length > 0;
     const tallasDisponibles = hasTallas ? product.tallas.filter(t => parseInt(t.stock, 10) > 0) : [];
-    const stockTotal = hasTallas
-        ? product.tallas.reduce((total, talla) => total + (parseInt(talla.stock, 10) || 0), 0)
-        : (parseInt(product.stock, 10) || 0);
 
     let selectedTalla = null;
     let currentStock = stockTotal;
@@ -245,7 +247,7 @@ function renderizarProductoPrincipal(product) {
         const stockStatus = stock > 0 ? 'in-stock' : 'out-of-stock';
         const stockLabel = stock > 0 ? 'En Stock' : 'Agotado';
         const stockQuantityText = stock > 0 ? `${stock} disponibles` : '';
-        stockDisplayContainer.innerHTML = `<span class="stock-badge ${stockStatus}">${stockLabel}</span>${stock > 0 ? `<span class="stock-quantity-available">${stockQuantityText}</span>` : ''}`;
+        stockDisplayContainer.innerHTML = `<span class="stock-badge ${stockStatus}">${stockLabel}</span>${stock > 0 ? `<span class="stock-quantity-available" id="stock-total-display">${stockQuantityText}</span>` : ''}`;
     }
 
     function setupControls() {
@@ -319,7 +321,8 @@ function renderizarProductoPrincipal(product) {
     function setupTallasYGuia() {
         if (!hasTallas || tallasDisponibles.length === 0) {
             sizesContainer.innerHTML = '';
-            updateStockDisplay(stockTotal);
+            // Llamada inicial para mostrar el stock total
+        updateStockDisplay(stockTotal);
             return;
         }
 
@@ -334,16 +337,41 @@ function renderizarProductoPrincipal(product) {
 
         const sizeGrid = sizesContainer.querySelector('.size-grid');
         sizeGrid.addEventListener('click', (e) => {
-            if (e.target.classList.contains('size-box')) {
-                sizeGrid.querySelectorAll('.size-box').forEach(btn => btn.classList.remove('selected'));
+            if (e.target.classList.contains('size-box') && !e.target.disabled) {
+                sizeGrid.querySelectorAll('.size-box').forEach(btn => {
+                    btn.classList.remove('selected');
+                    const oldStockText = btn.querySelector('.size-stock-info');
+                    if(oldStockText) oldStockText.remove();
+                });
+
                 e.target.classList.add('selected');
                 selectedTalla = JSON.parse(e.target.dataset.talla);
-                currentStock = parseInt(selectedTalla.stock, 10) || 0;
+
+                console.log(`--- DEBUG: Selección de Talla ---`);
+                console.log('Talla seleccionada:', selectedTalla);
+                console.log(`Stock para la talla '${selectedTalla.talla}': ${selectedTalla.stock}`);
+                console.log(`Stock Total del producto: ${stockTotal}`);
+                console.log('---------------------------------');
+
+                // Si la talla es 'OS', el stock principal muestra el stock_total del producto.
+                // Si no, muestra el stock específico de la talla seleccionada.
+                if (selectedTalla.talla.toUpperCase() === 'OS') {
+                    currentStock = stockTotal;
+                    updateStockDisplay(stockTotal);
+                } else {
+                    currentStock = parseInt(selectedTalla.stock, 10) || 0;
+                    updateStockDisplay(currentStock);
+                }
+                
+                const stockText = document.createElement('span');
+                stockText.className = 'size-stock-info';
+                stockText.textContent = `(${currentStock} disp.)`;
+                e.target.appendChild(stockText);
+
                 document.getElementById('quantity-input').max = currentStock;
                 if (parseInt(document.getElementById('quantity-input').value) > currentStock) {
                     document.getElementById('quantity-input').value = currentStock > 0 ? 1 : 0;
                 }
-                updateStockDisplay(currentStock);
             }
         });
 
@@ -355,7 +383,7 @@ function renderizarProductoPrincipal(product) {
         }
 
         const sizeGuideLink = sizesContainer.querySelector('.size-guide-link');
-        const esSombrero = (product.nombre || '').toLowerCase().includes('sombrero');
+        const esSombrero = (product.categoria || '').toLowerCase() === 'sombreros';
         if (esSombrero) {
             sizeGuideLink.style.display = 'block';
             sizeGuideLink.addEventListener('click', (e) => {
